@@ -124,7 +124,7 @@
 			"right",["script",
 				"label","Add Fur",
 				"icon","FUR_add_fur",
-				"script","radialmenu.runShelfTool(kwargs, 'LZ RS Setup')"
+				"script","radialmenu.runShelfTool(kwargs, 'LZ Add fur')"
 			],
 			"top_right",["script",
 				"label","Path",
