@@ -1,0 +1,987 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="LZ RIG" label="LZ RIG">
+    <memberTool name="flip bones Selectable flag"/>
+    <memberTool name="Create FK Controll"/>
+    <memberTool name="Create IK/FK Blend Controlls"/>
+    <memberTool name="bone between nulls"/>
+    <memberTool name="copy PreTranform"/>
+    <memberTool name="create_twist_bones"/>
+    <memberTool name="set to bones group"/>
+    <memberTool name="create static Hooks"/>
+    <memberTool name="update curve CVs"/>
+    <memberTool name="update Bones On Curve Length"/>
+    <memberTool name="Create Fetch"/>
+    <memberTool name="Xray"/>
+    <memberTool name="Basic Capture"/>
+    <memberTool name="Rename"/>
+    <memberTool name="object_bones"/>
+    <memberTool name="object_bonesfromcurve"/>
+    <memberTool name="sop_capture"/>
+    <memberTool name="Add Controls On Curve"/>
+    <memberTool name="Select all of same type"/>
+    <memberTool name="Copy World Transform"/>
+    <memberTool name="Create null at pivot"/>
+    <memberTool name="Fix Autorig"/>
+    <memberTool name="Add Axis"/>
+    <memberTool name="Stretch Chain Setup"/>
+    <memberTool name="Fix Absolute Paths"/>
+    <memberTool name="Extract Maya Bones"/>
+  </toolshelf>
+
+  <tool name="flip bones Selectable flag" label="flip bones Selectable flag" icon="hicon:/SVGIcons.index?OBJ_autorig_leg.svg">
+    <script scriptType="python"><![CDATA[editor = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+nodes = editor.pwd().children()
+for node in nodes:
+    if node.type().name() == 'bone':
+        node.setSelectableInViewport(not node.isSelectableInViewport()) 
+
+
+#if hou.selectedNodes() is not ():
+#    nodes = hou.selectedNodes()[0].parent().children()
+#    for node in nodes:
+#        if node.type().name() == 'bone':
+#            node.setSelectableInViewport(not node.isSelectableInViewport())    ]]></script>
+  </tool>
+
+  <tool name="Create FK Controll" label="Create FK Controlls" icon="hicon:/SVGIcons.index?OBJ_pathcv.svg">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    if n.type().name() == 'bone':
+                
+        ctrl = n.inputs()[0].createOutputNode('null',n.name() + '_ctrl')
+        
+        if  n.inputs()[0].type().name() == 'bone':
+            ctrl.parm('tz').set( -n.inputs()[0].parm('length').eval())
+        
+        ctrl.setPreTransform(n.preTransform() * ctrl.parmTransform())
+        ctrl.setParmTransform(hou.Matrix4(1))
+        
+        ctrl.parm('rOrd').set(5)
+        ctrl.parm('controltype').set(1)
+        ctrl.setPosition(n.position() + hou.Vector2(2,0))
+        
+        n.parm('rx').setExpression('ch("../`$OS`_ctrl/rx")')
+        n.parm('ry').setExpression('ch("../`$OS`_ctrl/ry")')
+        n.parm('rz').setExpression('ch("../`$OS`_ctrl/rz")')
+        
+        n.setSelectableInViewport(0)
+        
+        ctrl.parmTuple('t').lock((1,1,1))
+        ctrl.parmTuple('s').lock((1,1,1))
+        ctrl.parmTuple('p').lock((1,1,1))
+        
+        ctrl.setColor(hou.Color(0.29,0.565,0.886))
+        
+        ]]></script>
+  </tool>
+
+  <tool name="Create IK/FK Blend Controlls" label="Create IK/FK Blend Controlls" icon="hicon:/SVGIcons.index?BUTTONS_add_constraints.svg">
+    <script scriptType="python"><![CDATA[def fixSpareFolders(node):
+    ptg = node.parmTemplateGroup()
+    folders = ptg.entries()
+    for folder in folders:
+        folder.setFolderType(hou.folderType.Simple)
+        ptg.replace(folder.name(),folder)
+    node.setParmTemplateGroup(ptg) 
+
+
+for chopnet in hou.selectedNodes():
+    if chopnet.type().name() == 'chopnet':
+        ptg = chopnet.parmTemplateGroup()
+        ptg.clear()
+        
+        for n in chopnet.children():
+            if n.type().name() == 'inversekin':
+                name =  n.name()
+                
+                # add same parm on a controll
+                ctrl = hou.node(n.parm("endaffectorpath").eval())                
+                cprt_ptg = ctrl.parmTemplateGroup()
+                cprt_ptg.clear()
+                parm = hou.FloatParmTemplate(name,name,1,min=0, max=1,min_is_strict=True, max_is_strict=True)
+                cprt_ptg.addParmTemplate(parm)
+                ctrl.setParmTemplateGroup(cprt_ptg) 
+                
+                parm = hou.FloatParmTemplate(name,name,1,min=0, max=1,min_is_strict=True, max_is_strict=True)
+                parm.setDefaultExpression(('ch("../' + ctrl.name() + "/" + parm.name() + '")',))
+                ptg.addParmTemplate(parm)
+                n.parm('blend').setExpression('ch("../$OS")')
+                
+                fixSpareFolders(ctrl)              
+                                
+                
+        chopnet.setParmTemplateGroup(ptg) 
+              
+        
+
+
+
+        
+             
+            
+                
+        ]]></script>
+  </tool>
+
+  <tool name="create_twist_bones" label="create_twist_bones" icon="hicon:/SVGIcons.index?SOP_capturemeta.svg">
+    <script scriptType="python"><![CDATA[def createTwistBone(parent,bone):
+    tw1 = parent.createOutputNode('bone',bone.name() + "_twist1")
+    # he ranames them automaticly
+    tw1.setColor(hou.Color(1,0.8,0))
+    tw1.parm('length').set(bone.parm('length').eval() * 0.25)
+    return tw1
+    
+def fixSpareFolders(node):
+    ptg = node.parmTemplateGroup()
+    folders = ptg.entries()
+    for folder in folders:
+        folder.setFolderType(hou.folderType.Simple)
+        ptg.replace(folder.name(),folder)
+    node.setParmTemplateGroup(ptg) 
+    
+    
+for bone in hou.selectedNodes():
+    if bone.type().name() == 'bone':
+        bone.setDisplayFlag(0)
+    
+        parent = bone.inputs()[0]
+        tw1 = createTwistBone(parent,bone)
+        tw1.setPosition(bone.position() + hou.Vector2(2,0))
+        tw2 = createTwistBone(tw1,bone)
+        tw3 = createTwistBone(tw2,bone)
+        tw4 = createTwistBone(tw3,bone)
+        
+        chopnet = bone.parent().createNode('chopnet',tw1.name() + "_chopnet")
+        chopnet.setPosition(tw1.position() + hou.Vector2(2,0))
+        
+        #null = bone.parent().createNode('null',tw1.name() + "_target")
+        null = bone.createOutputNode('null',tw1.name() + "_target")
+        null.setPosition(tw1.position() + hou.Vector2(2,-1))
+        null.parm("tz").set( - bone.parm("length").eval())
+        
+        ik = chopnet.createNode('inversekin',tw1.name() + "_ik")
+        ik.parm('bonerootpath').set('../../' + tw1.name())
+        ik.parm('boneendpath').set('../../' + tw1.name())
+        ik.parm('solvertype').set(2)
+        ik.parm('endaffectorpath').set('../../' + null.name())
+        
+        tw1.parm('solver').set('../' + chopnet.name() + "/"+ ik.name())
+        
+        # add rotate controlls
+        ptg = null.parmTemplateGroup()
+        ptg.clear()
+        parm = hou.FloatParmTemplate('Rotate_Final','Rotate_Final',1)
+        parm.setDefaultExpression(('ch("IK_Rotate")*(1-ch("IK_FK")) + ch("FK_Rotate")*ch("IK_FK")',))
+        ptg.addParmTemplate(parm)
+        parm = hou.FloatParmTemplate('IK_FK','IK_FK',1,min=0, max=1,min_is_strict=True, max_is_strict=True)
+        side_prefix = null.name().split("_")[0]     
+        side_name_str = 'right' if side_prefix=='R' else 'left'
+        expression = '1-ch("../' + side_name_str + 'handfkikblend")'
+        parm.setDefaultExpression((expression,))
+        ptg.addParmTemplate(parm)
+        parm = hou.FloatParmTemplate('IK_Rotate','IK_Rotate',1)
+        expression = 'ch("../' + side_prefix + '_Hand_handroot/rz")'
+        parm.setDefaultExpression((expression,))
+        ptg.addParmTemplate(parm)
+        parm = hou.FloatParmTemplate('FK_Rotate','FK_Rotate',1)
+        expression = '-ch("../'+ side_prefix + '_Hand_fkcontrol/rz")'
+        parm.setDefaultExpression((expression,))
+        ptg.addParmTemplate(parm)
+        # Add Ramp Here??
+        null.setParmTemplateGroup(ptg)        
+        fixSpareFolders(null)                 
+        
+        # set rotates
+        tw2.parm("rz").setExpression('-ch("../' + null.name() +'/Rotate_Final")*0.25')
+        tw3.parm("rz").setExpression('-ch("../' + null.name() +'/Rotate_Final")*0.25')
+        tw4.parm("rz").setExpression('-ch("../' + null.name() +'/Rotate_Final")*0.25')
+
+        # Hide Null
+        null.setSelectableInViewport(0)
+        null.setDisplayFlag(0)
+                
+        # network box
+        nb = bone.parent().createNetworkBox()
+        nb.addNode(tw1)
+        nb.addNode(tw2)
+        nb.addNode(tw3)
+        nb.addNode(tw4)
+        nb.addNode(null)
+        nb.addNode(chopnet)
+        nb.fitAroundContents()
+        
+        
+        
+        ]]></script>
+  </tool>
+
+  <tool name="bone between nulls" label="bone between nulls" icon="hicon:/SVGIcons.index?DOP_noconrel.svg">
+    <script scriptType="python"><![CDATA[if len(hou.selectedNodes())>1:
+    n1 = hou.selectedNodes()[0]
+    n2 = hou.selectedNodes()[1]
+    
+    w1 = n1.worldTransform()
+    w2 = n2.worldTransform()
+    
+    p1 = w1.extractTranslates()
+    p2 = w2.extractTranslates()
+    
+    dir = (p2-p1)/(p2-p1).length();
+    #transform = hou.Matrix4()
+    m =  dir.matrixToRotateTo(hou.Vector3(0,0,-1))
+    
+    bone = n1.createOutputNode('bone')
+    bone.setPreTransform(m.inverted())
+    bone.parm('length').set((p2-p1).length())
+    
+    
+    ]]></script>
+  </tool>
+
+  <tool name="copy PreTranform" label="copy PreTranform" icon="hicon:/SVGIcons.index?OBJ_STATE_dynamicparent.svg">
+    <script scriptType="python"><![CDATA[if len(hou.selectedNodes())>1:
+    n1 = hou.selectedNodes()[0]
+    n2 = hou.selectedNodes()[1]
+    
+    n1.setPreTransform(n2.preTransform())
+    
+    
+    
+    
+    
+    ]]></script>
+  </tool>
+
+  <tool name="set to bones group" label="set to bones group" icon="hicon:/SVGIcons.index?SOP_grouptransfer.svg">
+    <helpText><![CDATA["""adds all selected bones to user specified node group, ctrl+click removes nodes from ALL groups"""]]></helpText>
+    <script scriptType="python"><![CDATA[if kwargs['ctrlclick'] == False:
+    user_input = hou.ui.readInput("Bone group name",buttons=('OK',),initial_contents="bones" )
+    for bone in hou.selectedNodes():
+        if bone.type().name() == 'bone':
+            nodeGroup = bone.parent().addNodeGroup(user_input[1])
+            nodeGroup.addNode(bone)
+            bone.setColor(hou.Color(1,0.8,0))
+else:
+    for bone in hou.selectedNodes():
+        if bone.type().name() == 'bone':
+            nodeGroups = bone.parent().nodeGroups()
+            for g in nodeGroups:
+                if bone in g.nodes():
+                    g.removeNode(bone)            
+            bone.setColor(hou.Color(1,0.976,0.666))]]></script>
+  </tool>
+
+  <tool name="select all bones" label="Select all bones" icon="hicon:/SVGIcons.index?OBJ_tooncharacter.svg">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    n.setSelected(0)
+
+editor = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+nodes = editor.pwd().children()
+for node in nodes:
+    if node.type().name() == 'bone':
+        node.setSelected(1)]]></script>
+  </tool>
+
+  <tool name="create static Hooks" label="create static Hooks" icon="hicon:/SVGIcons.index?MISC_starthere.svg">
+    <helpText><![CDATA["""Creates an output null for each 'piece' attribute on primitives in a dispay node of a selected subnetwork"""]]></helpText>
+    <script scriptType="python"><![CDATA[for subnet in hou.selectedNodes():
+    n = subnet.displayNode()
+    g = n.geometry()
+    prims = g.prims()
+    i = 0
+    for p in prims:
+        hook = subnet.parent().createNode('null',p.attribValue('piece'))
+        hook.setPosition(subnet.position() + hou.Vector2(2,-i))
+        i = i+1
+        hook.setColor(hou.Color(1,1,1))]]></script>
+  </tool>
+
+  <tool name="update curve CVs" label="update curve CVs" icon="hicon:/SVGIcons.index?OBJ_path.svg">
+    <helpText><![CDATA["""select Path first, then CVs in correct order"""
+
+
+]]></helpText>
+    <script scriptType="python"><![CDATA[if len(hou.selectedNodes()) > 1:
+    nodes = list(hou.selectedNodes())
+    path = nodes.pop(0)
+    if path.type().name() == 'path':
+        merge = path.node('points_merge')
+    
+        merge.parm('numobj').set(len(nodes))
+        i = 1
+        for cv in nodes:
+            merge.parm('objpath' + str(i)).set("../../" + cv.name() + "/points")
+            i += 1]]></script>
+  </tool>
+
+  <tool name="update Bones On Curve Length" label="update Bones On Curve Length" icon="hicon:/SVGIcons.index?CHOP_transformchain.svg">
+    <helpText><![CDATA["""Creates a Rest/Stretch blend on each bone and links it to CHOP and to the last Controll
+(select all bones in chain)
+(CV's should have nulls before them)"""]]></helpText>
+    <script scriptType="python"><![CDATA[def fixSpareFolders(node):
+    ptg = node.parmTemplateGroup()
+    folders = ptg.entries()
+    for folder in folders:
+        folder.setFolderType(hou.folderType.Simple)
+        ptg.replace(folder.name(),folder)
+    node.setParmTemplateGroup(ptg) 
+
+# function starts here
+ik = hou.selectedNodes()[0].node(hou.selectedNodes()[0].parm('solver').eval())
+curve = ik.node(ik.parm('curvepath').eval())
+
+nodes = hou.selectedNodes()
+
+# create blend controll on CHOP
+chop = nodes[0].node(nodes[0].parm('solver').eval()).parent()
+ptg = chop.parmTemplateGroup()
+ptg.clear()
+parm = hou.FloatParmTemplate('stretch','Stretch Blend',1,[0],min=0, max=1,min_is_strict=True, max_is_strict=True)
+ptg.addParmTemplate(parm)
+chop.setParmTemplateGroup(ptg) 
+
+# create blend Controll on Null
+ncvs = curve.node('points_merge').parm('numobj').eval()
+path = curve.node('points_merge').parm('objpath' + str(ncvs)).eval()
+ctrl = curve.node('points_merge').node(path).parent().inputs()[0]
+
+ptg = ctrl.parmTemplateGroup()
+ptg.clear()
+parm = hou.FloatParmTemplate('stretch','Stretch Blend',1,[0],min=0, max=1,min_is_strict=True, max_is_strict=True)
+ptg.addParmTemplate(parm)
+ctrl.setParmTemplateGroup(ptg) 
+fixSpareFolders(ctrl)
+
+chop.parm('stretch').setExpression('ch("' + chop.relativePathTo(ctrl) + '/stretch")')
+
+for n in nodes:
+    ptg = n.parmTemplateGroup()
+    ptg.clear()
+    
+    parm = hou.FloatParmTemplate("rest_length","Rest Length",1,[hou.hscriptExpression('arclen("' + curve.path() + '", 0, 0, 1)/' + str(len(nodes)))])
+    ptg.addParmTemplate(parm)
+    parm = hou.FloatParmTemplate("stretched_length","Stretched Length",1,[hou.hscriptExpression('arclen("' + curve.path() + '", 0, 0, 1)/' + str(len(nodes)))])
+    parm.setDefaultExpression(('arclen("' + n.relativePathTo(curve) + '", 0, 0, 1)/' + str(len(nodes)),))
+    ptg.addParmTemplate(parm)    
+    parm = hou.FloatParmTemplate('stretch','Stretch Blend',1,[0],min=0, max=1,min_is_strict=True, max_is_strict=True)
+    parm.setDefaultExpression(('ch("' + n.relativePathTo(chop) + '/stretch")',))
+    ptg.addParmTemplate(parm)
+    
+    n.setParmTemplateGroup(ptg) 
+    fixSpareFolders(n)
+    
+    n.parm('length').setExpression('ch("stretched_length")*ch("stretch") + ch("rest_length")*(1-ch("stretch"))')
+    
+    
+    
+    
+#   old version    
+#    if kwargs['ctrlclick'] == False:
+#        n.parm('length').setExpression('arclen("' + n.relativePathTo(curve) + '", 0, 0, 1)/' + str(len(nodes)))
+#    else:
+#        n.parm('length').deleteAllKeyframes()
+#        n.parm('length').set(hou.hscriptExpression('arclen("' + curve.path() + '", 0, 0, 1)/' + str(len(nodes))))
+    
+    
+    
+    
+    
+    ]]></script>
+  </tool>
+
+  <tool name="Create Fetch" label="Create Fetch" icon="hicon:/SVGIcons.index?OBJ_fetch.svg">
+    <helpText><![CDATA["""Creates a fetch node for a parent of selected node"""]]></helpText>
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    #n.parm('keeppos').set(1)
+    parent = n.inputs()[0]
+    fetch = n.createInputNode(0,'fetch',"Fetch_" + parent.name())
+    fetch.setPosition(n.position() + hou.Vector2(0,1))
+    fetch.parm('fetchobjpath').set(fetch.relativePathTo(parent))
+    fetch.parm('useinputoffetched').set(1)
+    fetch.setDisplayFlag(0)
+    ]]></script>
+  </tool>
+
+  <tool name="Xray" label="Xray" icon="hicon:/SVGIcons.index?SOP_attribcast.svg">
+    <helpText><![CDATA["""Click to turn Xray ON, Ctrl+Click to turn Xray OFF """]]></helpText>
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    n.useXray(kwargs['ctrlclick'] == False)
+]]></script>
+  </tool>
+
+  <tool name="Basic Capture" label="Basic Capture" icon="hicon:/SVGIcons.index?SOP_bonecapturebiharmonic.svg">
+    <helpText><![CDATA["""Basic Capture network with bones in group"""]]></helpText>
+    <toolMenuContext name="network">
+      <contextOpType>Sop/null</contextOpType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputitem = None
+inputindex = -1
+inputitem = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if kwargs.has_key("outputnodename") and kwargs.has_key("inputindex"):
+        outputitem = pane_node.item(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if kwargs.has_key("inputnodename") and kwargs.has_key("outputindex"):
+        inputitem = pane_node.item(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if kwargs.has_key("autoplace"):
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+        if inputitem is None:
+            inputitem = pane.currentNode()
+            outputindex = 0
+    if kwargs.has_key("nodepositionx") and             kwargs.has_key("nodepositiony"):
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+
+    if not autoplace and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputitem is None:
+            pos = pane.selectPosition(inputitem, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputitem, outputindex,
+                                      outputitem, inputindex)
+
+    if pos is not None:
+        if kwargs.has_key("node_bbox"):
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if not child_type.has_key('convertvdb'):
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_test_Scarf_SCARF_IN (Sop/null)
+set _obj_test_Scarf_SCARF_IN = `run("opadd -e -n -v null IN")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_test_Scarf_SCARF_IN
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_test_Scarf_SCARF_IN
+opexprlanguage -s hscript $_obj_test_Scarf_SCARF_IN
+opset -p on $_obj_test_Scarf_SCARF_IN
+opcf $arg1
+
+# Node $_obj_test_Scarf_SCARF_Capture (Sop/bonecapturebiharmonic)
+set _obj_test_Scarf_SCARF_Capture = `run("opadd -e -n -v bonecapturebiharmonic Capture")`
+oplocate -x `$arg2 + 0.17225225225225227` -y `$arg3 + -4.3616201861406445` $_obj_test_Scarf_SCARF_Capture
+opset -d on -r on -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_test_Scarf_SCARF_Capture
+opexprlanguage -s hscript $_obj_test_Scarf_SCARF_Capture
+opset -p on $_obj_test_Scarf_SCARF_Capture
+opcf $arg1
+
+# Node $_obj_test_Scarf_SCARF_solidembed (Sop/solidembed::2.0)
+set _obj_test_Scarf_SCARF_solidembed = `run("opadd -e -n -v solidembed::2.0 solidembed")`
+oplocate -x `$arg2 + 2.6190846846846845` -y `$arg3 + -3.37734796992443` $_obj_test_Scarf_SCARF_solidembed
+opparm $_obj_test_Scarf_SCARF_solidembed coverinput ( off )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_test_Scarf_SCARF_solidembed
+opexprlanguage -s hscript $_obj_test_Scarf_SCARF_solidembed
+opuserdata -n '___Version___' -v '' $_obj_test_Scarf_SCARF_solidembed
+opuserdata -n '___toolcount___' -v '2' $_obj_test_Scarf_SCARF_solidembed
+opuserdata -n '___toolid___' -v 'dop_fracturedsolidobject' $_obj_test_Scarf_SCARF_solidembed
+opset -p on $_obj_test_Scarf_SCARF_solidembed
+opcf $arg1
+
+# Node $_obj_test_Scarf_SCARF_stash (Sop/stash)
+set _obj_test_Scarf_SCARF_stash = `run("opadd -e -n -v stash stash")`
+oplocate -x `$arg2 + 0.17225225225225227` -y `$arg3 + -5.2558201861406459` $_obj_test_Scarf_SCARF_stash
+opcomment -c 'Press Stash Input to Recache' $_obj_test_Scarf_SCARF_stash
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off -Y on $_obj_test_Scarf_SCARF_stash
+opexprlanguage -s hscript $_obj_test_Scarf_SCARF_stash
+opset -p on $_obj_test_Scarf_SCARF_stash
+opcf $arg1
+
+# Node $_obj_test_Scarf_SCARF_vdb (Sop/vdbfromparticles)
+set _obj_test_Scarf_SCARF_vdb = `run("opadd -e -n -v vdbfromparticles vdb")`
+oplocate -x `$arg2 + 1.234594594594594` -y `$arg3 + -1.638266672582616` $_obj_test_Scarf_SCARF_vdb
+opparm $_obj_test_Scarf_SCARF_vdb  numattrib ( 0 )
+chblockbegin
+chadd -t 0 0 $_obj_test_Scarf_SCARF_vdb radiusscale
+chkey -t 0 -v 0.02 -m 0 -a 0 -A 0 -T a  -F 'ch("voxelsize")*2' $_obj_test_Scarf_SCARF_vdb/radiusscale
+chblockend
+opparm -V 16.0.557 $_obj_test_Scarf_SCARF_vdb voxelsize ( 0.0050000000000000001 ) radiusscale ( radiusscale )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_test_Scarf_SCARF_vdb
+opexprlanguage -s hscript $_obj_test_Scarf_SCARF_vdb
+opuserdata -n '___Version___' -v '16.0.557' $_obj_test_Scarf_SCARF_vdb
+opset -p on $_obj_test_Scarf_SCARF_vdb
+opcf $arg1
+
+# Node $_obj_test_Scarf_SCARF_bonecapture_lines (Sop/bonecapturelines)
+set _obj_test_Scarf_SCARF_bonecapture_lines = `run("opadd -e -n -v bonecapturelines bonecapture_lines")`
+oplocate -x `$arg2 + 4.2670126126126133` -y `$arg3 + -2.3397066726271332` $_obj_test_Scarf_SCARF_bonecapture_lines
+opspareds '    parm {   name    "rootpath"      baseparm        label   "Hierarchy"     export  all     }     parm {    name    "extraregions"  baseparm        label   "Extra Regions"         export  none     }     parm {   name    "resample"      baseparm        label   "Resample Segments"     export  none     }     parm {   name    "maxaxisfraction"       baseparm        label   "Max Axis Fraction"     export  none     }     parm {   name    "maxlength"     baseparm        label   "Max Segment Length"    export  none     }     parm {   name    "excludeshortbones"     baseparm        label   "Exclude Short Bones"   export  none     }     parm {   name    "excludethreshold"      baseparm        label   "Exclude Threshold"     export  none     }     parm {   name    "usebonelink"   baseparm        label   "Use Bone Link"         export  none     }     groupcollapsible {       name    "captureoptions2"       label   "Capture Options"       grouptag        { "group_type" "collapsible" }          parm {      name        "usecaptpose"       baseparm        label       "Use Capture Pose"          export      none    }       parm {      name        "captframe"         baseparm        label       "Capture Frame"             export      none    }       parm {      name        "cookat"            baseparm        label       "Cook at"           export      none    }       parm {      name        "forcecook"         baseparm        label       "Force Cook"        export      all     }     }      groupcollapsible {         name    "hierarchyoptions2"     label   "Hierarchy Options"     grouptag        { "group_type" "collapsible" }          parm {      name        "captureregionsop"          baseparm        label       "Region SOP"        export      none    }       parm {      name        "dosubnets"         baseparm        label       "Traverse into Subnets"             export      none    }       parm {      name        "relativeskel"      baseparm        label       "Create Relative Skeleton Root Path"        export      none    }     }      parm {     name    "autorigs_nodegroups"   label   "Auto Rig Node Groups"  type    string  default { "" }     } ' $_obj_test_Scarf_SCARF_bonecapture_lines
+chblockbegin
+chadd -t 0 0 $_obj_test_Scarf_SCARF_bonecapture_lines extraregions
+chkey -t 0 -v 0 -m 0 -a 0.33333333333333331 -A 0.33333333333333331 -T a  -F '\nasset = hou.node("/obj/test_spine")\nasset = hou.pwd().parent().parent()\npaths = []\nfor g in parm("autorigs_nodegroups").eval().split():\n    print asset.nodeGroup(g)\n    for n in asset.nodeGroup(g).nodes():\n        paths.append(n.path())\nreturn \' \'.join(paths) \n        ' -l p $_obj_test_Scarf_SCARF_bonecapture_lines/extraregions
+chblockend
+opparm -V 16.0.557 $_obj_test_Scarf_SCARF_bonecapture_lines extraregions ( extraregions ) usebonelink ( on ) usecaptpose ( off ) captureoptions2 ( 1 ) autorigs_nodegroups ( bones )
+chautoscope $_obj_test_Scarf_SCARF_bonecapture_lines +extraregions
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_test_Scarf_SCARF_bonecapture_lines
+opexprlanguage -s hscript $_obj_test_Scarf_SCARF_bonecapture_lines
+opset -p on $_obj_test_Scarf_SCARF_bonecapture_lines
+opcf $arg1
+
+# Node $_obj_test_Scarf_SCARF_deform (Sop/deform)
+set _obj_test_Scarf_SCARF_deform = `run("opadd -e -n -v deform deform")`
+oplocate -x `$arg2 + 0.17225225225225227` -y `$arg3 + -6.1500201861406456` $_obj_test_Scarf_SCARF_deform
+opparm -V 16.0.557 $_obj_test_Scarf_SCARF_deform donormal ( on )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_test_Scarf_SCARF_deform
+opexprlanguage -s hscript $_obj_test_Scarf_SCARF_deform
+opset -p on $_obj_test_Scarf_SCARF_deform
+opcf $arg1
+
+# Node $_obj_test_Scarf_SCARF_scatter1 (Sop/scatter::2.0)
+set _obj_test_Scarf_SCARF_scatter1 = `run("opadd -e -n -v scatter::2.0 scatter1")`
+oplocate -x `$arg2 + 1.234594594594594` -y `$arg3 + -0.94931667258261676` $_obj_test_Scarf_SCARF_scatter1
+opparm -V 16.0.557 $_obj_test_Scarf_SCARF_scatter1 npts ( 100000 ) relaxpoints ( off )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_test_Scarf_SCARF_scatter1
+opexprlanguage -s hscript $_obj_test_Scarf_SCARF_scatter1
+opuserdata -n '___Version___' -v '16.0.557' $_obj_test_Scarf_SCARF_scatter1
+opset -p on $_obj_test_Scarf_SCARF_scatter1
+opcf $arg1
+
+# Node $_obj_test_Scarf_SCARF_convert_vdb (Sop/convertvdb)
+set _obj_test_Scarf_SCARF_convert_vdb = `run("opadd -e -n -v convertvdb convert_vdb")`
+oplocate -x `$arg2 + 1.234594594594594` -y `$arg3 + -2.3381566725826159` $_obj_test_Scarf_SCARF_convert_vdb
+opparm -V 16.0.557 $_obj_test_Scarf_SCARF_convert_vdb conversion ( poly )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_test_Scarf_SCARF_convert_vdb
+opexprlanguage -s hscript $_obj_test_Scarf_SCARF_convert_vdb
+opuserdata -n '___Version___' -v '16.0.557' $_obj_test_Scarf_SCARF_convert_vdb
+opset -p on $_obj_test_Scarf_SCARF_convert_vdb
+
+opcf $arg1
+opwire -n $_obj_test_Scarf_SCARF_del_small_pieces -0 $_obj_test_Scarf_SCARF_IN
+opcf $arg1
+opwire -n $_obj_test_Scarf_SCARF_IN -0 $_obj_test_Scarf_SCARF_Capture
+opwire -n $_obj_test_Scarf_SCARF_solidembed -1 $_obj_test_Scarf_SCARF_Capture
+opcf $arg1
+opwire -n $_obj_test_Scarf_SCARF_convert_vdb -0 $_obj_test_Scarf_SCARF_solidembed
+opwire -n $_obj_test_Scarf_SCARF_bonecapture_lines -1 $_obj_test_Scarf_SCARF_solidembed
+opcf $arg1
+opwire -n $_obj_test_Scarf_SCARF_Capture -0 $_obj_test_Scarf_SCARF_stash
+opcf $arg1
+opwire -n $_obj_test_Scarf_SCARF_scatter1 -0 $_obj_test_Scarf_SCARF_vdb
+opcf $arg1
+opcf $arg1
+opwire -n $_obj_test_Scarf_SCARF_stash -0 $_obj_test_Scarf_SCARF_deform
+opcf $arg1
+opwire -n $_obj_test_Scarf_SCARF_IN -0 $_obj_test_Scarf_SCARF_scatter1
+opcf $arg1
+opwire -n $_obj_test_Scarf_SCARF_vdb -0 $_obj_test_Scarf_SCARF_convert_vdb
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_test_Scarf_SCARF_deform
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_test_Scarf_SCARF_IN
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+
+  <tool name="Rename" label="Rename" icon="hicon:/SVGIcons.index?BUTTONS_edit.svg">
+    <helpText><![CDATA["""Normal: rename all selected nodes in selection order
+Bones: Select Root node, renames all nodes after root with bone_ prefix and root with root_ prefix
+(you need to select only the root)"""]]></helpText>
+    <script scriptType="python"><![CDATA[user_input = hou.ui.readInput("Bone group name",buttons=('Normal','Bones'))
+name = user_input[1].replace(" ","_")
+
+if user_input[0] == 0:
+    for node in hou.selectedNodes():
+        node.setName(name,True)
+
+        
+if user_input[0] == 1:
+    root = hou.selectedNodes()[0]
+    root.setName(name + "_root",True)
+    bone = root.outputs()[0]
+    bone.setName(name + "_bone0",True)
+    
+    while bone.outputs() is not ():
+        bone = bone.outputs()[0]
+        bone.setName(name + "_bone0",True)
+        
+]]></script>
+  </tool>
+
+  <tool name="Create Sphere in Pivot" label="Create Sphere in Pivot" icon="hicon:/SVGIcons.index?BUTTONS_match_rotation.svg">
+    <helpText><![CDATA["""Create a null located at pivot for each selected transform"""]]></helpText>
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    if n.type().name() == 'xform':
+        null = n.parent().parent().createNode('null')
+        null.parm('controltype').set(1)
+        null.parm('geoscale').set(0.1)
+        null.parmTuple('t').set(n.parmTuple('p').eval())
+        null.setColor(hou.Color(1,0.5,0.2))]]></script>
+  </tool>
+
+  <tool name="copy world transform" label="copy world transform" icon="hicon:/SVGIcons.index?BUTTONS_global.svg">
+    <helpText><![CDATA["""Copies the world transform of the first selected node to the second selected node(you need to select two nodes)"""]]></helpText>
+    <script scriptType="python"><![CDATA[nodes = hou.selectedNodes()
+if len(nodes)>1:
+    src = nodes[0]
+    dst = nodes[1]
+    dst.setWorldTransform(src.worldTransform())]]></script>
+  </tool>
+
+  <tool name="Add Controls On Curve" label="Add Controls On Curve" icon="hicon:/SVGIcons.index?CHANNELS_handles_tie.svg">
+    <helpText><![CDATA["""Select the path to add center controll to"""]]></helpText>
+    <script scriptType="python"><![CDATA[rate = 240
+
+for n in hou.selectedNodes():
+    # Create Follow Path Null
+    null = n.createOutputNode('null',n.name() + "_sub_tr")
+    chop = null.createNode('chopnet','constraints')
+    getWS = chop.createNode('constraintgetworldspace')
+    getWS.parm('obj_path').set('../..')
+    getWS.parm('vex_rate').set(rate) #not sure why
+        
+    followPath = getWS.createOutputNode('constraintpath')
+    followPath.parm('soppath').set('`opinputpath("../..",0)`')
+    followPath.parm('pos').set(0.5)
+    followPath.parm('vex_rate').set(rate)
+    followPath.setAudioFlag(True)
+    
+    null.parm('constraints_on').set(1)
+    null.parm('constraints_path').set('constraints')
+    
+    # Create Controll
+    ctrl = null.createOutputNode('null',n.name() + "_sub_ctrl")
+    #ctrl.parm('rx').set(180)
+    #ctrl.setPreTransform(ctrl.parmTransform())
+    #ctrl.setParmTransform(hou.Matrix4(1))
+    
+    new_cv = ctrl.createOutputNode('pathcv',n.name() + '_high_cv0')
+    
+    # Create new Path
+    parent = n.inputs()[0]
+    path = parent.createOutputNode('path',n.name() + '_high')
+    path.setPosition(n.position() + hou.Vector2(2,0))
+      
+    # update merge
+    merge = path.node('points_merge')
+    merge.parm('numobj').set(3)
+    merge.parm('objpath1').set( n.node('points_merge').parm('objpath1').evalAsString())
+    merge.parm('objpath3').set( n.node('points_merge').parm('objpath2').evalAsString())
+    
+    merge.parm('objpath2').set( "../../" + new_cv.name() + "/points")
+        
+    #i = 1
+    #for cv in nodes:
+    #    merge.parm('objpath' + str(i)).set("../../" + cv.name() + "/points")
+    #    i += 1
+    
+    n.setDisplayFlag(False)
+    n.setSelectableInViewport(False)
+    path.setSelectableInViewport(False)
+    null.setDisplayFlag(False)
+    null.setSelectableInViewport(False)
+    new_cv.setDisplayFlag(False)
+    new_cv.setSelectableInViewport(False)
+    
+    
+    
+    
+    
+    
+    
+    ]]></script>
+  </tool>
+
+  <tool name="AUTORIG" label="AUTORIG" icon="hicon:/SVGIcons.index?CROWDS_agent2.svg">
+    <script scriptType="python"><![CDATA[d = hou.ui.curDesktop()
+
+import ctypes
+user32 = ctypes.windll.user32
+sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
+dy = [0.4,0.95];
+dx = [0.5,0.8];    
+
+pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
+size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))  
+panel = d.createFloatingPanel(hou.paneTabType.,pos,size)]]></script>
+  </tool>
+
+  <tool name="Select all of same type" label="Select all of same type" icon="hicon:/SVGIcons.index?SHELF_footprints.svg">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    type = n.type().name()
+    for child in n.parent().children():
+        if child.type().name() == type:
+            child.setSelected(True)
+
+
+
+]]></script>
+  </tool>
+
+  <tool name="Copy World Transform" label="Copy World Transform" icon="hicon:/SVGIcons.index?BUTTONS_global.svg">
+    <helpText><![CDATA["""Normal:Copies the world transform of the first selected node to the second selected node
+ALt: Reverse normal operation
+Ctrl: Copies name of the embeded node to the node at obj level
+Shift: Select all targets and AutorigAsset consequently. Copies world transforms of autorig pieces to targets
+UPDDATE HELP! IT's NOT UP TO DATE!!"""]]></helpText>
+    <script scriptType="python"><![CDATA[ctrlclick = kwargs['ctrlclick']
+shiftclick = kwargs['shiftclick']
+altclick = kwargs['altclick']
+
+if ctrlclick :
+    # rename
+    nodes = hou.selectedNodes()
+    if len(nodes)>1:
+        src = nodes[0]
+        dst = nodes[1]
+        if src.parent().path() == '/obj':
+            src.setName(dst.name()+"_tempHook",True)            
+            src.setColor(hou.Color(0.5,0.5,0.8))
+        else:
+            dst.setName(src.name()+"_tempHook",True)            
+            dst.setColor(hou.Color(0.5,0.5,0.8))
+else:
+    # copy orientations
+    nodes = hou.selectedNodes()
+    if len(nodes)>1:
+        if altclick:
+            src = nodes[0]
+            dst = nodes[1]
+        else:
+            dst = nodes[0]
+            src = nodes[1]
+            
+        if shiftclick:
+            dst.setWorldTransform(src.worldTransform())
+        else:
+            swt = src.worldTransform()
+            dwt = dst.worldTransform()        
+            tr =dwt* hou.hmath.buildTranslate(swt.extractTranslates() - dwt.extractTranslates())
+            dst.setWorldTransform(tr)
+        
+        
+        ]]></script>
+  </tool>
+
+  <tool name="Create null at pivot" label="Create null at pivot" icon="hicon:/SVGIcons.index?BUTTONS_match_rotation.svg">
+    <helpText><![CDATA["""Create a null located at pivot for each selected transform
+CtrlClick: Creates a target for an autorig asset"""]]></helpText>
+    <script scriptType="python"><![CDATA[ctrlclick = kwargs['ctrlclick']
+
+if ctrlclick :
+    for n in hou.selectedNodes():
+        null = n.parent().parent().createNode('null')
+        null.parm('controltype').set(1)
+        null.parm('geoscale').set(0.1)
+        null.setWorldTransform(n.worldTransform())
+        null.setColor(hou.Color(1,0.5,0.2))
+        null.setName(n.name()+"_tempHook",True)   
+        null.setColor(hou.Color(0.5,0.5,0.8))
+else:
+    for n in hou.selectedNodes():
+        if n.type().name() == 'xform':
+            null = n.parent().parent().createNode('null')
+            null.parm('controltype').set(1)
+            null.parm('geoscale').set(0.1)
+            null.parmTuple('t').set(n.parmTuple('p').eval())
+            null.setColor(hou.Color(1,0.5,0.2))]]></script>
+  </tool>
+
+  <tool name="Fix Autorig" label="Fix Autorig" icon="hicon:/SVGIcons.index?OBJ_autorig_blank.svg">
+    <helpText><![CDATA["""Copies positions from nulls at upper level with the same names
+ctrl+click: copies orientations too"""]]></helpText>
+    <script scriptType="python"><![CDATA[ctrlclick = kwargs['ctrlclick']
+
+def fixNode(n):
+    hook =  n.parent().parent().node(n.name() + "_tempHook")
+    if hook is not None:
+        if ctrlclick:
+            n.setWorldTransform(hook.worldTransform())
+        else:        
+            swt = hook.worldTransform()
+            dwt = n.worldTransform()        
+            tr =dwt* hou.hmath.buildTranslate(swt.extractTranslates() - dwt.extractTranslates())
+            n.setWorldTransform(tr)        
+        
+    for child in n.outputs():
+        fixNode(child)
+
+for n in hou.selectedNodes():
+    fixNode(n)]]></script>
+  </tool>
+
+  <tool name="Add Axis" label="Add Axis" icon="hicon:/SVGIcons.index?OBJ_null.svg">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    ax = n.createOutputNode('LZ_axis')
+    ax.parm('scale').set(0.025)
+    ax.setPosition(n.position() + hou.Vector2(1,-6))]]></script>
+  </tool>
+
+  <tool name="Stretch Chain Setup" label="Stretch Chain Setup" icon="hicon:/SVGIcons.index?NETVIEW_image_link_located.svg">
+    <script scriptType="python"><![CDATA[def fixSpareFolders(node):
+    ptg = node.parmTemplateGroup()
+    folders = ptg.entries()
+    for folder in folders:
+        folder.setFolderType(hou.folderType.Simple)
+        ptg.replace(folder.name(),folder)
+    node.setParmTemplateGroup(ptg) 
+
+nodes = hou.selectedNodes()    
+ik = nodes[0].node(nodes[0].parm('solver').eval())
+curve = ik.node(ik.parm('curvepath').eval())
+
+
+for n in nodes:
+    if n.type().name() == 'bone':
+        ptg = n.parmTemplateGroup()
+        ptg.clear()
+        
+        parm = hou.IntParmTemplate('bone_id','Bone ID',1)
+        parm.setDefaultExpression(('ch("../"+opinput(".",0)+"/bone_id")+1',))
+        ptg.addParmTemplate(parm)
+        parm = hou.FloatParmTemplate('rest_length','Rest Length',1,[n.parm("length").eval()])
+        ptg.addParmTemplate(parm)
+        parm = hou.FloatParmTemplate('stretched_length','Stretched Length',1,[n.parm("length").eval()*2])
+        ptg.addParmTemplate(parm)
+        parm = hou.FloatParmTemplate('real_length','Real Length',1)
+        expression = 'fit01(ch("blend"),ch("rest_length"),ch("stretched_length")+ch("rest_length"))'
+        parm.setDefaultExpression((expression,))
+        ptg.addParmTemplate(parm)
+        parm = hou.FloatParmTemplate('blend','Blend',1,[0],min=0, max=1,min_is_strict=True, max_is_strict=True)
+        expression = '(ch("curve_len")-ch("nbones")*ch("rest_length")-ch("stretched_length")*(ch("bone_id")-1))/ch("stretched_length")'
+        parm.setDefaultExpression((expression,))
+        ptg.addParmTemplate(parm)
+        parm = hou.FloatParmTemplate("curve_len","Curve Length",1,[hou.hscriptExpression('arclen("' + curve.path() + '", 0, 0, 1)/' + str(len(nodes)))])
+        parm.setDefaultExpression(('arclen("' + n.relativePathTo(curve) + '", 0, 0, 1)',))
+        ptg.addParmTemplate(parm)
+        parm = hou.IntParmTemplate('nbones','N Bones',1,[len(nodes)])
+        ptg.addParmTemplate(parm)
+        
+        
+        n.setParmTemplateGroup(ptg) 
+        fixSpareFolders(n)
+        
+        n.parm("length").setExpression('ch("real_length")')        
+        if n.inputs()[0].type().name() != 'bone':
+            n.parm("bone_id").deleteAllKeyframes()
+        
+        
+        ]]></script>
+  </tool>
+
+  <tool name="Fix Absolute Paths" label="Fix Absolute Paths" icon="hicon:/SVGIcons.index?BUTTONS_parmmenu_connected.svg">
+    <helpText><![CDATA["""switch absolute paths to reletive for all selected nodes and chop net child nodes"""]]></helpText>
+    <script scriptType="python"><![CDATA[def fixAbsPaths(n):
+    parms = n.parms()
+    for p in parms:
+        pt = p.parmTemplate()
+        if pt.type() == hou.parmTemplateType.String :
+            if pt.stringType() == hou.stringParmType.NodeReference :
+                if p.evalAsString() != '' :
+                    if p.evalAsString().startswith('/obj'):
+                        target = n.node(p.evalAsString())
+                        p.set(n.relativePathTo(target))
+
+for n in hou.selectedNodes():
+    fixAbsPaths(n)
+    if n.type().name() == 'chopnet':
+        for child in n.children():
+            fixAbsPaths(child)]]></script>
+  </tool>
+
+  <tool name="Extract Maya Bones" label="Extract Maya Bones" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    hook = n.createOutputNode('null',n.name()+'_hook')
+    hook.setParmTransform(n.worldTransform())
+    hook.parmTuple('s').set([1,1,1])
+    hook.setInput(0,None)
+    hook.setPosition(n.position() + hou.Vector2(-2,0))
+
+    hook.setPreTransform(hook.parmTransform()*hook.preTransform())
+    hook.setParmTransform(hou.Matrix4(1))
+    hook.parm('keeppos').set(1)
+    hook.parm('geoscale').set(0.1)
+    ]]></script>
+  </tool>
+</shelfDocument>

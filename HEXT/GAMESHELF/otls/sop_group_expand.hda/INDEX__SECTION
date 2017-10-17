@@ -1,0 +1,14 @@
+Operator:     sop_group_expand
+Label:        GameDev Group Expand
+Path:         oplib:/Sop/sop_group_expand?Sop/sop_group_expand
+Icon:         CHOP_joystick
+Table:        Sop
+License:      
+Extra:        
+User:         
+Inputs:       1 to 1
+Subnet:       true
+Python:       false
+Empty:        false
+Modified:     Tue Sep  5 16:53:33 2017
+

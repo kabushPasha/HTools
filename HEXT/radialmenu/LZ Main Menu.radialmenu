@@ -1,0 +1,136 @@
+[
+	"fileversion","16.0.557",
+	"name","LZ Main Menu",
+	"submenu",["submenu",
+		"label","LZ Main Menu",
+		"top",["submenu",
+			"label","RIG",
+			"top",["script",
+				"label","Bones from Curve",
+				"icon","OBJ_STATE_bonesfromcurve",
+				"script","radialmenu.runShelfTool(kwargs, 'object_bonesfromcurve')"
+			],
+			"top_left",["script",
+				"label","Create Fetch",
+				"icon","hicon:/SVGIcons.index?OBJ_fetch.svg",
+				"script","radialmenu.runShelfTool(kwargs, 'Create Fetch')"
+			],
+			"left",["script",
+				"label","Bones",
+				"icon","OBJ_STATE_bones",
+				"script","radialmenu.runShelfTool(kwargs, 'object_bones')"
+			],
+			"bottom_left",["script",
+				"label","Add Axis",
+				"icon","hicon:/SVGIcons.index?OBJ_null.svg",
+				"script","radialmenu.runShelfTool(kwargs, 'Add Axis')"
+			],
+			"bottom_right",["script",
+				"label","Xray",
+				"icon","hicon:/SVGIcons.index?SOP_attribcast.svg",
+				"script","radialmenu.runShelfTool(kwargs, 'Xray')"
+			],
+			"right",["script",
+				"label","Select all of same type",
+				"icon","hicon:/SVGIcons.index?SHELF_footprints.svg",
+				"script","radialmenu.runShelfTool(kwargs, 'Select all of same type')"
+			],
+			"top_right",["script",
+				"label","Fix Absolute Paths",
+				"icon","hicon:/SVGIcons.index?BUTTONS_parmmenu_connected.svg",
+				"script","radialmenu.runShelfTool(kwargs, 'Fix Absolute Paths')"
+			]
+		],
+		"left",["submenu",
+			"label","Render",
+			"top",["submenu",
+				"label","Lights",
+				"top",["script",
+					"label","RSLight",
+					"icon","RS_light_icon",
+					"script","import objecttoolutils\n\nkwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)\nkwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)\nkwargs['ctrlclick'] = True\n\nnewnode = objecttoolutils.genericCameraLightTool(kwargs, 'rslight')\nnewnode.parm('RSL_intensityMultiplier').set(1)\nnewnode.parm('RSL_volumeScale').set(1)\n\n\nnewnode.setDisplayFlag(False)"],
+				
+				"left",["script",
+					"label","RSLightDome",
+					"icon","RS_lightDome_icon",
+					"script","import hou\nshop = hou.node(\"/obj\")\nnewnode = shop.createNode(\"rslightdome\")\nnewnode.moveToGoodPosition()\n\nnewnode.parm('RSL_volumeScale').set(1)\n\nnewnode.setDisplayFlag(False)"
+				],
+				"right",["script",
+					"label","RSLightSun",
+					"icon","RS_lightSun_icon",
+					"script","import objecttoolutils\n\nkwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)\nkwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)\nkwargs['ctrlclick'] = True\n\nnewnode = objecttoolutils.genericCameraLightTool(kwargs, 'rslightsun')\n\nnewnode.parm('RSL_volumeScale').set(1)\n\nnewnode.setDisplayFlag(False)"]
+			],
+			"top_left",["script",
+				"label","VolParms",
+				"icon","RS_objectSpareParameters_icon",
+				"script","hou.hscript('Redshift_objectSpareParameters')\n\nfor n in hou.selectedNodes():\n    n.parm('RS_objprop_volume_enable').set(1)\n    n.parm('RS_objprop_volume_type').set(1)\n    \n    shader = hou.node(\"/shop\").createNode(\"rs_volume\",n.name())\n    \n    n.parm('shop_materialpath').set(shader.path())\n\n    \n    \n"],
+			
+			"left",["script",
+				"label","ObjParms",
+				"icon","RS_objectSpareParameters_icon",
+				"script","radialmenu.runShelfTool(kwargs, 'Add Object Spare Parameters')\n\nfor n in hou.selectedNodes():\n    shader = hou.node(\"/shop\").createNode('rs_architectural',n.name())\n    n.parm('shop_materialpath').set(shader.path())"],
+			
+			"bottom_left",["script",
+				"label","Redshift",
+				"icon","ROP_Redshift_ROP",
+				"script","rs = hou.node(\"/out/Redshift_ROP1\")\n\nif rs is None:\n    rs = __import__('roptoolutils').createRenderNode('Redshift_ROP')\n    ipr = __import__('roptoolutils').createRenderNode('Redshift_IPR')\n    \n    rs.parm('RS_renderAOVsToMPlay').set(1)\n    rs.parm('RS_outputEnable').set(0)\n    \n    rs.parm('RS_outputFileNamePrefix').set('$HC/$HIPNAME/render/$OS.frame_$F.bgeo.sc')\n    rs.parm('RS_iprOverrideCameraRes').set(0)\n    rs.parm('RS_iprUpdateMeshDeform').set(0)\n\n# Check if we have aprms and render view already\nhas_render_panel = 0\nhas_rs_parms = 0\nfloatingPanels = hou.ui.floatingPanels()\nfor panel in floatingPanels:\n    if panel.name() == 'RenderView':\n        has_render_panel = 1\n    if panel.name() == 'Render_Settings':\n        has_rs_parms = 1\n    \n# Open Parms Window\nif has_rs_parms == 0:\n    d = hou.ui.curDesktop()\n    \n    import ctypes\n    user32 = ctypes.windll.user32\n    sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))\n    #pos goes from bottom to top, from left to rigth\n    dy = [0.025,0.65];\n    dx = [0.57,0.85];\n    \n    pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(1 - dy[1] - dy[0])))\n    size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))\n    \n    panel = d.createFloatingPanel(hou.paneTabType.Parm,pos,size)\n    panel.setName('Render_Settings')\n    pane = panel.panes()[0]\n    tab = pane.tabs()[0]\n    tab.setCurrentNode(rs)\n    tab.setPin(1)\n\n#create RenderView\nif has_render_panel == 0:\n    radialmenu.runShelfTool(kwargs, 'Render View')\n\n    \n    \n    \n\n"],
+			
+			"bottom",["script",
+				"label","Camera",
+				"icon","OBJ_camera",
+				"script","import objecttoolutils\nnewnode = objecttoolutils.genericCameraLightTool(kwargs, 'cam', 'cam1',False)\nhou.hscript('Redshift_cameraSpareParameters')\n\nnewnode.setDisplayFlag(False)"
+			],
+			"bottom_right",["script",
+				"label","HairParms",
+				"icon","RS_objectSpareParameters_icon",
+				"script","radialmenu.runShelfTool(kwargs, 'Add Object Spare Parameters')\n\nradialmenu.runShelfTool(kwargs, 'Add Object Spare Parameters')\n\nfor n in hou.selectedNodes():\n    shader = hou.node(\"/shop\").createNode('rs_hair',n.name())\n    n.parm('shop_materialpath').set(shader.path())\n    \n    if n.type().name() == 'hairgen':\n        n.parm('vm_auto_engine_procedural').set('')"],
+			
+			"top_right",["script",
+				"label","CamParms",
+				"icon","RS_cameraSpareParameters_icon",
+				"script","radialmenu.runShelfTool(kwargs, 'Add Camera Spare Parameters')"
+			]
+		],
+		"bottom",["submenu",
+			"label","Utils",
+			"left",["script",
+				"label","Start Server",
+				"icon","hicon:/SVGIcons.index?BUTTONS_internet.svg",
+				"script","radialmenu.runShelfTool(kwargs, 'start server')"
+			],
+			"bottom_left",["script",
+				"label","Open Cache folders",
+				"icon","hicon:/SVGIcons.index?SOP_filecache.svg",
+				"script","radialmenu.runShelfTool(kwargs, 'open cache folders')"
+			],
+			"bottom",["script",
+				"label","Perfomance Monitor",
+				"icon","hicon:/SVGIcons.index?CHOP_record.svg",
+				"script","radialmenu.runShelfTool(kwargs, 'Perfomance Monitor')"
+			],
+			"bottom_right",["script",
+				"label","LZ Flipbook",
+				"icon","hicon:/SVGIcons.index?book.svg",
+				"script","radialmenu.runShelfTool(kwargs, 'lz Flipbook')"
+			],
+			"right",["script",
+				"label","Start GoZ",
+				"icon","C:\\Users\\Public\\Pixologic\\GoZApps\\Houdini\\GoZBrush.png",
+				"script","radialmenu.runShelfTool(kwargs, 'enable_go_z')"
+			]
+		],
+		"right",["submenu",
+			"label","Create",
+			"right",["script",
+				"label","Add Fur",
+				"icon","FUR_add_fur",
+				"script","radialmenu.runShelfTool(kwargs, 'object_groom_addfur')"
+			],
+			"top_right",["script",
+				"label","Path",
+				"icon","OBJ_STATE_path",
+				"script","radialmenu.runShelfTool(kwargs, 'object_path')"
+			]
+		]
+	]
+]

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="LZ Radial Menu" label="LZ Radial Menu">
+    <memberTool name="LZ Add fur"/>
+    <memberTool name="RS Hair Params"/>
+    <memberTool name="LZ RS LightDome"/>
+    <memberTool name="LZ RS Setup"/>
+  </toolshelf>
+
+  <tool name="LZ Add fur" label="LZ Add fur" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import toolutils
+import objecttoolutils
+import furtoolutils
+
+active_pane = toolutils.activePane(kwargs)
+container = objecttoolutils.getObjNodeContainer(active_pane.pwd())
+restskingeo = furtoolutils.selectObject(active_pane,"Select a static geometry to add fur to. " "Press Enter to continue.")
+animskingeo = None
+
+skin = restskingeo.displayNode()
+skin_null = skin.createOutputNode('null','skin')
+# skin
+group = skin_null.createOutputNode('groupcreate','hair')
+bbox = group.createOutputNode('attribwrangle','bbox')
+bbox.parm('snippet').set("@bx = clamp(relbbox(0,@P).x,0,1);\n@by = clamp(relbbox(0,@P).y,0,1);\n@bz = clamp(relbbox(0,@P).z,0,1);")
+bbox.createOutputNode('null','OUT_SKIN')
+# vdb
+vdb = skin_null.createOutputNode('vdbfrompolygons','vdb')
+vdb.parm('voxelsize').set(0.005)
+vdb.parm('useworldspaceunits').set(1)
+vdb.parm('exteriorband').set(0.1)
+vdb.parm('interiorband').setExpression('ch("exteriorband")')
+vdb.createOutputNode('null','OUT_VDB')
+
+
+furobjects = furtoolutils.createDefaultFurNodes(container, restskingeo, animskingeo, None)
+
+for obj in furobjects:
+    if toolutils.nodeTypeBaseNameMatches(obj, 'guidegroom'):
+        obj.setCurrent(True, True)   
+        obj.parm('vdbsop').set(obj.parm('skinsop').eval() + '/OUT_VDB')
+        obj.parm('skinsop').set(obj.parm('skinsop').eval() + '/OUT_SKIN')
+        obj.parm('group').set('hair')
+        obj.parm('vdbsource').set(1)        
+        
+        
+
+active_pane.enterCurrentNodeState()]]></script>
+  </tool>
+
+  <tool name="RS Hair Params" label="RS Hair Params" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    if n.type().name() == 'hairgen': 
+        rs = n.createOutputNode('geo',n.name()+'_rs_render')
+        merge = rs.createNode('object_merge')
+        merge.parm('objpath1').set('`opinputpath("..",0)`/DISPLAY')
+        rs.node('file1').destroy()
+        null = rs.createNode('null','display')
+        null.setDisplayFlag(1)
+        merge.setRenderFlag(1)
+        rs.layoutChildren()
+        rs.setSelected(1)
+        n.setSelected(0)
+
+
+hou.hscript('Redshift_objectSpareParameters')
+
+for n in hou.selectedNodes():
+    shader = hou.node("/shop").createNode('rs_hair',n.name())
+    n.parm('shop_materialpath').set(shader.path())
+    n.parm('RS_objprop_renderAsHair').set(1)
+    ]]></script>
+  </tool>
+
+  <tool name="LZ RS LightDome" label="LZ RS LightDome" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import hou
+obj = hou.node("/obj")
+newnode = obj.createNode("rslightdome")
+newnode.moveToGoodPosition()
+
+newnode.parm('RSL_volumeScale').set(1)
+newnode.setDisplayFlag(False)
+
+newnode.parm('tex0').set('$HOME/MEGA/! HEXT/Assets/HDRI/countryside_field.jpg')
+newnode.parm('ogl_enablelight').set(0)
+
+env = newnode.createOutputNode('envlight','PROXY_LIGHT_'+newnode.name())
+env.setDisplayFlag(False)
+]]></script>
+  </tool>
+
+  <tool name="LZ RS Setup" label="LZ RS Setup" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[rs = hou.node("/out/Redshift_ROP1")
+
+if rs is None:
+    rs = __import__('roptoolutils').createRenderNode('Redshift_ROP')
+    ipr = __import__('roptoolutils').createRenderNode('Redshift_IPR')
+    
+    rs.parm('RS_renderAOVsToMPlay').set(1)
+    rs.parm('RS_outputEnable').set(0)
+    
+    rs.parm('RS_outputFileNamePrefix').set('$HC/$HIPNAME/render/$OS.frame_$F.bgeo.sc')
+    rs.parm('RS_iprOverrideCameraRes').set(0)
+    rs.parm('RS_iprUpdateMeshDeform').set(0)
+    rs.parm('RS_lights_exclude').set('PROXY_LIGHT*')
+    
+    
+# Check if we have aprms and render view already
+has_render_panel = 0
+has_rs_parms = 0
+floatingPanels = hou.ui.floatingPanels()
+for panel in floatingPanels:
+    if panel.name() == 'RenderView':
+        has_render_panel = 1
+    if panel.name() == 'Render_Settings':
+        has_rs_parms = 1
+    
+# Open Parms Window
+if has_rs_parms == 0:
+    d = hou.ui.curDesktop()
+    
+    import ctypes
+    user32 = ctypes.windll.user32
+    sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
+    #pos goes from bottom to top, from left to rigth
+    dy = [0.025,0.65];
+    dx = [0.57,0.85];
+    
+    pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(1 - dy[1] - dy[0])))
+    size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
+    
+    panel = d.createFloatingPanel(hou.paneTabType.Parm,pos,size)
+    panel.setName('Render_Settings')
+    pane = panel.panes()[0]
+    tab = pane.tabs()[0]
+    tab.setCurrentNode(rs)
+    tab.setPin(1)
+
+#create RenderView
+if has_render_panel == 0:
+    exec(hou.shelves.tool('Render View').script())]]></script>
+  </tool>
+</shelfDocument>
