@@ -53,7 +53,7 @@
 				"left",["script",
 					"label","RSLightDome",
 					"icon","RS_lightDome_icon",
-					"script","import hou\nshop = hou.node(\"/obj\")\nnewnode = shop.createNode(\"rslightdome\")\nnewnode.moveToGoodPosition()\n\nnewnode.parm('RSL_volumeScale').set(1)\n\nnewnode.setDisplayFlag(False)"
+					"script","radialmenu.runShelfTool(kwargs, 'LZ RS LightDome')"
 				],
 				"right",["script",
 					"label","RSLightSun",
@@ -73,8 +73,8 @@
 			"bottom_left",["script",
 				"label","Redshift",
 				"icon","ROP_Redshift_ROP",
-				"script","rs = hou.node(\"/out/Redshift_ROP1\")\n\nif rs is None:\n    rs = __import__('roptoolutils').createRenderNode('Redshift_ROP')\n    ipr = __import__('roptoolutils').createRenderNode('Redshift_IPR')\n    \n    rs.parm('RS_renderAOVsToMPlay').set(1)\n    rs.parm('RS_outputEnable').set(0)\n    \n    rs.parm('RS_outputFileNamePrefix').set('$HC/$HIPNAME/render/$OS.frame_$F.bgeo.sc')\n    rs.parm('RS_iprOverrideCameraRes').set(0)\n    rs.parm('RS_iprUpdateMeshDeform').set(0)\n\n# Check if we have aprms and render view already\nhas_render_panel = 0\nhas_rs_parms = 0\nfloatingPanels = hou.ui.floatingPanels()\nfor panel in floatingPanels:\n    if panel.name() == 'RenderView':\n        has_render_panel = 1\n    if panel.name() == 'Render_Settings':\n        has_rs_parms = 1\n    \n# Open Parms Window\nif has_rs_parms == 0:\n    d = hou.ui.curDesktop()\n    \n    import ctypes\n    user32 = ctypes.windll.user32\n    sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))\n    #pos goes from bottom to top, from left to rigth\n    dy = [0.025,0.65];\n    dx = [0.57,0.85];\n    \n    pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(1 - dy[1] - dy[0])))\n    size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))\n    \n    panel = d.createFloatingPanel(hou.paneTabType.Parm,pos,size)\n    panel.setName('Render_Settings')\n    pane = panel.panes()[0]\n    tab = pane.tabs()[0]\n    tab.setCurrentNode(rs)\n    tab.setPin(1)\n\n#create RenderView\nif has_render_panel == 0:\n    radialmenu.runShelfTool(kwargs, 'Render View')\n\n    \n    \n    \n\n"],
-			
+				"script","radialmenu.runShelfTool(kwargs, 'LZ RS Setup')"
+			],
 			"bottom",["script",
 				"label","Camera",
 				"icon","OBJ_camera",
@@ -83,8 +83,8 @@
 			"bottom_right",["script",
 				"label","HairParms",
 				"icon","RS_objectSpareParameters_icon",
-				"script","radialmenu.runShelfTool(kwargs, 'Add Object Spare Parameters')\n\nradialmenu.runShelfTool(kwargs, 'Add Object Spare Parameters')\n\nfor n in hou.selectedNodes():\n    shader = hou.node(\"/shop\").createNode('rs_hair',n.name())\n    n.parm('shop_materialpath').set(shader.path())\n    \n    if n.type().name() == 'hairgen':\n        n.parm('vm_auto_engine_procedural').set('')"],
-			
+				"script","radialmenu.runShelfTool(kwargs, 'RS Hair Params')\n"
+			],
 			"top_right",["script",
 				"label","CamParms",
 				"icon","RS_cameraSpareParameters_icon",
@@ -124,7 +124,7 @@
 			"right",["script",
 				"label","Add Fur",
 				"icon","FUR_add_fur",
-				"script","radialmenu.runShelfTool(kwargs, 'object_groom_addfur')"
+				"script","radialmenu.runShelfTool(kwargs, 'LZ RS Setup')"
 			],
 			"top_right",["script",
 				"label","Path",
