@@ -245,12 +245,19 @@ for n in hou.selectedNodes():
     for p in n.parms():
         if not p.isAtDefault():
             if type(p) is hou.Parm:
-                pt = p.parmTemplate()
-                pval = str(p.eval())
-                if pt.dataType() == hou.parmData.String:                
-                    pval = '"' + pval +  '"'     
-                newline = n.name() + '.parm("' + p.name() + '").set(' + pval + ')'
-                script += newline + '\n'
+                if p.keyframes() == ():
+                    pt = p.parmTemplate()
+                    pval = str(p.eval())
+                    if pt.dataType() == hou.parmData.String:                
+                        pval = '"' + pval +  '"'     
+                    newline = n.name() + '.parm("' + p.name() + '").set(' + pval + ')'
+                    script += newline + '\n'
+                else:
+                    lang = p.expressionLanguage()
+                    expr = p.expression()
+                    newline = n.name() + ".parm('" + p.name() + "').setExpression('" + expr + "',language = hou." + str(p.expressionLanguage()) + ')'
+                    script += newline + '\n'
+                    #print p.keyframes()
     if n.isDisplayFlagSet():
         newline = n.name() + '.setDisplayFlag(True)'
         script += newline + '\n'
