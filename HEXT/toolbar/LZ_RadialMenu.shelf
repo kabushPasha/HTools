@@ -108,7 +108,12 @@ active_pane.enterCurrentNodeState()]]></script>
         rs.node('file1').destroy()
         null = rs.createNode('null','display')
         null.setDisplayFlag(1)
-        merge.setRenderFlag(1)
+        
+        #create scale_width node
+        scale_width = merge.createOutputNode("attribwrangle","scale_width")
+        scale_width.parm("snippet").set("f@width *= 0.5;")
+        scale_width.setRenderFlag(True)               
+        
         rs.layoutChildren()
         rs.setSelected(1)
         n.setSelected(0)
