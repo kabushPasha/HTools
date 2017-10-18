@@ -226,14 +226,22 @@ for n in hou.selectedNodes():
     # comment
     newline = '#create ' + n.name() + ' node' 
     script += '\n' + newline + '\n'
-    # create node
-    newline = n.name() +' = ' + n.inputs()[0].name() + '.createOutputNode("' + n.type().name() + '","' + n.name() + '")'
-    script += newline + '\n'
-    # set position
-    dpos = n.position() - n.inputs()[0].position()
-    newline = n.name() +'.setPosition(' + n.inputs()[0].name() + '.position() + hou.Vector2(' + str(dpos.x()) + ',' +str(dpos.y()) + '))'
-    script += newline + '\n'
-    
+    # if we have a parent node
+    if len(n.inputs()) > 0:
+        # create node
+        newline = n.name() +' = ' + n.inputs()[0].name() + '.createOutputNode("' + n.type().name() + '","' + n.name() + '")'
+        script += newline + '\n'
+        # set position
+        dpos = n.position() - n.inputs()[0].position()
+        newline = n.name() +'.setPosition(' + n.inputs()[0].name() + '.position() + hou.Vector2(' + str(dpos.x()) + ',' +str(dpos.y()) + '))'
+        script += newline + '\n'
+    else:
+        # create node
+        if n.parent().path() == '/obj':
+            newline = 'obj = hou.node("/obj")'
+            script += newline + '\n'
+        newline = n.name() +' = ' + n.parent().name() + '.createNode("' + n.type().name() + '","' + n.name() + '")'
+        script += newline + '\n'
     for p in n.parms():
         if not p.isAtDefault():
             if type(p) is hou.Parm:
