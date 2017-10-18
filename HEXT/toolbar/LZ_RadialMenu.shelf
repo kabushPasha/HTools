@@ -10,6 +10,7 @@
     <memberTool name="RS Hair Params"/>
     <memberTool name="LZ RS LightDome"/>
     <memberTool name="LZ RS Setup"/>
+    <memberTool name="LZ Create Parms Script"/>
   </toolshelf>
 
   <tool name="LZ Add fur" label="LZ Add fur" icon="PLASMA_App">
@@ -136,8 +137,14 @@ active_pane.enterCurrentNodeState()]]></script>
         null = rs.createNode('null','display')
         null.setDisplayFlag(1)
         
+        #create resample1 node
+        resample = merge.createOutputNode("resample","resample")
+        resample.setPosition(merge.position() + hou.Vector2(0.00125002861023,-1.00310001201))
+        resample.parm("length").set(0.01)
+        resample.parm("treatpolysas").set(1)
+        
         #create scale_width node
-        scale_width = merge.createOutputNode("attribwrangle","scale_width")
+        scale_width = resample.createOutputNode("attribwrangle","scale_width")
         scale_width.parm("snippet").set("f@width *= 0.5;")
         scale_width.setRenderFlag(True)               
         
@@ -222,5 +229,72 @@ if has_rs_parms == 0:
 #create RenderView
 if has_render_panel == 0:
     exec(hou.shelves.tool('Render View').script())]]></script>
+  </tool>
+
+  <tool name="LZ Create Parms Script" label="LZ Create Parms Script" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[script = ''
+for n in hou.selectedNodes():
+    # CREATION AND POSITION
+    # comment
+    newline = '#create ' + n.name() + ' node' 
+    script += '\n' + newline + '\n'
+    # if we have a parent node
+    if len(n.inputs()) > 0:
+        if not n.inputs()[0].isSelected():
+            newline = n.inputs()[0].name() + ' = '
+            script += newline + '\n' 
+        # create node
+        newline = n.name() +' = ' + n.inputs()[0].name() + '.createOutputNode("' + n.type().name() + '","' + n.name() + '")'
+        script += newline + '\n'
+        # set position
+        dpos = n.position() - n.inputs()[0].position()
+        newline = n.name() +'.setPosition(' + n.inputs()[0].name() + '.position() + hou.Vector2(' + str(dpos.x()) + ',' +str(dpos.y()) + '))'
+        script += newline + '\n'
+    else:
+        # create node
+        if n.parent().path() == '/obj':
+            newline = 'obj = hou.node("/obj")'
+            script += newline + '\n'
+        else :
+            newline = n.parent().name() + ' = '
+            script += newline + '\n' 
+        newline = n.name() +' = ' + n.parent().name() + '.createNode("' + n.type().name() + '","' + n.name() + '")'
+        script += newline + '\n'
+     
+    # PROCESS PARAMETERS    
+    for p in n.parms():
+        if not p.isAtDefault():
+            if type(p) is hou.Parm:
+                # Notify if parm is spare
+                if p.isSpare():
+                    newline = '#This is a Spare Parameter!'
+                    script += newline + '\n'
+            
+                # If parm is keyframed(has an expression) copy it's expression, else only the value
+                if p.keyframes() == ():
+                    pt = p.parmTemplate()
+                    pval = str(p.eval())
+                    # if the parm is string -> unexpand it and add double qoutes
+                    if pt.dataType() == hou.parmData.String:                
+                        pval = repr(p.unexpandedString())
+                        #pval = '"' + pval +  '"'
+                    newline = n.name() + '.parm("' + p.name() + '").set(' + pval + ')'
+                    script += newline + '\n'
+                else:
+                    lang = p.expressionLanguage()
+                    expr = p.expression()
+                    newline = n.name() + ".parm('" + p.name() + "').setExpression('" + expr + "',language = hou." + str(p.expressionLanguage()) + ')'
+                    script += newline + '\n'
+    if n.isDisplayFlagSet():
+        newline = n.name() + '.setDisplayFlag(True)'
+        script += newline + '\n'
+
+# PRINT SCRIPT AND COPY TO CLIPBOARD
+print script
+
+import PySide.QtGui as qtg
+app = qtg.QApplication.instance()
+clipboard = app.clipboard()
+clipboard.setText(script)]]></script>
   </tool>
 </shelfDocument>
