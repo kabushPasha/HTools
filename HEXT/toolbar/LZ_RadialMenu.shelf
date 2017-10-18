@@ -25,10 +25,31 @@ animskingeo = None
 skin = restskingeo.displayNode()
 skin_null = skin.createOutputNode('null','skin')
 # skin
-group = skin_null.createOutputNode('groupcreate','hair')
-bbox = group.createOutputNode('attribwrangle','bbox')
+#group = skin_null.createOutputNode('groupcreate','hair')
+bbox = skin_null.createOutputNode('attribwrangle','bbox')
 bbox.parm('snippet').set("@bx = clamp(relbbox(0,@P).x,0,1);\n@by = clamp(relbbox(0,@P).y,0,1);\n@bz = clamp(relbbox(0,@P).z,0,1);")
-bbox.createOutputNode('null','OUT_SKIN')
+
+#create paint_hair node
+paint_hair = bbox.createOutputNode("paint","paint_hair")
+paint_hair.parm("overridecd").set(1)
+paint_hair.parm("cdname").set("hair")
+paint_hair.parm("doreflect").set(1)
+paint_hair.parm("symaxisx").set(1.0)
+paint_hair.parm("symaxisz").set(0.0)
+
+#create paint_brow node
+paint_brow = paint_hair.createOutputNode("paint","paint_brow")
+paint_brow.parm("switcher1").set(2)
+paint_brow.parm("overridecd").set(1)
+paint_brow.parm("cdname").set("brow")
+paint_brow.parm("doreflect").set(1)
+paint_brow.parm("symaxisx").set(1.0)
+paint_brow.parm("symaxisz").set(0.0)
+
+#create OUT_SKIN node
+OUT_SKIN = paint_brow.createOutputNode("null","OUT_SKIN")
+OUT_SKIN.setDisplayFlag(True)
+
 # vdb
 vdb = skin_null.createOutputNode('vdbfrompolygons','vdb')
 vdb.parm('voxelsize').set(0.005)
@@ -37,7 +58,6 @@ vdb.parm('exteriorband').set(0.1)
 vdb.parm('interiorband').setExpression('ch("exteriorband")')
 vdb.createOutputNode('null','OUT_VDB')
 
-
 furobjects = furtoolutils.createDefaultFurNodes(container, restskingeo, animskingeo, None)
 
 for obj in furobjects:
@@ -45,11 +65,17 @@ for obj in furobjects:
         obj.setCurrent(True, True)   
         obj.parm('vdbsop').set(obj.parm('skinsop').eval() + '/OUT_VDB')
         obj.parm('skinsop').set(obj.parm('skinsop').eval() + '/OUT_SKIN')
-        obj.parm('group').set('hair')
-        obj.parm('vdbsource').set(1)        
+        #obj.parm('group').set('hair')
+        obj.parm('vdbsource').set(1)
+        obj.parm("density").set(20000.0)
+        obj.parm("densityoverride").set(1)
+        obj.parm("densityattrib").set("hair")
+    if toolutils.nodeTypeBaseNameMatches(obj, 'hairgen'):
+        obj.parm("density").set(100000.0)          
+        obj.parm("influenceradius").set(0.005)
+        obj.setDisplayFlag(False)
         
         
-
 active_pane.enterCurrentNodeState()]]></script>
   </tool>
 
