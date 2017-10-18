@@ -629,7 +629,7 @@ hou.hscript(h_preamble + h_extra_args + h_cmd)
 ]]></script>
   </tool>
 
-  <tool name="LZ_rel_bbox" label="LZ_rel_bbox" icon="SOP_attribwrangle">
+  <tool name="LZ_rel_bbox" label="LZ rel bbox" icon="SOP_attribwrangle">
     <helpURL>operator:Sop/attribwrangle</helpURL>
     <toolMenuContext name="network">
       <contextOpType>Sop/attribwrangle</contextOpType>
