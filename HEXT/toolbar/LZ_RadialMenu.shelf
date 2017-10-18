@@ -18,20 +18,47 @@ import objecttoolutils
 import furtoolutils
 
 def createHairPiece(skin,name):
-    # bbox
-    bbox = skin.createOutputNode('attribwrangle','bbox_' + name)
-    bbox.parm('snippet').set("@bx = clamp(relbbox(0,@P).x,0,1);\n@by = clamp(relbbox(0,@P).y,0,1);\n@bz = clamp(relbbox(0,@P).z,0,1);")
-    
     #create paint_hair node
-    paint_hair = bbox.createOutputNode("paint","paint_" + name)
+    paint_hair = skin.createOutputNode("paint","paint_" + name)
+    paint_hair.setPosition(skin.position() + hou.Vector2(1.6944 + 3*(len(out_skin_node.outputs()) - 2),-0.895750000045))
     paint_hair.parm("overridecd").set(1)
     paint_hair.parm("cdname").set(name)
     paint_hair.parm("doreflect").set(1)
     paint_hair.parm("symaxisx").set(1.0)
     paint_hair.parm("symaxisz").set(0.0)
     
+    
+    #create delete_non_hair node
+    delete_non_hair = paint_hair.createOutputNode("delete","delete_non_" + name)
+    delete_non_hair.setPosition(paint_hair.position() + hou.Vector2(1.20338012477,-0.82970324467))
+    delete_non_hair.parm("group").set('@`chs(opinputpath(".",0)+"/cdname")`<0.20')
+    delete_non_hair.parm("entity").set(1)    
+    
+    #create bound_hair node
+    bound_hair = delete_non_hair.createOutputNode("bound","bound_" + name)
+    bound_hair.setPosition(delete_non_hair.position() + hou.Vector2(0.0,-0.746738848322))
+    bound_hair.parm("minpadx").set(0.005)
+    bound_hair.parm('minpady').setExpression('ch("minpadx")',language = hou.exprLanguage.Hscript)
+    bound_hair.parm('minpadz').setExpression('ch("minpadx")',language = hou.exprLanguage.Hscript)
+    bound_hair.parm('maxpadx').setExpression('ch("minpadx")',language = hou.exprLanguage.Hscript)
+    bound_hair.parm('maxpady').setExpression('ch("minpadx")',language = hou.exprLanguage.Hscript)
+    bound_hair.parm('maxpadz').setExpression('ch("minpadx")',language = hou.exprLanguage.Hscript)
+    
+    #create bbox_hair node
+    bbox_hair = paint_hair.createOutputNode("attribwrangle","bbox_" + name)
+    bbox_hair.setPosition(paint_hair.position() + hou.Vector2(-0.00299999653362,-2.46307741718))
+    bbox_hair.parm("snippet").set("int c = chi('connected');\n@bx = clamp(relbbox(c,@P).x,0,1);\n@by = clamp(relbbox(c,@P).y,0,1);\n@bz = clamp(relbbox(c,@P).z,0,1);\n")
+    # Create spare parameter connected
+    ptg = bbox_hair.parmTemplateGroup()
+    parm = hou.IntParmTemplate('connected','Connected',1)
+    ptg.addParmTemplate(parm)
+    bbox_hair.setParmTemplateGroup(ptg)
+    # set this parameter
+    bbox_hair.parm('connected').setExpression('n = hou.pwd()\nreturn len(n.inputs())>1',language = hou.exprLanguage.Python)
+    bbox_hair.setInput(1,bound_hair)
+    
     #create OUT_SKIN node
-    OUT_HAIR = paint_hair.createOutputNode("null","OUT_" + name)
+    OUT_HAIR = bbox_hair.createOutputNode("null","OUT_" + name)
     OUT_HAIR.setDisplayFlag(True)
     pass
 
