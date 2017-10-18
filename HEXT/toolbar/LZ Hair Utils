@@ -221,10 +221,19 @@ hou.hscript(h_preamble + h_extra_args + h_cmd)
   </tool>
 
   <tool name="LZ Create Parms Script" label="LZ Create Parms Script" icon="PLASMA_App">
-    <script scriptType="python"><![CDATA[script = '\n'
+    <script scriptType="python"><![CDATA[script = ''
 for n in hou.selectedNodes():
-    newline = n.inputs()[0].name() + '.createOutputNode("' + n.type().name() + '","' + n.name() + '")'
+    # comment
+    newline = '#create ' + n.name() + ' node' 
     script += '\n' + newline + '\n'
+    # create node
+    newline = n.name() +' = ' + n.inputs()[0].name() + '.createOutputNode("' + n.type().name() + '","' + n.name() + '")'
+    script += newline + '\n'
+    # set position
+    dpos = n.position() - n.inputs()[0].position()
+    newline = n.name() +'.setPosition(' + n.inputs()[0].name() + '.position() + hou.Vector2(' + str(dpos.x()) + ',' +str(dpos.y()) + '))'
+    script += newline + '\n'
+    
     for p in n.parms():
         if not p.isAtDefault():
             if type(p) is hou.Parm:
@@ -234,7 +243,14 @@ for n in hou.selectedNodes():
                     pval = '"' + pval +  '"'     
                 newline = n.name() + '.parm("' + p.name() + '").set(' + pval + ')'
                 script += newline + '\n'
-                 
-print script]]></script>
+    if n.isDisplayFlagSet():
+        newline = n.name() + '.setDisplayFlag(True)'
+        script += newline + '\n'
+print script
+
+import PySide.QtGui as qtg
+app = qtg.QApplication.instance()
+clipboard = app.clipboard()
+clipboard.setText(script)]]></script>
   </tool>
 </shelfDocument>
