@@ -17,65 +17,85 @@
 import objecttoolutils
 import furtoolutils
 
+def createHairPiece(skin,name):
+    # bbox
+    bbox = skin.createOutputNode('attribwrangle','bbox_' + name)
+    bbox.parm('snippet').set("@bx = clamp(relbbox(0,@P).x,0,1);\n@by = clamp(relbbox(0,@P).y,0,1);\n@bz = clamp(relbbox(0,@P).z,0,1);")
+    
+    #create paint_hair node
+    paint_hair = bbox.createOutputNode("paint","paint_" + name)
+    paint_hair.parm("overridecd").set(1)
+    paint_hair.parm("cdname").set(name)
+    paint_hair.parm("doreflect").set(1)
+    paint_hair.parm("symaxisx").set(1.0)
+    paint_hair.parm("symaxisz").set(0.0)
+    
+    #create OUT_SKIN node
+    OUT_HAIR = paint_hair.createOutputNode("null","OUT_" + name)
+    OUT_HAIR.setDisplayFlag(True)
+    pass
+
+    
+# MAIN    
 active_pane = toolutils.activePane(kwargs)
 container = objecttoolutils.getObjNodeContainer(active_pane.pwd())
 restskingeo = furtoolutils.selectObject(active_pane,"Select a static geometry to add fur to. " "Press Enter to continue.")
-animskingeo = None
+animskingeo = None    
+    
+out_skin_node = restskingeo.node('OUT_SKIN')    
+if out_skin_node is None:
+    hair_name = "hair"
+    # CREATE INITIAL SETUP
+    skin = restskingeo.displayNode()
+    
+    bbox = skin.createOutputNode('attribwrangle','skin_bbox')
+    bbox.parm('snippet').set("@sbx = clamp(relbbox(0,@P).x,0,1);\n@sby = clamp(relbbox(0,@P).y,0,1);\n@sbz = clamp(relbbox(0,@P).z,0,1);")
+    
+    out_skin_node = bbox.createOutputNode('null','OUT_SKIN')
+        
+    # vdb
+    vdb = out_skin_node.createOutputNode('vdbfrompolygons','vdb')
+    vdb.parm('voxelsize').set(0.005)
+    vdb.parm('useworldspaceunits').set(1)
+    vdb.parm('exteriorband').set(0.1)
+    vdb.parm('interiorband').setExpression('ch("exteriorband")')
+    vdb.createOutputNode('null','OUT_VDB')
+    
+    createHairPiece(out_skin_node,hair_name)
+    # END INITIAL SETUP
+else:
+    hair_name = hou.ui.readInput("Hair Piece Name")[1]
+    if hair_name is "":
+        hair_name = "hair_" + str(len(out_skin_node.outputs()))
+    hair_name = "_".join(hair_name.split())
+    createHairPiece(out_skin_node,hair_name)
 
-skin = restskingeo.displayNode()
-skin_null = skin.createOutputNode('null','skin')
-# skin
-#group = skin_null.createOutputNode('groupcreate','hair')
-bbox = skin_null.createOutputNode('attribwrangle','bbox')
-bbox.parm('snippet').set("@bx = clamp(relbbox(0,@P).x,0,1);\n@by = clamp(relbbox(0,@P).y,0,1);\n@bz = clamp(relbbox(0,@P).z,0,1);")
-
-#create paint_hair node
-paint_hair = bbox.createOutputNode("paint","paint_hair")
-paint_hair.parm("overridecd").set(1)
-paint_hair.parm("cdname").set("hair")
-paint_hair.parm("doreflect").set(1)
-paint_hair.parm("symaxisx").set(1.0)
-paint_hair.parm("symaxisz").set(0.0)
-
-#create paint_brow node
-paint_brow = paint_hair.createOutputNode("paint","paint_brow")
-paint_brow.parm("switcher1").set(2)
-paint_brow.parm("overridecd").set(1)
-paint_brow.parm("cdname").set("brow")
-paint_brow.parm("doreflect").set(1)
-paint_brow.parm("symaxisx").set(1.0)
-paint_brow.parm("symaxisz").set(0.0)
-
-#create OUT_SKIN node
-OUT_SKIN = paint_brow.createOutputNode("null","OUT_SKIN")
-OUT_SKIN.setDisplayFlag(True)
-
-# vdb
-vdb = skin_null.createOutputNode('vdbfrompolygons','vdb')
-vdb.parm('voxelsize').set(0.005)
-vdb.parm('useworldspaceunits').set(1)
-vdb.parm('exteriorband').set(0.1)
-vdb.parm('interiorband').setExpression('ch("exteriorband")')
-vdb.createOutputNode('null','OUT_VDB')
-
+# Create Fur
 furobjects = furtoolutils.createDefaultFurNodes(container, restskingeo, animskingeo, None)
-
+# Fix Fur Parameters
 for obj in furobjects:
     if toolutils.nodeTypeBaseNameMatches(obj, 'guidegroom'):
+        obj.setName(obj.name() + "_" + hair_name)
         obj.setCurrent(True, True)   
         obj.parm('vdbsop').set(obj.parm('skinsop').eval() + '/OUT_VDB')
-        obj.parm('skinsop').set(obj.parm('skinsop').eval() + '/OUT_SKIN')
+        obj.parm('skinsop').set(obj.parm('skinsop').eval() + '/OUT_' + hair_name)
         #obj.parm('group').set('hair')
         obj.parm('vdbsource').set(1)
         obj.parm("density").set(20000.0)
         obj.parm("densityoverride").set(1)
-        obj.parm("densityattrib").set("hair")
+        obj.parm("densityattrib").set(hair_name)        
+        obj.setPosition(restskingeo.position() + hou.Vector2(3*(len(out_skin_node.outputs()) - 2),-1))
+        
     if toolutils.nodeTypeBaseNameMatches(obj, 'hairgen'):
+        obj.setName(obj.name() + "_" + hair_name)
         obj.parm("density").set(100000.0)          
         obj.parm("influenceradius").set(0.005)
         obj.setDisplayFlag(False)
         
+        obj.parm("densityoverride").set(1)
+        obj.parm("densityattrib").set(hair_name)
         
+        obj.setPosition(restskingeo.position() + hou.Vector2(3*(len(out_skin_node.outputs()) - 2),-2))
 active_pane.enterCurrentNodeState()]]></script>
   </tool>
 
