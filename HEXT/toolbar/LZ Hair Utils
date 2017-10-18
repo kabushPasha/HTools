@@ -223,6 +223,7 @@ hou.hscript(h_preamble + h_extra_args + h_cmd)
   <tool name="LZ Create Parms Script" label="LZ Create Parms Script" icon="PLASMA_App">
     <script scriptType="python"><![CDATA[script = ''
 for n in hou.selectedNodes():
+    # CREATION AND POSITION
     # comment
     newline = '#create ' + n.name() + ' node' 
     script += '\n' + newline + '\n'
@@ -242,14 +243,24 @@ for n in hou.selectedNodes():
             script += newline + '\n'
         newline = n.name() +' = ' + n.parent().name() + '.createNode("' + n.type().name() + '","' + n.name() + '")'
         script += newline + '\n'
+     
+    # PROCESS PARAMETERS    
     for p in n.parms():
         if not p.isAtDefault():
             if type(p) is hou.Parm:
+                # Notify if parm is spare
+                if p.isSpare():
+                    newline = '#This is a Spare Parameter!'
+                    script += newline + '\n'
+            
+                # If parm is keyframed(has an expression) copy it's expression, else only the value
                 if p.keyframes() == ():
                     pt = p.parmTemplate()
                     pval = str(p.eval())
+                    # if the parm is string -> unexpand it and add double qoutes
                     if pt.dataType() == hou.parmData.String:                
-                        pval = '"' + pval +  '"'     
+                        pval = repr(p.unexpandedString())
+                        #pval = '"' + pval +  '"'
                     newline = n.name() + '.parm("' + p.name() + '").set(' + pval + ')'
                     script += newline + '\n'
                 else:
@@ -257,10 +268,11 @@ for n in hou.selectedNodes():
                     expr = p.expression()
                     newline = n.name() + ".parm('" + p.name() + "').setExpression('" + expr + "',language = hou." + str(p.expressionLanguage()) + ')'
                     script += newline + '\n'
-                    #print p.keyframes()
     if n.isDisplayFlagSet():
         newline = n.name() + '.setDisplayFlag(True)'
         script += newline + '\n'
+
+# PRINT SCRIPT AND COPY TO CLIPBOARD
 print script
 
 import PySide.QtGui as qtg
