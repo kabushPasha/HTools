@@ -229,6 +229,9 @@ for n in hou.selectedNodes():
     script += '\n' + newline + '\n'
     # if we have a parent node
     if len(n.inputs()) > 0:
+        if not n.inputs()[0].isSelected():
+            newline = n.inputs()[0].name() + ' = '
+            script += newline + '\n' 
         # create node
         newline = n.name() +' = ' + n.inputs()[0].name() + '.createOutputNode("' + n.type().name() + '","' + n.name() + '")'
         script += newline + '\n'
@@ -241,6 +244,9 @@ for n in hou.selectedNodes():
         if n.parent().path() == '/obj':
             newline = 'obj = hou.node("/obj")'
             script += newline + '\n'
+        else :
+            newline = n.parent().name() + ' = '
+            script += newline + '\n' 
         newline = n.name() +' = ' + n.parent().name() + '.createNode("' + n.type().name() + '","' + n.name() + '")'
         script += newline + '\n'
      
