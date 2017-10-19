@@ -120,16 +120,36 @@
 			]
 		],
 		"right",["submenu",
-			"label","Create",
+			"label","Hair",
+			"top",["script",
+				"label","Initialize Guides",
+				"icon","FUR_initialize_guides",
+				"script","radialmenu.runShelfTool(kwargs, 'sop_groom_guideinit')"
+			],
+			"top_left",["script",
+				"label","Screen Brush",
+				"icon","FUR_screen_brush",
+				"script","radialmenu.runShelfTool(kwargs, 'object_groomhairinscreen')"
+			],
+			"bottom_left",["script",
+				"label","Frizz",
+				"icon","FUR_paint_frizz",
+				"script","radialmenu.runShelfTool(kwargs, 'sop_groom_guideprocess_frizz')"
+			],
+			"bottom",["script",
+				"label","Clump",
+				"icon","FUR_paint_clumping",
+				"script","radialmenu.runShelfTool(kwargs, 'sop_groom_hairclump')"
+			],
 			"right",["script",
+				"label","Toggle Display",
+				"icon","FUR_toggle_display",
+				"script","radialmenu.runShelfTool(kwargs, 'object_groom_togglehairdisplay')"
+			],
+			"top_right",["script",
 				"label","Add Fur",
 				"icon","FUR_add_fur",
 				"script","radialmenu.runShelfTool(kwargs, 'LZ Add fur')"
-			],
-			"top_right",["script",
-				"label","Path",
-				"icon","OBJ_STATE_path",
-				"script","radialmenu.runShelfTool(kwargs, 'object_path')"
 			]
 		]
 	]
