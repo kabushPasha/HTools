@@ -33,6 +33,7 @@
     <memberTool name="Fix Absolute Paths"/>
     <memberTool name="Extract Maya Bones"/>
     <memberTool name="LZ Create Spine"/>
+    <memberTool name="LZ Corrective Bones"/>
   </toolshelf>
 
   <tool name="flip bones Selectable flag" label="flip bones Selectable flag" icon="hicon:/SVGIcons.index?OBJ_autorig_leg.svg">
@@ -992,11 +993,14 @@ for n in hou.selectedNodes():
     null.parm("controltype").set(1)
     null.parm("orientation").set(3)
 
-def addNull(parent,offset):
+def addNull(parent,offset,scale):
     null = parent.createOutputNode('null',parent.name())
     null.setPosition(parent.position() + hou.Vector2(0.0,-1.1689023184))
     null.parm("tz").set(offset)
-    makeCirceControll(null,0.3)
+    null.setColor(hou.Color(0.1,0.4,0.8))
+    makeCirceControll(null,scale)
+    null.parm("keeppos").set(1)
+    
     return null
     
 def CreatePath(start,end,scale):
@@ -1024,31 +1028,74 @@ def CreatePath(start,end,scale):
     merge.parm('objpath1').set("../../" + cv0.name() + "/points")
     merge.parm('objpath2').set("../../" + cv1.name() + "/points")
     
-num = 3    
+num = int(hou.ui.readInput("Number of Bones",buttons=('OK',),initial_contents= '3' )[1])   
     
 for n in hou.selectedNodes():
     n.parm("keeppos").set(1)
     parent = n.inputs()[0]
     offset = float(n.parm('tz').eval() / (num-1))
     length = n.parm('tz').eval()
-    
-    end = parent
+        
+    end = addNull(parent,0,length*3)
+    start = end
     
     for i in range(1,num):
-        end = addNull(end,offset)
+        end = addNull(end,offset,length*2.5)
         
     n.setInput(0,end)
     n.setPosition(end.position() + hou.Vector2(0.0,-1.1689023184))
-    
-    makeCirceControll(end,0.4)
-    makeCirceControll(parent,0.4)
+
+    makeCirceControll(end,length*3)
     
     n.setDisplayFlag(0)
     n.setSelectableInViewport(0)
+    parent.setDisplayFlag(0)
+    parent.setSelectableInViewport(0)
     
-    CreatePath(parent,end,length)
+    CreatePath(start,end,length)
     
     
     ]]></script>
+  </tool>
+
+  <tool name="LZ Corrective Bones" label="LZ Corrective Bones" icon="hicon:/SVGIcons.index?SOP_capturecorrect.svg">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    #create parent node
+    L_Leg_upperleg = n.inputs()[0]
+    parent = L_Leg_upperleg.createOutputNode("null",n.name() + "_parent")
+    parent.setPosition(L_Leg_upperleg.position() + hou.Vector2(-3.93445586193,-1.10000000782))
+    parent.setDisplayFlag(0)
+    
+    #create blend node
+    blend = parent.createOutputNode("blend",n.name() + "_blend")
+    blend.setPosition(parent.position() + hou.Vector2(-0.0011500120163,-0.958646305688))
+    #blend.parm("shortrotblend").set(2)
+    blend.parm("blendm1").set(504)
+    blend.setInput(1,n)
+    #blend.parm("shortrot").set(1)
+    #blend.parm("picking").set(0)
+    blend.setDisplayFlag(0)
+    
+    #create back_correct node
+    back_correct = blend.createOutputNode("bone",n.name() + "_back_correct")
+    back_correct.setPosition(blend.position() + hou.Vector2(0.999261553886,-0.998336959193))
+    back_correct.parm("rx").set(90)
+    #back_correct.parm("sx").set(1.0)
+    #back_correct.parm("sy").set(1.0)
+    #back_correct.parm("sz").set(1.0)
+    back_correct.parm("length").set(0.1)
+    back_correct.useXray(1)
+    
+    #create front_correct node
+    front_correct = blend.createOutputNode("bone",n.name() + "_front_correct")
+    front_correct.setPosition(blend.position() + hou.Vector2(-0.877944644172,-0.998336959193))
+    front_correct.parm("rx").set(-90.0)
+    #front_correct.parm("sx").set(1.0)
+    #front_correct.parm("sy").set(1.0)
+    #front_correct.parm("sz").set(1.0)
+    front_correct.parm("length").set(0.1)
+    front_correct.useXray(1)
+
+]]></script>
   </tool>
 </shelfDocument>
