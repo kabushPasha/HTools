@@ -32,6 +32,7 @@
     <memberTool name="Stretch Chain Setup"/>
     <memberTool name="Fix Absolute Paths"/>
     <memberTool name="Extract Maya Bones"/>
+    <memberTool name="LZ Create Spine"/>
   </toolshelf>
 
   <tool name="flip bones Selectable flag" label="flip bones Selectable flag" icon="hicon:/SVGIcons.index?OBJ_autorig_leg.svg">
@@ -982,6 +983,72 @@ for n in hou.selectedNodes():
     hook.setParmTransform(hou.Matrix4(1))
     hook.parm('keeppos').set(1)
     hook.parm('geoscale').set(0.1)
+    ]]></script>
+  </tool>
+
+  <tool name="LZ Create Spine" label="LZ Create Spine" icon="hicon:/SVGIcons.index?OBJ_autorig_spine_3.svg">
+    <script scriptType="python"><![CDATA[def makeCirceControll(null,scale):
+    null.parm("geoscale").set(scale)
+    null.parm("controltype").set(1)
+    null.parm("orientation").set(3)
+
+def addNull(parent,offset):
+    null = parent.createOutputNode('null',parent.name())
+    null.setPosition(parent.position() + hou.Vector2(0.0,-1.1689023184))
+    null.parm("tz").set(offset)
+    makeCirceControll(null,0.3)
+    return null
+    
+def CreatePath(start,end,scale):
+    #create path1 node
+    path1 = start.createOutputNode("path",start.name() + "_path")
+    path1.setPosition(start.position() + hou.Vector2(4.58636315262,-1.16890232436))
+    path1.setDisplayFlag(0)
+    path1.setSelectableInViewport(0)
+    
+    def CreateCV(start):
+        #create pathcv1 node
+        pathcv0 = start.createOutputNode("pathcv",start.name() + "_CV0")
+        pathcv0.setPosition(start.position() + hou.Vector2(2.50949768387,-1.16890232436))
+        pathcv0.setDisplayFlag(0)
+        pathcv0.parm("rx").set(180.0)
+        pathcv0.parm("scale").set(scale/3)
+        pathcv0.setSelectableInViewport(0)
+        return pathcv0
+        
+    cv0 = CreateCV(start)
+    cv1 = CreateCV(end)
+    # update Cvs
+    merge = path1.node('points_merge')
+    merge.parm('numobj').set(2)
+    merge.parm('objpath1').set("../../" + cv0.name() + "/points")
+    merge.parm('objpath2').set("../../" + cv1.name() + "/points")
+    
+num = 3    
+    
+for n in hou.selectedNodes():
+    n.parm("keeppos").set(1)
+    parent = n.inputs()[0]
+    offset = float(n.parm('tz').eval() / (num-1))
+    length = n.parm('tz').eval()
+    
+    end = parent
+    
+    for i in range(1,num):
+        end = addNull(end,offset)
+        
+    n.setInput(0,end)
+    n.setPosition(end.position() + hou.Vector2(0.0,-1.1689023184))
+    
+    makeCirceControll(end,0.4)
+    makeCirceControll(parent,0.4)
+    
+    n.setDisplayFlag(0)
+    n.setSelectableInViewport(0)
+    
+    CreatePath(parent,end,length)
+    
+    
     ]]></script>
   </tool>
 </shelfDocument>
