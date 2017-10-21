@@ -292,9 +292,16 @@ for n in hou.selectedNodes():
 # PRINT SCRIPT AND COPY TO CLIPBOARD
 print script
 
-import PySide.QtGui as qtg
-app = qtg.QApplication.instance()
-clipboard = app.clipboard()
-clipboard.setText(script)]]></script>
+#import PySide2.QtGui as qtg
+#app = qtg.QApplication.instance()
+#clipboard = app.clipboard()
+#clipboard.setText(script)
+
+from PySide2.QtWidgets  import  QApplication
+QApplication.clipboard().setText(script)
+
+
+
+]]></script>
   </tool>
 </shelfDocument>
