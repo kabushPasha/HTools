@@ -224,23 +224,41 @@ for bone in hou.selectedNodes():
   </tool>
 
   <tool name="bone between nulls" label="bone between nulls" icon="hicon:/SVGIcons.index?DOP_noconrel.svg">
-    <script scriptType="python"><![CDATA[if len(hou.selectedNodes())>1:
-    n1 = hou.selectedNodes()[0]
-    n2 = hou.selectedNodes()[1]
+    <script scriptType="python"><![CDATA[import lzrig
+
+for n in hou.selectedNodes():
+    end = n.outputs()[0]  
+
+    #create bone node
+    bone = n.createOutputNode("bone",n.name() + "_bone")
+    bone.setPosition(n.position() + hou.Vector2(9.99746844172e-05,-1.00132469978))
+    bone.parm("rx").set(180.0)
+    bone.parm("length").set(end.parm("tz").eval())
     
-    w1 = n1.worldTransform()
-    w2 = n2.worldTransform()
+    end.parm("keeppos").set(1)
+    end.setInput(0,bone)
     
-    p1 = w1.extractTranslates()
-    p2 = w2.extractTranslates()
+    lzrig.cleanTransfrom(bone)    
+    lzrig.cleanTransfrom(end)
     
-    dir = (p2-p1)/(p2-p1).length();
-    #transform = hou.Matrix4()
-    m =  dir.matrixToRotateTo(hou.Vector3(0,0,-1))
     
-    bone = n1.createOutputNode('bone')
-    bone.setPreTransform(m.inverted())
-    bone.parm('length').set((p2-p1).length())
+#if len(hou.selectedNodes())>1:
+#    n1 = hou.selectedNodes()[0]
+#    n2 = hou.selectedNodes()[1]
+#    
+#    w1 = n1.worldTransform()
+#    w2 = n2.worldTransform()
+#    
+#    p1 = w1.extractTranslates()
+#    p2 = w2.extractTranslates()
+#    
+#    dir = (p2-p1)/(p2-p1).length();
+#    #transform = hou.Matrix4()
+#    m =  dir.matrixToRotateTo(hou.Vector3(0,0,-1))
+#    
+#    bone = n1.createOutputNode('bone')
+#    bone.setPreTransform(m.inverted())
+#    bone.parm('length').set((p2-p1).length())
     
     
     ]]></script>
@@ -1089,39 +1107,16 @@ for n in hou.selectedNodes():
     <script scriptType="python"><![CDATA[import lzrig
 reload(lzrig)
 
-for n in hou.selectedNodes():
-    lzrig.extractIKBoneRotates(n)
-    
-    #create parent node
-    L_Leg_upperleg = n.inputs()[0]
-    parent = L_Leg_upperleg.createOutputNode("null",n.name() + "_parent")
-    parent.setPosition(L_Leg_upperleg.position() + hou.Vector2(-3.93445586193,-1.10000000782))
-    parent.setDisplayFlag(0)
-    
-    #create blend node
-    blend = parent.createOutputNode("blend",n.name() + "_blend")
-    blend.setPosition(parent.position() + hou.Vector2(-0.0011500120163,-0.958646305688))
-    blend.parm("blendm1").set(504)
-    blend.setInput(1,n)
-    blend.setDisplayFlag(0)
-    
-    #create back_correct node
-    back_correct = blend.createOutputNode("bone",n.name() + "_back_helper")
-    back_correct.setPosition(blend.position() + hou.Vector2(0.999261553886,-0.998336959193))
-    back_correct.parm("rx").set(90)
-    back_correct.parm("length").set(0.1)
-    back_correct.useXray(1)
-            
-    #create front_correct node
-    front_correct = blend.createOutputNode("bone",n.name() + "_front_helper")
-    front_correct.setPosition(blend.position() + hou.Vector2(-0.877944644172,-0.998336959193))
-    front_correct.parm("rx").set(-90.0)
-    front_correct.parm("length").set(0.1)
-    front_correct.useXray(1)
 
-    
-    lzrig.createHelperBoneParms(back_correct,n)
-    lzrig.createHelperBoneParms(front_correct,n)
+# MAIN
+altclick = kwargs["altclick"]
+shiftclick = kwargs["shiftclick"]
+ctrlclick = kwargs["ctrlclick"]
+
+for n in hou.selectedNodes():    
+    lzrig.createHelperBone(n,90,1)
+    lzrig.createHelperBone(n,-90,1)    
+
 ]]></script>
   </tool>
 
@@ -1132,6 +1127,6 @@ for n in hou.selectedNodes():
 #MAIN
 for n in hou.selectedNodes():
     if n.type().name() == 'bone':
-        lzrig.extractIKBoneRotates(n)]]></script>
+        lzrig.extractIKBoneRotates(n,1)]]></script>
   </tool>
 </shelfDocument>

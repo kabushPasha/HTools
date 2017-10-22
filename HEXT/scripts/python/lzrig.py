@@ -1,6 +1,6 @@
 import hou
 
-def extractIKBoneRotates(n):    
+def extractIKBoneRotates(n,use_asset_prefix):    
 	ptg = n.parmTemplateGroup()
 	if ptg.find('ir') is not None:
 		n.parmTuple('ir').lock((0,0,0))
@@ -11,14 +11,33 @@ def extractIKBoneRotates(n):
     
 	solver = n.parm('solver').eval()
 	
-	expression = 'chop("' + solver + "/" + n.name() + ':rx")'
+	if use_asset_prefix:
+		asset_prefix = "/" + n.parent().type().name()
+	else:
+		asset_prefix = ""
+	base_expr = 'chop("' + solver + asset_prefix + "/" + n.name()
+	expression =  base_expr + ':rx")'
 	n.parm('irx').setExpression(expression)
-	expression = 'chop("' + solver + "/" + n.name() + ':ry")'
+	expression =  base_expr + ':ry")'
 	n.parm('iry').setExpression(expression)
-	expression = 'chop("' + solver + "/" + n.name() + ':rz")'
+	expression =  base_expr + ':rz")'
 	n.parm('irz').setExpression(expression)
 	
 	n.parmTuple('ir').lock((1,1,1))
+
+def createHelperBone(n,angle,use_asset_prefix):
+	extractIKBoneRotates(n,use_asset_prefix)
+
+	helper = n.inputs()[0].createOutputNode("bone",n.name() + "_helper")
+	helper.setPosition(n.position() + hou.Vector2(-2.5 -2.5*(angle>0),0))
+	helper.parm("rx").set(angle)
+	helper.parm("length").set(0.1)
+	helper.useXray(1)
+
+	createHelperBoneParms(helper,n)
+	cleanTransfrom(helper)
+
+	helper.parm('rx').setExpression('ch("driver")*0.5')
 
 	
 def createHelperBoneParms(bone,target):
@@ -47,7 +66,12 @@ def createHelperBoneParms(bone,target):
 	bone.parm('corrected_length').lock(1)
 	bone.parm('length').setExpression('ch("corrected_length")')
 	
+def cleanTransfrom(n):
+	n.setPreTransform(n.parmTransform()*n.preTransform())
+	n.setParmTransform(hou.Matrix4(1))
 	
 	
-	
+
+
+
 	
