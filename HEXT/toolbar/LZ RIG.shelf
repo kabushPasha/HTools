@@ -1086,7 +1086,12 @@ for n in hou.selectedNodes():
   </tool>
 
   <tool name="LZ Corrective Bones" label="LZ Corrective Bones" icon="hicon:/SVGIcons.index?SOP_capturecorrect.svg">
-    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    <script scriptType="python"><![CDATA[import lzrig
+reload(lzrig)
+
+for n in hou.selectedNodes():
+    lzrig.extractIKBoneRotates(n)
+    
     #create parent node
     L_Leg_upperleg = n.inputs()[0]
     parent = L_Leg_upperleg.createOutputNode("null",n.name() + "_parent")
@@ -1101,43 +1106,32 @@ for n in hou.selectedNodes():
     blend.setDisplayFlag(0)
     
     #create back_correct node
-    back_correct = blend.createOutputNode("bone",n.name() + "_back_correct")
+    back_correct = blend.createOutputNode("bone",n.name() + "_back_helper")
     back_correct.setPosition(blend.position() + hou.Vector2(0.999261553886,-0.998336959193))
     back_correct.parm("rx").set(90)
     back_correct.parm("length").set(0.1)
     back_correct.useXray(1)
-    
+            
     #create front_correct node
-    front_correct = blend.createOutputNode("bone",n.name() + "_front_correct")
+    front_correct = blend.createOutputNode("bone",n.name() + "_front_helper")
     front_correct.setPosition(blend.position() + hou.Vector2(-0.877944644172,-0.998336959193))
     front_correct.parm("rx").set(-90.0)
     front_correct.parm("length").set(0.1)
     front_correct.useXray(1)
 
+    
+    lzrig.createHelperBoneParms(back_correct,n)
+    lzrig.createHelperBoneParms(front_correct,n)
 ]]></script>
   </tool>
 
   <tool name="LZ Bone Real Rotates" label="LZ Bone Real Rotates" icon="hicon:/SVGIcons.index?OBJ_STATE_aligncapturepose.svg">
-    <script scriptType="python"><![CDATA[def extractBoneRotates(n):    
-    ptg = n.parmTemplateGroup()
-    ptg.remove('ir')
-    parm = hou.FloatParmTemplate("ir","Real Rotate",3)
-    ptg.addParmTemplate(parm)
-    n.setParmTemplateGroup(ptg) 
-    
-    solver = n.parm('solver').eval()
-    expression = 'chop("' + solver + "/" + n.name() + ':rx")'
-    n.parm('irx').setExpression(expression)
-    
-    expression = 'chop("' + solver + "/" + n.name() + ':ry")'
-    n.parm('iry').setExpression(expression)
-    
-    expression = 'chop("' + solver + "/" + n.name() + ':rz")'
-    n.parm('irz').setExpression(expression)
-    
+    <script scriptType="python"><![CDATA[import lzrig
+#reload(lzrig)
+
 #MAIN
 for n in hou.selectedNodes():
     if n.type().name() == 'bone':
-        extractBoneRotates(n)    ]]></script>
+        lzrig.extractIKBoneRotates(n)]]></script>
   </tool>
 </shelfDocument>
