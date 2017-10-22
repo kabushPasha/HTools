@@ -1,5 +1,6 @@
 import hou
 
+# EXTRACT TRUE bone rotates from chopnet
 def extractIKBoneRotates(n,use_asset_prefix):    
 	ptg = n.parmTemplateGroup()
 	if ptg.find('ir') is not None:
@@ -15,7 +16,11 @@ def extractIKBoneRotates(n,use_asset_prefix):
 		asset_prefix = "/" + n.parent().type().name()
 	else:
 		asset_prefix = ""
+		
 	base_expr = 'chop("' + solver + asset_prefix + "/" + n.name()
+	base_expr = 'chop("' + solver + "/" + '"+oprelativepath("/obj/",".")+"'
+	
+	
 	expression =  base_expr + ':rx")'
 	n.parm('irx').setExpression(expression)
 	expression =  base_expr + ':ry")'

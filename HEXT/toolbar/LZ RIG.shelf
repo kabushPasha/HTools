@@ -132,95 +132,131 @@ for chopnet in hou.selectedNodes():
   </tool>
 
   <tool name="create_twist_bones" label="create_twist_bones" icon="hicon:/SVGIcons.index?SOP_capturemeta.svg">
-    <script scriptType="python"><![CDATA[def createTwistBone(parent,bone):
-    tw1 = parent.createOutputNode('bone',bone.name() + "_twist1")
-    # he ranames them automaticly
-    tw1.setColor(hou.Color(1,0.8,0))
-    tw1.parm('length').set(bone.parm('length').eval() * 0.25)
-    return tw1
-    
-def fixSpareFolders(node):
-    ptg = node.parmTemplateGroup()
-    folders = ptg.entries()
-    for folder in folders:
-        folder.setFolderType(hou.folderType.Simple)
-        ptg.replace(folder.name(),folder)
-    node.setParmTemplateGroup(ptg) 
-    
-    
-for bone in hou.selectedNodes():
-    if bone.type().name() == 'bone':
-        bone.setDisplayFlag(0)
-    
-        parent = bone.inputs()[0]
-        tw1 = createTwistBone(parent,bone)
-        tw1.setPosition(bone.position() + hou.Vector2(2,0))
-        tw2 = createTwistBone(tw1,bone)
-        tw3 = createTwistBone(tw2,bone)
-        tw4 = createTwistBone(tw3,bone)
-        
-        chopnet = bone.parent().createNode('chopnet',tw1.name() + "_chopnet")
-        chopnet.setPosition(tw1.position() + hou.Vector2(2,0))
-        
-        #null = bone.parent().createNode('null',tw1.name() + "_target")
-        null = bone.createOutputNode('null',tw1.name() + "_target")
-        null.setPosition(tw1.position() + hou.Vector2(2,-1))
-        null.parm("tz").set( - bone.parm("length").eval())
-        
-        ik = chopnet.createNode('inversekin',tw1.name() + "_ik")
-        ik.parm('bonerootpath').set('../../' + tw1.name())
-        ik.parm('boneendpath').set('../../' + tw1.name())
-        ik.parm('solvertype').set(2)
-        ik.parm('endaffectorpath').set('../../' + null.name())
-        
-        tw1.parm('solver').set('../' + chopnet.name() + "/"+ ik.name())
-        
-        # add rotate controlls
-        ptg = null.parmTemplateGroup()
-        ptg.clear()
-        parm = hou.FloatParmTemplate('Rotate_Final','Rotate_Final',1)
-        parm.setDefaultExpression(('ch("IK_Rotate")*(1-ch("IK_FK")) + ch("FK_Rotate")*ch("IK_FK")',))
-        ptg.addParmTemplate(parm)
-        parm = hou.FloatParmTemplate('IK_FK','IK_FK',1,min=0, max=1,min_is_strict=True, max_is_strict=True)
-        side_prefix = null.name().split("_")[0]     
-        side_name_str = 'right' if side_prefix=='R' else 'left'
-        expression = '1-ch("../' + side_name_str + 'handfkikblend")'
-        parm.setDefaultExpression((expression,))
-        ptg.addParmTemplate(parm)
-        parm = hou.FloatParmTemplate('IK_Rotate','IK_Rotate',1)
-        expression = 'ch("../' + side_prefix + '_Hand_handroot/rz")'
-        parm.setDefaultExpression((expression,))
-        ptg.addParmTemplate(parm)
-        parm = hou.FloatParmTemplate('FK_Rotate','FK_Rotate',1)
-        expression = '-ch("../'+ side_prefix + '_Hand_fkcontrol/rz")'
-        parm.setDefaultExpression((expression,))
-        ptg.addParmTemplate(parm)
-        # Add Ramp Here??
-        null.setParmTemplateGroup(ptg)        
-        fixSpareFolders(null)                 
-        
-        # set rotates
-        tw2.parm("rz").setExpression('-ch("../' + null.name() +'/Rotate_Final")*0.25')
-        tw3.parm("rz").setExpression('-ch("../' + null.name() +'/Rotate_Final")*0.25')
-        tw4.parm("rz").setExpression('-ch("../' + null.name() +'/Rotate_Final")*0.25')
+    <helpText><![CDATA[""""Select start and end bone"""]]></helpText>
+    <script scriptType="python"><![CDATA[import lzrig
 
-        # Hide Null
-        null.setSelectableInViewport(0)
-        null.setDisplayFlag(0)
-                
-        # network box
-        nb = bone.parent().createNetworkBox()
-        nb.addNode(tw1)
-        nb.addNode(tw2)
-        nb.addNode(tw3)
-        nb.addNode(tw4)
-        nb.addNode(null)
-        nb.addNode(chopnet)
-        nb.fitAroundContents()
+def createTwistBone(parent,bone,rot,nbones):
+    tw1 = parent.createOutputNode('bone',bone.name() + "_twist1")
+    tw1.setPosition(parent.position() + hou.Vector2(0,-0.9))
+    tw1.setColor(hou.Color(1,0.8,0))
+    tw1.parm('length').set(bone.parm('length').eval() / nbones)
+    tw1.useXray(1)
+    tw1.setSelectableInViewport(0)
+    tw1.parm('rz').set(rot)
+    tw1.parm('rz').lock((1))  
+    return tw1
+
+def createTwistBonesSetup(bone,target,nbones):
+    lzrig.extractIKBoneRotates(target,1)
+    #create null node
+    null = bone.createOutputNode("null",bone.name() + "_twist_hook")
+    null.setPosition(bone.position() + hou.Vector2(-1.5,-1.15))
+      
+    ptg = null.parmTemplateGroup()
+    parm = hou.FloatParmTemplate('rotate','Rotate',1)
+    ptg.addParmTemplate(parm)
+    null.setParmTemplateGroup(ptg)        
+
+    rot = null.parm('rotate')
+    rot.set(target.parm('irz'))
+    rot.setExpression(rot.expression() + "*" + str(1.0/nbones))
+    rot.lock((1))
+    null.setDisplayFlag(0)
+    
+    twist = null
+    for i in range(0,nbones):
+        twist = createTwistBone(twist,bone,rot,nbones)
+
+    
+# MAIN
+if len(hou.selectedNodes())>1:
+    nbones = 4        
+    bone = hou.selectedNodes()[0]
+    target = hou.selectedNodes()[1]
+    createTwistBonesSetup(bone,target,nbones)   
+    bone = hou.selectedNodes()[0]
+    target = hou.selectedNodes()[1]
+    createTwistBonesSetup
+          
+         
+    
+    
+## Old Way 
+## DEPRECATED
+def oldWay():    
+    for bone in hou.selectedNodes():
+        if bone.type().name() == 'bone':
+            bone.setDisplayFlag(0)
         
-        
-        
-        ]]></script>
+            parent = bone.inputs()[0]
+            tw1 = createTwistBone(parent,bone)
+            tw1.setPosition(bone.position() + hou.Vector2(2,0))
+            tw2 = createTwistBone(tw1,bone)
+            tw3 = createTwistBone(tw2,bone)
+            tw4 = createTwistBone(tw3,bone)
+            
+            chopnet = bone.parent().createNode('chopnet',tw1.name() + "_chopnet")
+            chopnet.setPosition(tw1.position() + hou.Vector2(2,0))
+            
+            #null = bone.parent().createNode('null',tw1.name() + "_target")
+            null = bone.createOutputNode('null',tw1.name() + "_target")
+            null.setPosition(tw1.position() + hou.Vector2(2,-1))
+            null.parm("tz").set( - bone.parm("length").eval())
+            
+            ik = chopnet.createNode('inversekin',tw1.name() + "_ik")
+            ik.parm('bonerootpath').set('../../' + tw1.name())
+            ik.parm('boneendpath').set('../../' + tw1.name())
+            ik.parm('solvertype').set(2)
+            ik.parm('endaffectorpath').set('../../' + null.name())
+            
+            tw1.parm('solver').set('../' + chopnet.name() + "/"+ ik.name())
+            
+            # add rotate controlls
+            ptg = null.parmTemplateGroup()
+            ptg.clear()
+            parm = hou.FloatParmTemplate('Rotate_Final','Rotate_Final',1)
+            parm.setDefaultExpression(('ch("IK_Rotate")*(1-ch("IK_FK")) + ch("FK_Rotate")*ch("IK_FK")',))
+            ptg.addParmTemplate(parm)
+            parm = hou.FloatParmTemplate('IK_FK','IK_FK',1,min=0, max=1,min_is_strict=True, max_is_strict=True)
+            side_prefix = null.name().split("_")[0]     
+            side_name_str = 'right' if side_prefix=='R' else 'left'
+            expression = '1-ch("../' + side_name_str + 'handfkikblend")'
+            parm.setDefaultExpression((expression,))
+            ptg.addParmTemplate(parm)
+            parm = hou.FloatParmTemplate('IK_Rotate','IK_Rotate',1)
+            expression = 'ch("../' + side_prefix + '_Hand_handroot/rz")'
+            parm.setDefaultExpression((expression,))
+            ptg.addParmTemplate(parm)
+            parm = hou.FloatParmTemplate('FK_Rotate','FK_Rotate',1)
+            expression = '-ch("../'+ side_prefix + '_Hand_fkcontrol/rz")'
+            parm.setDefaultExpression((expression,))
+            ptg.addParmTemplate(parm)
+            # Add Ramp Here??
+            null.setParmTemplateGroup(ptg)        
+            fixSpareFolders(null)                 
+            
+            # set rotates
+            tw2.parm("rz").setExpression('-ch("../' + null.name() +'/Rotate_Final")*0.25')
+            tw3.parm("rz").setExpression('-ch("../' + null.name() +'/Rotate_Final")*0.25')
+            tw4.parm("rz").setExpression('-ch("../' + null.name() +'/Rotate_Final")*0.25')
+    
+            # Hide Null
+            null.setSelectableInViewport(0)
+            null.setDisplayFlag(0)
+                    
+            # network box
+            nb = bone.parent().createNetworkBox()
+            nb.addNode(tw1)
+            nb.addNode(tw2)
+            nb.addNode(tw3)
+            nb.addNode(tw4)
+            nb.addNode(null)
+            nb.addNode(chopnet)
+            nb.fitAroundContents()
+            
+            
+            
+            ]]></script>
   </tool>
 
   <tool name="bone between nulls" label="bone between nulls" icon="hicon:/SVGIcons.index?DOP_noconrel.svg">
