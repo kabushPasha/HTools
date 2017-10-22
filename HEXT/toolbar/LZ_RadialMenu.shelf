@@ -10,7 +10,8 @@
     <memberTool name="RS Hair Params"/>
     <memberTool name="LZ RS LightDome"/>
     <memberTool name="LZ RS Setup"/>
-    <memberTool name="LZ Create Parms Script"/>
+    <memberTool name="LZ N2S"/>
+    <memberTool name="LZ kwargs"/>
   </toolshelf>
 
   <tool name="LZ Add fur" label="LZ Add fur" icon="PLASMA_App">
@@ -231,7 +232,7 @@ if has_render_panel == 0:
     exec(hou.shelves.tool('Render View').script())]]></script>
   </tool>
 
-  <tool name="LZ Create Parms Script" label="LZ Create Parms Script" icon="PLASMA_App">
+  <tool name="LZ N2S" label="LZ N2S" icon="PLASMA_App">
     <script scriptType="python"><![CDATA[script = ''
 for n in hou.selectedNodes():
     # CREATION AND POSITION
@@ -296,6 +297,26 @@ print script
 #app = qtg.QApplication.instance()
 #clipboard = app.clipboard()
 #clipboard.setText(script)
+
+from PySide2.QtWidgets  import  QApplication
+QApplication.clipboard().setText(script)
+
+
+
+]]></script>
+  </tool>
+
+  <tool name="LZ kwargs" label="LZ kwargs" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[print ""
+for key in kwargs.keys():
+    print key + ' = kwargs["' + key + '"] #is ' + str(kwargs[key])  
+    
+    
+script = 'altclick = kwargs["altclick"]'        + '\n'
+script += 'shiftclick = kwargs["shiftclick"]'    + '\n'
+script += 'ctrlclick = kwargs["ctrlclick"]'      + '\n'    
+
+
 
 from PySide2.QtWidgets  import  QApplication
 QApplication.clipboard().setText(script)

@@ -34,6 +34,7 @@
     <memberTool name="Extract Maya Bones"/>
     <memberTool name="LZ Create Spine"/>
     <memberTool name="LZ Corrective Bones"/>
+    <memberTool name="LZ Bone Real Rotates"/>
   </toolshelf>
 
   <tool name="flip bones Selectable flag" label="flip bones Selectable flag" icon="hicon:/SVGIcons.index?OBJ_autorig_leg.svg">
@@ -727,6 +728,7 @@ for n in hou.selectedNodes():
     followPath.parm('soppath').set('`opinputpath("../..",0)`')
     followPath.parm('pos').set(0.5)
     followPath.parm('vex_rate').set(rate)
+    followPath.parm("lookupmode").set(1)
     followPath.setAudioFlag(True)
     
     null.parm('constraints_on').set(1)
@@ -760,7 +762,8 @@ for n in hou.selectedNodes():
     
     n.setDisplayFlag(False)
     n.setSelectableInViewport(False)
-    path.setSelectableInViewport(False)
+    path.setSelectableInViewport(True)
+    path.setDisplayFlag(0)
     null.setDisplayFlag(False)
     null.setSelectableInViewport(False)
     new_cv.setDisplayFlag(False)
@@ -988,6 +991,9 @@ for n in hou.selectedNodes():
   </tool>
 
   <tool name="LZ Create Spine" label="LZ Create Spine" icon="hicon:/SVGIcons.index?OBJ_autorig_spine_3.svg">
+    <helpText><![CDATA["""creates a fk controll setup(select end null)
+ctrl+click: uses 3 bones for it
+alt+click: creates a bone chain from it"""]]></helpText>
     <script scriptType="python"><![CDATA[def makeCirceControll(null,scale):
     null.parm("geoscale").set(scale)
     null.parm("controltype").set(1)
@@ -1008,7 +1014,7 @@ def CreatePath(start,end,scale):
     path1 = start.createOutputNode("path",start.name() + "_path")
     path1.setPosition(start.position() + hou.Vector2(4.58636315262,-1.16890232436))
     path1.setDisplayFlag(0)
-    path1.setSelectableInViewport(0)
+    path1.setSelectableInViewport(1)
     
     def CreateCV(start):
         #create pathcv1 node
@@ -1028,7 +1034,20 @@ def CreatePath(start,end,scale):
     merge.parm('objpath1').set("../../" + cv0.name() + "/points")
     merge.parm('objpath2').set("../../" + cv1.name() + "/points")
     
-num = int(hou.ui.readInput("Number of Bones",buttons=('OK',),initial_contents= '3' )[1])   
+    return path1
+
+def createBonesFromCurve(root):
+    import toolutils
+    sv = toolutils.sceneViewer()
+    path.setSelected(1,1)
+    sv.setCurrentState('bonesfromcurve',wait_for_exit = 0)
+    
+# MAIN    
+ctrlclick = kwargs['ctrlclick']
+if ctrlclick:
+    num = 3
+else:
+    num = int(hou.ui.readInput("Number of Bones",buttons=('OK',),initial_contents= '3' )[1])   
     
 for n in hou.selectedNodes():
     n.parm("keeppos").set(1)
@@ -1052,9 +1071,17 @@ for n in hou.selectedNodes():
     parent.setDisplayFlag(0)
     parent.setSelectableInViewport(0)
     
-    CreatePath(start,end,length)
+    path = CreatePath(start,end,length)
+    
+    # create bones from curve
+    altclick = kwargs["altclick"]
+    if altclick:
+        createBonesFromCurve(start)    
     
     
+    
+    
+        
     ]]></script>
   </tool>
 
@@ -1069,20 +1096,14 @@ for n in hou.selectedNodes():
     #create blend node
     blend = parent.createOutputNode("blend",n.name() + "_blend")
     blend.setPosition(parent.position() + hou.Vector2(-0.0011500120163,-0.958646305688))
-    #blend.parm("shortrotblend").set(2)
     blend.parm("blendm1").set(504)
     blend.setInput(1,n)
-    #blend.parm("shortrot").set(1)
-    #blend.parm("picking").set(0)
     blend.setDisplayFlag(0)
     
     #create back_correct node
     back_correct = blend.createOutputNode("bone",n.name() + "_back_correct")
     back_correct.setPosition(blend.position() + hou.Vector2(0.999261553886,-0.998336959193))
     back_correct.parm("rx").set(90)
-    #back_correct.parm("sx").set(1.0)
-    #back_correct.parm("sy").set(1.0)
-    #back_correct.parm("sz").set(1.0)
     back_correct.parm("length").set(0.1)
     back_correct.useXray(1)
     
@@ -1090,12 +1111,33 @@ for n in hou.selectedNodes():
     front_correct = blend.createOutputNode("bone",n.name() + "_front_correct")
     front_correct.setPosition(blend.position() + hou.Vector2(-0.877944644172,-0.998336959193))
     front_correct.parm("rx").set(-90.0)
-    #front_correct.parm("sx").set(1.0)
-    #front_correct.parm("sy").set(1.0)
-    #front_correct.parm("sz").set(1.0)
     front_correct.parm("length").set(0.1)
     front_correct.useXray(1)
 
 ]]></script>
+  </tool>
+
+  <tool name="LZ Bone Real Rotates" label="LZ Bone Real Rotates" icon="hicon:/SVGIcons.index?OBJ_STATE_aligncapturepose.svg">
+    <script scriptType="python"><![CDATA[def extractBoneRotates(n):    
+    ptg = n.parmTemplateGroup()
+    ptg.remove('ir')
+    parm = hou.FloatParmTemplate("ir","Real Rotate",3)
+    ptg.addParmTemplate(parm)
+    n.setParmTemplateGroup(ptg) 
+    
+    solver = n.parm('solver').eval()
+    expression = 'chop("' + solver + "/" + n.name() + ':rx")'
+    n.parm('irx').setExpression(expression)
+    
+    expression = 'chop("' + solver + "/" + n.name() + ':ry")'
+    n.parm('iry').setExpression(expression)
+    
+    expression = 'chop("' + solver + "/" + n.name() + ':rz")'
+    n.parm('irz').setExpression(expression)
+    
+#MAIN
+for n in hou.selectedNodes():
+    if n.type().name() == 'bone':
+        extractBoneRotates(n)    ]]></script>
   </tool>
 </shelfDocument>
