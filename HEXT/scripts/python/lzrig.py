@@ -35,7 +35,10 @@ def createHelperBone(n,angle,use_asset_prefix):
 
 	helper = n.inputs()[0].createOutputNode("bone",n.name() + "_helper")
 	helper.setPosition(n.position() + hou.Vector2(-2.5 -2.5*(angle>0),0))
-	helper.parm("rx").set(angle)
+	
+	pt = n.preTransform()
+	helper.parmTuple("r").set(pt.extractRotates()*0.5 + hou.Vector3(angle,0,0))
+
 	helper.parm("length").set(0.1)
 	helper.useXray(1)
 
