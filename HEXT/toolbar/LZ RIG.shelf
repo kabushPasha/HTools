@@ -35,6 +35,7 @@
     <memberTool name="LZ Create Spine"/>
     <memberTool name="LZ Corrective Bones"/>
     <memberTool name="LZ Bone Real Rotates"/>
+    <memberTool name="LZ Export IK Rotations"/>
   </toolshelf>
 
   <tool name="flip bones Selectable flag" label="flip bones Selectable flag" icon="hicon:/SVGIcons.index?OBJ_autorig_leg.svg">

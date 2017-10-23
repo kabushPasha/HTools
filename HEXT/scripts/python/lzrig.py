@@ -77,8 +77,45 @@ def createHelperBoneParms(bone,target):
 def cleanTransfrom(n):
 	n.setPreTransform(n.parmTransform()*n.preTransform())
 	n.setParmTransform(hou.Matrix4(1))
-	
-	
+
+
+
+def exportIKRotations(n):
+	solver = n.parm('solver')
+	if solver is not None:
+		solver = n.node(solver.evalAsString())
+		if solver is not None:
+			#Create ir parm
+			ptg = n.parmTemplateGroup()
+			if ptg.find('ir') is not None:
+				n.parmTuple('ir').lock((0,0,0))
+				ptg.remove('ir')
+			parm = hou.FloatParmTemplate("ir","Real Rotate",3)
+			ptg.addParmTemplate(parm)
+			n.setParmTemplateGroup(ptg) 	
+			
+			#create rename node
+			rename = solver.createOutputNode("rename","rename_"  + n.name())
+			rename.setPosition(solver.position() + hou.Vector2(0,-0.8))
+			rename.parm("renamefrom").set('*' + n.name() + ':r*')
+			rename.parm("renameto").set('ir*')
+		
+			
+			#create export node
+			export = rename.createOutputNode("export","export_" + n.name())
+			export.setPosition(rename.position() + hou.Vector2(0,-0.8))
+			export.parm("channels").set('ir*')
+			export.parm("nodepath").set('../../' + n.name())
+			export.parm("path").set('ir*')
+			export.setExportFlag(1)
+
+
+
+
+
+
+
+
 
 
 
