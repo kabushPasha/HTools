@@ -352,10 +352,12 @@ for node in nodes:
     prims = g.prims()
     i = 0
     for p in prims:
-        hook = subnet.parent().createNode('null',p.attribValue('piece'))
-        hook.setPosition(subnet.position() + hou.Vector2(2,-i))
-        i = i+1
-        hook.setColor(hou.Color(1,1,1))]]></script>
+        if subnet.parent().node(p.attribValue('piece')) is None:
+            print p.attribValue('piece')
+            hook = subnet.parent().createNode('null',p.attribValue('piece'))
+            hook.setPosition(subnet.position() + hou.Vector2(2,-i))
+            i = i+1
+            hook.setColor(hou.Color(1,1,1))             ]]></script>
   </tool>
 
   <tool name="update curve CVs" label="update curve CVs" icon="hicon:/SVGIcons.index?OBJ_path.svg">
