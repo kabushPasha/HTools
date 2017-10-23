@@ -1168,4 +1168,12 @@ for n in hou.selectedNodes():
     if n.type().name() == 'bone':
         lzrig.extractIKBoneRotates(n,1)]]></script>
   </tool>
+
+  <tool name="LZ Export IK Rotations" label="LZ Export IK Rotations" icon="hicon:/SVGIcons.index?CHANNELS_show_names.svg">
+    <script scriptType="python"><![CDATA[import lzrig
+reload(lzrig)
+
+for n in hou.selectedNodes():
+    lzrig.exportIKRotations(n)]]></script>
+  </tool>
 </shelfDocument>
