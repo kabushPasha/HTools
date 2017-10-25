@@ -172,7 +172,7 @@ newnode.moveToGoodPosition()
 newnode.parm('RSL_volumeScale').set(1)
 newnode.setDisplayFlag(False)
 
-newnode.parm('tex0').set('$HOME/MEGA/! HEXT/Assets/HDRI/countryside_field.jpg')
+newnode.parm('tex0').set('$HASS/HDRI/countryside_field.jpg')
 newnode.parm('ogl_enablelight').set(0)
 
 env = newnode.createOutputNode('envlight','PROXY_LIGHT_'+newnode.name())
