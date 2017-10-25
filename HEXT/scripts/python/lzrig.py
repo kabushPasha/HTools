@@ -1,5 +1,18 @@
 import hou
 
+
+def clearWorldRotates(n):
+	parent = n.inputs()[0]	
+	n.parm("keeppos").set(1)
+	n.setInput(0,None)
+
+	n.setParmTransform(n.parmTransform()*n.preTransform())
+	n.parmTuple("r").set((0,0,0))
+	n.setPreTransform(n.parmTransform())
+	n.setParmTransform(hou.Matrix4(1))
+
+	n.setInput(0,parent)
+
 # EXTRACT TRUE bone rotates from chopnet
 def extractIKBoneRotates(n,use_asset_prefix):    
 	ptg = n.parmTemplateGroup()
@@ -110,9 +123,44 @@ def exportIKRotations(n):
 			export.setExportFlag(1)
 
 
+def createPerFaceHooks(n):
+	end = n.displayNode()
+	#create make_face_uvs node
+	make_face_uvs = end.createOutputNode("attribwrangle","make_face_uvs")
+	make_face_uvs.setPosition(end.position() + hou.Vector2(0,-1))
+	make_face_uvs.parm("class").set(1)
+	make_face_uvs.parm("snippet").set('int pts[] = primpoints(0,@primnum);\nsetpointattrib(0,"uv",pts[0],{0,0,0} + set(@primnum,0,0));\nsetpointattrib(0,"uv",pts[1],{0,1,0} + set(@primnum,0,0));\nsetpointattrib(0,"uv",pts[2],{1,1,0} + set(@primnum,0,0));\nsetpointattrib(0,"uv",pts[3],{1,0,0} + set(@primnum,0,0));')
 
+	#create OUT_HOOKS node
+	OUT_HOOKS = make_face_uvs.createOutputNode("null","OUT_HOOKS")
+	OUT_HOOKS.setPosition(make_face_uvs.position() + hou.Vector2(0,-1))
 
+	for prim in OUT_HOOKS.geometry().prims():		
+		tasset_hook = n.createOutputNode("sticky",n.name() + "_hook1")
+		tasset_hook.setPosition(n.position() + hou.Vector2(1.5*(hou.hscriptExpression('opdigits("' + tasset_hook.name() + '")')-1),-1))
+		tasset_hook.parm("stickysop").set('../`opinput(".",0)`/OUT_HOOKS')
+		tasset_hook.parm('stickyuv1').setExpression('opdigits($OS) - 0.5',language = hou.exprLanguage.Hscript)
+		tasset_hook.setDisplayFlag(True)
+		#kinda bad kinda lazy
+		tasset_hook.parm("stickyurange2").set(100.0)
+		tasset_hook.setDisplayFlag(0)
+		
+		#create tasset_hook_ctrl node
+		tasset_hook_ctrl = tasset_hook.createOutputNode("null",tasset_hook.name() + "_ctrl")
+		tasset_hook_ctrl.setPosition(tasset_hook.position() + hou.Vector2(0.0,-1))
+		tasset_hook_ctrl.parm("geoscale").set(0.05)
+		tasset_hook_ctrl.parm("controltype").set(1)		
 
+		clearWorldRotates(tasset_hook_ctrl)
+
+		
+		
+		
+		
+		
+
+		
+	
 
 
 
