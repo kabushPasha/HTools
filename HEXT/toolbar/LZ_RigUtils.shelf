@@ -10,6 +10,7 @@
     <memberTool name="LZ Create Per Face Hooks"/>
     <memberTool name="LZ SculptToEdit"/>
     <memberTool name="LZ mirror blends"/>
+    <memberTool name="helber bone fix"/>
   </toolshelf>
 
   <tool name="LZ CleanParentRotates" label="LZ CleanParentRotates" icon="PLASMA_App">
@@ -43,5 +44,39 @@
 
     
     print expr]]></script>
+  </tool>
+
+  <tool name="helber bone fix" label="helber bone fix" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    #create rotator node
+    print n.inputs()[0]
+    rotator = n.createOutputNode("null","rotator")
+    rotator.setPosition(n.position() + hou.Vector2(0,1))
+    rotator.parm("keeppos").set(1)
+    rotator.setDisplayFlag(False)
+    rotator.setSelectableInViewport(False)
+    
+    
+    rotator.setInput(0,n.inputs()[0])
+
+    rx = rotator.parm("rx")
+    rx.set(n.parm('driver'))
+    rx.setExpression(rx.expression() + '*0.5')
+    n.parm('rx').deleteAllKeyframes()
+    n.parm('rx').set(0)
+    n.parm('keeppos').set(1)
+    
+    n.setInput(0,rotator);
+    
+    n.parm('tz').setExpression('ch("corrected_length")')
+    n.parm('length').deleteAllKeyframes()
+    
+    
+    
+    
+    
+    
+    
+    ]]></script>
   </tool>
 </shelfDocument>
