@@ -9,6 +9,7 @@
     <memberTool name="LZ CleanParentRotates"/>
     <memberTool name="LZ Create Per Face Hooks"/>
     <memberTool name="LZ SculptToEdit"/>
+    <memberTool name="LZ mirror blends"/>
   </toolshelf>
 
   <tool name="LZ CleanParentRotates" label="LZ CleanParentRotates" icon="PLASMA_App">
@@ -36,8 +37,11 @@
     if len(hou.selectedNodes()) == 2:
         parent = hou.selectedNodes()[1]    
     
-    expr = 'sopcreateedit -d ' + n.name()+ '_edit ' + parent.path() + ' ' + n.path()
+    print parent
+    expr ='sopcreateedit -d ' + n.name()+ '_edit ' + parent.path() + ' ' + n.path()
     hou.hscript(expr)
-]]></script>
+
+    
+    print expr]]></script>
   </tool>
 </shelfDocument>
