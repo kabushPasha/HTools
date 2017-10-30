@@ -20,6 +20,7 @@
     <memberTool name="Attach To Bones"/>
     <memberTool name="test tracery"/>
     <memberTool name="Test Radial Menu"/>
+    <memberTool name="fix_rs_resample"/>
   </toolshelf>
 
   <tool name="box slice" label="box slice" icon="MISC_generic">

@@ -217,7 +217,7 @@ if has_rs_parms == 0:
     dy = [0.025,0.65];
     dx = [0.57,0.85];
     
-    pos = (sz[0]*2 - 950 + int(sz[0]*dx[0]),int(sz[1]*(1 - dy[1] - dy[0])))
+    pos = (sz[0] + int(sz[0]*dx[0]),int(sz[1]*(1 - dy[1] - dy[0])))
     size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
     
     panel = d.createFloatingPanel(hou.paneTabType.Parm,pos,size)
