@@ -11,6 +11,7 @@
     <memberTool name="LZ SculptToEdit"/>
     <memberTool name="LZ mirror blends"/>
     <memberTool name="helber bone fix"/>
+    <memberTool name="create hook bones from nulls"/>
   </toolshelf>
 
   <tool name="LZ CleanParentRotates" label="LZ CleanParentRotates" icon="PLASMA_App">
@@ -78,5 +79,13 @@
     
     
     ]]></script>
+  </tool>
+
+  <tool name="create hook bones from nulls" label="create hook bones from nulls" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[
+for n in hou.selectedNodes():
+    bone = n.createOutputNode("bone",n.name() + "_bone")
+    bone.setPosition(n.position() + hou.Vector2(-2,-1))
+    bone.parm("length").set(0.2)]]></script>
   </tool>
 </shelfDocument>
