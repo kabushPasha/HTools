@@ -13,7 +13,8 @@ AA NOISE
 aas - simplex noise
 aap - perlin noise
 
-
+CURL NOISE
+cpn - curl perlin noise
 
 */
 
@@ -315,6 +316,108 @@ vector aasvn(vector4 pos){
 	return noise;}	
 	
 	
+// CURL NOISE
+vector curlNoiseVV(vector pos;int turb;float rough;float atten;string type){	
+	vector noise =  vop_curlNoiseVV(pos,{1,1,1},{0,0,0},{0,0,0},type,"",turb,0,1,rough,atten,1,1,0.0001);
+	return noise;}
+vector curlNoiseVV(vector4 pos;int turb;float rough;float atten;string type){	
+	vector noise =  vop_curlNoiseVP(pos,{1,1,1},{0,0,0},{0,0,0},type,"",turb,0,1,rough,atten,1,1,0.0001);
+	return noise;}
+	
+// perlin	
+vector cpn(vector pos;int turb;float rough;float atten){
+	return curlNoiseVV(pos,turb,rough,atten,"pnoise");}
+vector cpn(vector pos;int turb;float rough){
+	return curlNoiseVV(pos,turb,rough,1,"pnoise");}
+vector cpn(vector pos;int turb){
+	return curlNoiseVV(pos,turb,0.5,1,"pnoise");}	
+vector cpn(vector pos){
+	return curlNoiseVV(pos,3,0.5,1,"pnoise");}	
+	
+vector cpn(vector4 pos;int turb;float rough;float atten){
+	return curlNoiseVV(pos,turb,rough,atten,"pnoise");}
+vector cpn(vector4 pos;int turb;float rough){
+	return curlNoiseVV(pos,turb,rough,1,"pnoise");}
+vector cpn(vector4 pos;int turb){
+	return curlNoiseVV(pos,turb,0.5,1,"pnoise");}	
+vector cpn(vector4 pos){
+	return curlNoiseVV(pos,3,0.5,1,"pnoise");}		
+	
+// original perlin
+vector con(vector pos;int turb;float rough;float atten){
+	return curlNoiseVV(pos,turb,rough,atten,"onoise");}
+vector con(vector pos;int turb;float rough){
+	return curlNoiseVV(pos,turb,rough,1,"onoise");}
+vector con(vector pos;int turb){
+	return curlNoiseVV(pos,turb,0.5,1,"onoise");}	
+vector con(vector pos){
+	return curlNoiseVV(pos,3,0.5,1,"onoise");}	
+	
+vector con(vector4 pos;int turb;float rough;float atten){
+	return curlNoiseVV(pos,turb,rough,atten,"onoise");}
+vector con(vector4 pos;int turb;float rough){
+	return curlNoiseVV(pos,turb,rough,1,"onoise");}
+vector con(vector4 pos;int turb){
+	return curlNoiseVV(pos,turb,0.5,1,"onoise");}	
+vector con(vector4 pos){
+	return curlNoiseVV(pos,3,0.5,1,"onoise");}
+
+// sparse convultion noise
+vector csn(vector pos;int turb;float rough;float atten){
+	return curlNoiseVV(pos,turb,rough,atten,"snoise");}
+vector csn(vector pos;int turb;float rough){
+	return curlNoiseVV(pos,turb,rough,1,"snoise");}
+vector csn(vector pos;int turb){
+	return curlNoiseVV(pos,turb,0.5,1,"snoise");}	
+vector csn(vector pos){
+	return curlNoiseVV(pos,3,0.5,1,"snoise");}	
+	
+vector csn(vector4 pos;int turb;float rough;float atten){
+	return curlNoiseVV(pos,turb,rough,atten,"snoise");}
+vector csn(vector4 pos;int turb;float rough){
+	return curlNoiseVV(pos,turb,rough,1,"snoise");}
+vector csn(vector4 pos;int turb){
+	return curlNoiseVV(pos,turb,0.5,1,"snoise");}	
+vector csn(vector4 pos){
+	return curlNoiseVV(pos,3,0.5,1,"snoise");}
+
+// alligator 
+vector can(vector pos;int turb;float rough;float atten){
+	return curlNoiseVV(pos,turb,rough,atten,"anoise");}
+vector can(vector pos;int turb;float rough){
+	return curlNoiseVV(pos,turb,rough,1,"anoise");}
+vector can(vector pos;int turb){
+	return curlNoiseVV(pos,turb,0.5,1,"anoise");}	
+vector can(vector pos){
+	return curlNoiseVV(pos,3,0.5,1,"anoise");}	
+	
+vector can(vector4 pos;int turb;float rough;float atten){
+	return curlNoiseVV(pos,turb,rough,atten,"anoise");}
+vector can(vector4 pos;int turb;float rough){
+	return curlNoiseVV(pos,turb,rough,1,"anoise");}
+vector can(vector4 pos;int turb){
+	return curlNoiseVV(pos,turb,0.5,1,"anoise");}	
+vector can(vector4 pos){
+	return curlNoiseVV(pos,3,0.5,1,"anoise");}	
+
+//SIMPLEX NOISE
+vector cxn(vector pos;int turb;float rough;float atten){
+	return curlNoiseVV(pos,turb,rough,atten,"xnoise");}
+vector cxn(vector pos;int turb;float rough){
+	return curlNoiseVV(pos,turb,rough,1,"xnoise");}
+vector cxn(vector pos;int turb){
+	return curlNoiseVV(pos,turb,0.5,1,"xnoise");}	
+vector cxn(vector pos){
+	return curlNoiseVV(pos,3,0.5,1,"xnoise");}	
+	
+vector cxn(vector4 pos;int turb;float rough;float atten){
+	return curlNoiseVV(pos,turb,rough,atten,"xnoise");}
+vector cxn(vector4 pos;int turb;float rough){
+	return curlNoiseVV(pos,turb,rough,1,"xnoise");}
+vector cxn(vector4 pos;int turb){
+	return curlNoiseVV(pos,turb,0.5,1,"xnoise");}	
+vector cxn(vector4 pos){
+	return curlNoiseVV(pos,3,0.5,1,"xnoise");}	
 
 	
 	
@@ -322,11 +425,8 @@ vector aasvn(vector4 pos){
 	
 	
 	
-
-
-
-
-
+	
+	
 
 
 
