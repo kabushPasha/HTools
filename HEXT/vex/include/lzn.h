@@ -440,9 +440,21 @@ float wf2(vector P)
 	return f2;	
 }
 	
+float boxes(vector _pos)
+{
+	vector pos = _pos;
+	pos -= {0.5,0.5,0.5};
+	pos = abs(pos % 1);	
+	return max(abs(pos - {0.5,0.5,0.5}));
+}	
 	
-	
-	
+float spheres(vector _pos)
+{
+	vector pos = _pos;
+	pos -= {0.5,0.5,0.5};
+	pos = abs(pos % 1);	
+	return length(pos - {0.5,0.5,0.5});
+}		
 	
 	
 	
