@@ -417,7 +417,7 @@ vector cxn(vector4 pos){
 	return curlNoiseVV(pos,3,0.5,1,"xnoise");}	
 
 	
-// WORLEY NOISE	
+// WORLEY NOISES
 float wseed(vector P)	
 {
 	int seed;
@@ -439,6 +439,10 @@ float wf2(vector P)
 	wnoise(P, seed, f1, f2);
 	return f2;	
 }
+	
+	
+	
+	
 	
 	
 	
