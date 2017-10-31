@@ -1,0 +1,25 @@
+{
+	"noise":{
+		"pfn" : {
+				"label":"Perlin Noise(float)",
+				"code":"float n1 = ch('a1') * pfn(@P * ch('f1'));"				
+				},
+		"pvn" : {
+				"label":"Perlin Noise(vector)",
+				"code":"vector n1 = ch('a1') * pvn(@P * ch('f1'));"				
+				}
+		}
+}
+
+
+
+list = QtWidgets.QListWidget()
+
+node_type = hou.nodeType(hou.sopNodeTypeCategory(),'filecache')
+filecaches =  node_type.instances()
+
+for filecache in filecaches:
+	#print filecache.name()
+	list.addItem(filecache.path())
+	
+list.doubleClicked.connect(doubleClicked)    
