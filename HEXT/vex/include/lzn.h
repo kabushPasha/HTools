@@ -456,9 +456,26 @@ float spheres(vector _pos)
 	return length(pos - {0.5,0.5,0.5});
 }		
 	
-	
-	
-
+// SATURATE	
+vector saturate(vector _v)
+{
+	vector v = _v;
+	v.x = clamp(v.x,0,1);
+	v.y = clamp(v.y,0,1);
+	v.z = clamp(v.z,0,1);
+	return v;
+}	
+vector2 saturate(vector2 _v)
+{
+	vector2 v = _v;
+	v.x = clamp(v.x,0,1);
+	v.y = clamp(v.y,0,1);
+	return v;
+}
+float saturate(float v)
+{
+	return clamp(v,0,1);
+}	
 
 
 
