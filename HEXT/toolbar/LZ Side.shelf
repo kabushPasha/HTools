@@ -21,6 +21,9 @@
     <memberTool name="test tracery"/>
     <memberTool name="Test Radial Menu"/>
     <memberTool name="fix_rs_resample"/>
+    <memberTool name="check vis sel nodes"/>
+    <memberTool name="lz_add_vis_controll"/>
+    <memberTool name="add deform"/>
   </toolshelf>
 
   <tool name="box slice" label="box slice" icon="MISC_generic">
