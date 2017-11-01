@@ -1,5 +1,5 @@
 {
-	"noise":{
+	"01 Turbulent noises":{
 	
 		"Turb: 1D: Original Perlin" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','ofn')"},
@@ -31,22 +31,80 @@
 		"Turb: 3D: Corrected Perlin" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','cvn')"}
 		},
-	"util":{
-		"include lzn" : {
+	"02 Others noises":{	
+	
+		"AA: 1D: Perlin" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','apfn')"},
+		"AA: 3D: Perlin" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','apvn')"},		
+		"AA: 1D: Simplex" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','asfn')"},
+		"AA: 3D: Simplex" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','asvn')"},			
+		
+		"CURL: 3D: Perlin" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','cpn')"},
+		"CURL: 3D: Original Perlin" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','con')"},
+		"CURL: 3D: Sparse Convultion" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','csn')"},
+		"CURL: 3D: Alligator" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','can')"},
+		"CURL: 3D: Simplex" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','cxn')"},
+				
+		"Other: 1D: Worley Seed" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wseed')"},		
+		"Other: 1D: Worley F1" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wf1')"},
+		"Other: 1D: Worley F2" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wf2')"},
+		"Other: 1D: Boxes" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','boxes')"},
+		"Other: 1D: Spheres" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','spheres')"}
+				
+		},
+	"03 UTILS":{
+		"01. Include lzn.h" : {
 				"action":"lzutil.includeAddSafe(n,'lzn')"			
 				},	
-		"test" : {
+		"99. Test" : {
 				"code":"//Or add code Here",
 				"lib":["lzn","math"],
 				"action":"print 'You can add actions here. Var n is the current view node'"
-				}
-		},		
-	"noise process":{
-		"Vector displacement" : {
-				"code":"@P += n1;"			
 				},
-		"Displace along normal" : {
-				"code":"@P += @N*n1;"			
-				}
+		"02. Delete N Attribute(point)" : {
+				"action":"n.createOutputNode('attribdelete').parm('ptdel').set('N')"
+				}	
+				
+		},		
+	"04 Noise Process":{
+		"01. Vector displace" : {
+				"code":"@P += n1;"},
+		"02. Displace along normal" : {
+				"code":"@P += @N*n1;"}	
+				
+				
 		}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

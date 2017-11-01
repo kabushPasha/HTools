@@ -26,7 +26,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
         
         i = 0
         # fill lists
-        for list_key in self.json.keys():
+        for list_key in sorted(self.json.keys()):
             # create list widget
             new_list = QtWidgets.QListWidget()
             items = self.json[list_key]
