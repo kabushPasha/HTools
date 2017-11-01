@@ -7,6 +7,8 @@
 
   <toolshelf name="LZ Main" label="LZ Main">
     <memberTool name="LZ Compare Nodes"/>
+    <memberTool name="LZ Create Visualisers"/>
+    <memberTool name="LZ QuickVex PyPanel"/>
     <memberTool name="Perfomance Monitor"/>
     <memberTool name="Render View"/>
     <memberTool name="ropnet3"/>
@@ -22,7 +24,6 @@
     <memberTool name="LZ Smoke Sim"/>
     <memberTool name="LZ Grains Setup0"/>
     <memberTool name="LZ voronoi setup"/>
-    <memberTool name="LZ Quick Vex"/>
     <memberTool name="lz_instance_pieces"/>
     <memberTool name="attribwrangle"/>
     <memberTool name="attribwrangle2"/>
@@ -32,7 +33,6 @@
     <memberTool name="attribwrangle3"/>
     <memberTool name="LZ Smoke Cluster"/>
     <memberTool name="New Flooating Panel"/>
-    <memberTool name="PromoteParameter"/>
     <memberTool name="send to nuke"/>
   </toolshelf>
 
@@ -478,52 +478,6 @@ else:
             
             node.parm('choppath').set("../" + chopnet.name() + "/" + out.name())
             
-]]></script>
-  </tool>
-
-  <tool name="LZ Quick Vex" label="LZ Quick Vex" icon="PLASMA_App">
-    <script scriptType="python"><![CDATA[nodes = hou.selectedNodes()
-
-dict = {'00 displace along normal':'@P += @N * chf("displace_along_normal_ammount")'}
-# add new lines here
-
-dict['01 get intrinstic transform'] = 'matrix3 t = primintrinsic(0,"transform",@ptnum);'
-dict['02 set intrinstic transform'] = 'setprimintrinsic(0,"transform",@ptnum,t);'
-
-dict['03 scale intrinstic transform'] = dict ['01 get intrinstic transform'] + '\n'
-dict['03 scale intrinstic transform'] += 'matrix m = maketransform(0, 0, {0,0,0}, {0,0,0}, chf("scale"), @P);\nt *= matrix3(m);'
-dict['03 scale intrinstic transform'] += '\n' + dict['02 set intrinstic transform']
-
-dict['04 curlnoise'] = '#include <voplib.h>\nfloat noise = chf("bias") + chf("amp")*vop_fbmNoiseFV(@P*chf("freq") - chv("offset"),0.5,chi("octaves"),"noise");'
-dict['05 remove random prims'] = 'if(rand(@primnum)<chf("tres"))removeprim(0,@primnum,1);'
-
-dict['06 remove by speed'] = 'if(length(v@v)<chf("tres_v")) removepoint(0,@ptnum);';
-dict['07 curl noise'] = '#include <voplib.h>\nvector noise =chf("noise_amp")*vop_curlNoiseVP( set(@P.x,@P.y,@P.z,chf("offset")), chf("freq"), {0,0,0}, { 0, 0, 0 }, "pnoise", "", chi("octaves"), 0, 1, 0.5, 1, 1, 1, 0.0001);';
-
-
-
-
-
-
-#dict['test'] = '//this is a test'
-#dict['test']+= '\n//new_line'
-
-
-for node in nodes:
-    if node.type().name() == 'attribwrangle':
-        #print   hou.ui.displayMessage("pick your script",('test','a','fg','dfh','sdfg'))    
-        
-        snippet = node.parm("snippet")
-        code =  snippet.evalAsString()
-        
-        choices = hou.ui.selectFromList(dict.keys())
-        for choice in choices:
-            key =  dict.keys()[choice]  
-
-            code += '\n'
-            code += dict[key]
-        snippet.set(code)
-        
 ]]></script>
   </tool>
 
@@ -5823,5 +5777,58 @@ app = qtg.QApplication.instance()
 clipboard = app.clipboard()
 string = "con, hou = hrpyc.import_remote_module()"
 clipboard.setText(string)]]></script>
+  </tool>
+
+  <tool name="LZ QuickVex PyPanel" label="LZ QuickVex PyPanel" icon="hicon:/SVGIcons.index?NETWORKS_vopnet.svg">
+    <script scriptType="python"><![CDATA[d = hou.ui.curDesktop()
+
+import ctypes
+user32 = ctypes.windll.user32
+sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
+dy = [0.4,0.95];
+dx = [0.5,0.8];    
+
+pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
+size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
+
+pos = (3387, 103)
+size = (727, 1254)
+
+panel = d.createFloatingPanel(hou.paneTabType.PythonPanel,pos,size)
+pypanel = panel.paneTabs()[0]
+pypanel.setActiveInterface(hou.pypanel.interfaceByName('LZ_Vex'))]]></script>
+  </tool>
+
+  <tool name="LZ Create Visualisers" label="LZ Create Visualisers" icon="hicon:/SVGIcons.index?NODEFLAGS_display.svg">
+    <script scriptType="python"><![CDATA[import lzutil
+import toolutils
+n = lzutil.viewNode()
+geo = n.geometry()
+pt_attribs = geo.pointAttribs()
+
+sv = toolutils.sceneViewer()
+vp = sv.curViewport()
+
+att_names = []
+pt_attribs_filtered = []
+
+for att in pt_attribs:
+    if att.name()!='P' and att.name()!='N' and att.name()!='v':
+        att_names += [att.name()]
+        pt_attribs_filtered += [att]
+
+ans = hou.ui.selectFromList(att_names)
+
+for id  in ans:
+    att = pt_attribs_filtered[id]
+    size = att.size()        
+    v = hou.viewportVisualizers.createVisualizer(hou.viewportVisualizers.type('vis_marker'))
+    v.setName(att.name())
+    v.setLabel(att.name())
+    v.setParm('attrib',att.name())
+    if size > 2:
+        v.setParm('style','vector')
+    v.setIsActive(1,vp)    
+]]></script>
   </tool>
 </shelfDocument>

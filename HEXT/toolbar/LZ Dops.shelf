@@ -465,8 +465,4 @@ opcf $saved_path
 hou.hscript(h_preamble + h_extra_args + h_cmd)
 ]]></script>
   </tool>
-
-  <tool name="PromoteParameter" label="PromoteParameter" icon="hicon:/SVGIcons.index?BUTTONS_list_reorderup.svg">
-    <script scriptType="python"><![CDATA[print kwargs]]></script>
-  </tool>
 </shelfDocument>

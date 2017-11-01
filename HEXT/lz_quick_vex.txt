@@ -65,30 +65,40 @@
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','spheres')"}
 				
 		},
-	"03 UTILS":{
-		"01. Include lzn.h" : {
-				"action":"lzutil.includeAddSafe(n,'lzn')"			
-				},	
-		"99. Test" : {
-				"code":"//Or add code Here",
-				"lib":["lzn","math"],
-				"action":"print 'You can add actions here. Var n is the current view node'"
-				},
-		"02. Delete N Attribute(point)" : {
-				"action":"n.createOutputNode('attribdelete').parm('ptdel').set('N')"
-				}	
-				
-		},		
-	"04 Noise Process":{
+		
+	"03 Noise Process":{
 		"01. Vector displace" : {
 				"code":"@P += n1;"},
 		"02. Displace along normal" : {
-				"code":"@P += @N*n1;"}	
-				
-				
+				"code":"@P += @N*n1;"},	
+		"03. Delete N Attribute(point)" : {
+			"action":"n.createOutputNode('attribdelete').parm('ptdel').set('N')"
+			}	
+		},	
+		
+	"04 UTILS":{
+		"01. Include lzn.h" : {
+				"action":"lzutil.includeAddSafe(n,'lzn')"			
+				},	
+		"02. Remove by Tres(points)" :{
+				"code":"if(rand(@ptnum)<chf('tres')) removepoint(0,@ptnum);"}	
+		},	
+		
+	"05 Model":{
+		"00. Null" : {"node":"null"},
+		"01. Duplicate" : {"node":"copyxform"},
+		"02. Polyextrude" : {"node":"polyextrude"},
+		"03. Bevel" : {"node":"polybevel"},
+		"04. Subdivide" : {"node":"subdivide"},
+		"05. Copy To Points" : {"node":"copytopoints"},
+		"06. Transform" : {"node":"xform"},
+		"07. Polyframe" : {"node":"polyframe"}
+		},
+		
+	"06 Nodes":{
+		"01. Wrangle" : {"node":"attribwrangle"}
 		}
 }
-
 
 
 

@@ -5,12 +5,12 @@
  used by the application.  Note, that two definitions of the
  same interface or of the interfaces menu are not allowed
  in a single file. -->
-  <interface name="LZ Vex" label="LZ Vex" icon="hicon:/SVGIcons.index?SOP_attribvop.svg" help_url="">
+  <interface name="LZ_Vex" label="LZ Vex" icon="hicon:/SVGIcons.index?SOP_attribvop.svg" help_url="">
     <script><![CDATA[from hutil.Qt import QtWidgets
 import lzutil
 
 # number of rows
-rows = 2
+rows = 3
 
 class LZ_vex_interface(QtWidgets.QWidget):
     def __init__(self):
@@ -67,7 +67,15 @@ class LZ_vex_interface(QtWidgets.QWidget):
         # execute an action
         if item.has_key('action'):
             exec(item['action'])
+        # node    
+        if item.has_key('node'):
+            new_node = n.createOutputNode(item['node'])
+            new_node.setSelected(1,1)
+            new_node.setDisplayFlag(1)
+            new_node.setRenderFlag(1)
             
+            if n.outputs() is not ():
+                n.outputs()[0].setInput(0,new_node)
             
 def createInterface():
     return LZ_vex_interface()
