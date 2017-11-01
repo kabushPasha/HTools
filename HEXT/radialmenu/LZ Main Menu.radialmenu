@@ -1,5 +1,5 @@
 [
-	"fileversion","16.0.557",
+	"fileversion","16.0.671",
 	"name","LZ Main Menu",
 	"submenu",["submenu",
 		"label","LZ Main Menu",
@@ -93,6 +93,11 @@
 		],
 		"bottom",["submenu",
 			"label","Utils",
+			"top_left",["script",
+				"label","LZ Create Visualisers",
+				"icon","hicon:/SVGIcons.index?NODEFLAGS_display.svg",
+				"script","radialmenu.runShelfTool(kwargs, 'LZ Create Visualisers')"
+			],
 			"left",["script",
 				"label","Start Server",
 				"icon","hicon:/SVGIcons.index?BUTTONS_internet.svg",
@@ -117,6 +122,11 @@
 				"label","Start GoZ",
 				"icon","C:\\Users\\Public\\Pixologic\\GoZApps\\Houdini\\GoZBrush.png",
 				"script","radialmenu.runShelfTool(kwargs, 'enable_go_z')"
+			],
+			"top_right",["script",
+				"label","LZ QuickVex PyPanel",
+				"icon","hicon:/SVGIcons.index?NETWORKS_vopnet.svg",
+				"script","radialmenu.runShelfTool(kwargs, 'LZ QuickVex PyPanel')"
 			]
 		],
 		"right",["submenu",
