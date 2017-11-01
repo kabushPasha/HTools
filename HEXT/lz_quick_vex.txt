@@ -1,25 +1,18 @@
 {
 	"noise":{
-		"pfn" : {
-				"label":"Perlin Noise(float)",
-				"code":"float n1 = ch('a1') * pfn(@P * ch('f1'));"				
+		"test 01" : {
+				"code":"float n1 = ch('a1') * pfn(@P * ch('f1'));",
+				"lib":["lzn","test"],
+				"action":"print 'HERES jhonnie'"
 				},
-		"pvn" : {
-				"label":"Perlin Noise(vector)",
+		"test 02" : {
 				"code":"vector n1 = ch('a1') * pvn(@P * ch('f1'));"				
-				}
+				},
+		"Add Noise" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,)"			
+				},
+		"Add Vector Noise" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','avn')"			
+				}		
 		}
 }
-
-
-
-list = QtWidgets.QListWidget()
-
-node_type = hou.nodeType(hou.sopNodeTypeCategory(),'filecache')
-filecaches =  node_type.instances()
-
-for filecache in filecaches:
-	#print filecache.name()
-	list.addItem(filecache.path())
-	
-list.doubleClicked.connect(doubleClicked)    

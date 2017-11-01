@@ -7,86 +7,74 @@
  in a single file. -->
   <interface name="LZ Vex" label="LZ Vex" icon="hicon:/SVGIcons.index?SOP_attribvop.svg" help_url="">
     <script><![CDATA[from hutil.Qt import QtWidgets
+import lzutil
+                    
+#############################################    
+##  Interface
 
-def snippetPreAdd(n,code):
-    snippet = n.parm('snippet')
-    snippet.set(code + '\n' +  snippet.eval())
-
-def snippetAdd(n,code):
-    snippet = n.parm('snippet')
-    snippet.set(snippet.eval() + '\n' + code)
-    
-    
-def create_noise_folder(id):
-    a_parm = hou.FloatParmTemplate('a'+id,'a'+id,1)
-    f_parm = hou.FloatParmTemplate('f'+id,'f1'+id,1)   
-    noise_folder = hou.FolderParmTemplate('noise'+id,'Noise'+id,parm_templates = (a_parm,f_parm),folder_type = hou.folderType.Simple)
-    return noise_folder
-    
-def addNoise(n):
-    ptg = n.parmTemplateGroup()
-    
-    parm = ptg.findFolder('Noises')
-    if parm is None:
-        parm = hou.FolderParmTemplate('noises','Noises',folder_type = hou.folderType.Simple)
-        ptg.addParmTemplate(parm)
-        new_code = '#include <lzn.h>'
-        snippetPreAdd(n,new_code)
-        
-    noise_id = len(parm.parmTemplates()) + 1
-    noise_folder =  create_noise_folder(str(noise_id))
-    new_code = "float n{id} = ch('a{id}') * pfn(@P * ch('f{id}'));".format(id = noise_id)
-    snippetAdd(n,new_code)
-    
-    ptg.appendToFolder(parm,noise_folder)
-    
-    n.setParmTemplateGroup(ptg)            
-    
-    
 class LZ_vex_interface(QtWidgets.QWidget):
     def __init__(self):
         super(LZ_vex_interface, self).__init__() 
         #create Layout
         mainLayout = QtWidgets.QVBoxLayout()
-        
         self.list = QtWidgets.QListWidget()
+        self.callbackDict = {}
         
-#        import json
-#        hext = hou.expandString('$HEXT')
-#        rules = json.load(open(hext + '/lz_quick_vex.txt'))       
-#        noises = rules['noise']
-#        for key in noises.keys():
-#            noise = noises[key]
-#            self.list.addItem(noise['label'])
+        import json
+        hext = hou.expandString('$HEXT')
+        self.rules = json.load(open(hext + '/lz_quick_vex.txt'))       
+        noises = self.rules['noise']
+        for key in noises.keys():
+            noise = noises[key]
+            self.list.addItem(key)
+            self.callbackDict[key] = noises[key]
             
-            #create widgets        
+        
+#        print self.callbackDict
+#            #create widgets        
 #            btn = QtWidgets.QPushButton(noise['label'])
 #            btn.clicked.connect(test) 
 #            mainLayout.addWidget(btn)
-            
-        self.btn = QtWidgets.QPushButton('click_me')
-        self.btn.clicked.connect(self.callback) 
-        mainLayout.addWidget(self.btn)
-#        self.list.clicked.connect(doubleClickedList)      
-#        mainLayout.addWidget(self.list)
+#            
+#        self.btn = QtWidgets.QPushButton('click_me')
+#        self.btn.clicked.connect(self.callback) 
+#        mainLayout.addWidget(self.btn)
+        
+        self.list.clicked.connect(self.doubleClickedList)      
+        mainLayout.addWidget(self.list)
         #set Layout
         self.setLayout(mainLayout)
-        
-        
-        
-        
 
+        
     def callback(self):
         for n in hou.selectedNodes():
             if n.type().name() == 'attribwrangle':
                 addNoise(n)  
 
-#def doubleClickedList(item):
-#    print "hai"
-#    print item.data()
-
+    def doubleClickedList(self,item):
+        item = self.callbackDict[item.data()]
+        
+        for n in hou.selectedNodes():
+            # add libs
+            if item.has_key('lib'):
+                for lib in item['lib']:
+                    lzutil.includeAddSafe(n,lib)
+            # add code
+            if item.has_key('code'):
+                lzutil.snippetAddCode(n,item['code'])    
+        
+            # execute an action
+            if item.has_key('action'):
+                exec(item['action'])
+            
+            
 def createInterface():
-    return LZ_vex_interface()]]></script>
+    return LZ_vex_interface()
+
+
+
+
+]]></script>
     <includeInToolbarMenu menu_position="101" create_separator="false"/>
     <help><![CDATA[]]></help>
   </interface>
