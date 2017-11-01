@@ -1,4 +1,6 @@
 import hou
+import toolutils
+
 def createTopoHelper(topobuild):
 	n = topobuild
 	ref = n.inputs()[1]
@@ -30,8 +32,8 @@ def snippetAddCode(n,code):
 
 		
 def createNoiseFolderParmTemplate(id):
-    a_parm = hou.FloatParmTemplate('a'+id,'a'+id,1)
-    f_parm = hou.FloatParmTemplate('f'+id,'f'+id,1)   
+    a_parm = hou.FloatParmTemplate('a'+id,'a'+id,1,default_value = (1,))
+    f_parm = hou.FloatParmTemplate('f'+id,'f'+id,1,default_value = (1,))   
     noise_folder = hou.FolderParmTemplate('noise'+id,'Noise'+id,parm_templates = (a_parm,f_parm),folder_type = hou.folderType.Simple)
     return noise_folder	
 
@@ -59,7 +61,15 @@ def includeAddSafe(n,lib):
 		code = snippet.eval()
 		if code.find('#include <' + lib +'.h>') == -1:
 			snippetAddCodeAtStart(n,'#include <' + lib +'.h>')
-		
+
+def viewNode():
+	return toolutils.sceneViewer().currentNode()
 
 
+
+	
+			
+			
+			
+			
 		

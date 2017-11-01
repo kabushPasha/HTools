@@ -63,16 +63,16 @@ float afn(vector pos){
 	float noise = anoise(pos, 3, 0.5,1);	
 	return noise;}
 
-vector afn(vector pos;int turb;float rough;float atten){	
+vector avn(vector pos;int turb;float rough;float atten){	
 	vector noise = anoise(pos, turb, rough, atten);	
 	return noise;}
-vector afn(vector pos;int turb;float rough){	
+vector avn(vector pos;int turb;float rough){	
 	vector noise = anoise(pos, turb, rough,1);	
 	return noise;}
-vector afn(vector pos;int turb){	
+vector avn(vector pos;int turb){	
 	vector noise = anoise(pos, turb, 0.5,1);	
 	return noise;}
-vector afn(vector pos){	
+vector avn(vector pos){	
 	vector noise = anoise(pos, 3, 0.5,1);	
 	return noise;}
 

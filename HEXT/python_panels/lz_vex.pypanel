@@ -8,64 +8,65 @@
   <interface name="LZ Vex" label="LZ Vex" icon="hicon:/SVGIcons.index?SOP_attribvop.svg" help_url="">
     <script><![CDATA[from hutil.Qt import QtWidgets
 import lzutil
-                    
-#############################################    
-##  Interface
+
+# number of rows
+rows = 2
 
 class LZ_vex_interface(QtWidgets.QWidget):
     def __init__(self):
         super(LZ_vex_interface, self).__init__() 
         #create Layout
-        mainLayout = QtWidgets.QVBoxLayout()
-        self.list = QtWidgets.QListWidget()
+        mainLayout = QtWidgets.QGridLayout()        
         self.callbackDict = {}
         
+        # read json
         import json
         hext = hou.expandString('$HEXT')
-        self.rules = json.load(open(hext + '/lz_quick_vex.txt'))       
-        noises = self.rules['noise']
-        for key in noises.keys():
-            noise = noises[key]
-            self.list.addItem(key)
-            self.callbackDict[key] = noises[key]
+        self.json = json.load(open(hext + '/lz_quick_vex.txt'))       
+        
+        i = 0
+        # fill lists
+        for list_key in self.json.keys():
+            # create list widget
+            new_list = QtWidgets.QListWidget()
+            items = self.json[list_key]
             
-        
-#        print self.callbackDict
-#            #create widgets        
-#            btn = QtWidgets.QPushButton(noise['label'])
-#            btn.clicked.connect(test) 
-#            mainLayout.addWidget(btn)
-#            
-#        self.btn = QtWidgets.QPushButton('click_me')
-#        self.btn.clicked.connect(self.callback) 
-#        mainLayout.addWidget(self.btn)
-        
-        self.list.clicked.connect(self.doubleClickedList)      
-        mainLayout.addWidget(self.list)
+            for key in sorted(items.keys()):
+                new_list.addItem(key)
+                self.callbackDict[key] = items[key]
+            new_list.doubleClicked.connect(self.doubleClickedList)
+            
+            # create label
+            label = QtWidgets.QLabel(list_key)
+            
+            #fill
+            layout = QtWidgets.QVBoxLayout()             
+            layout.addWidget(label)
+            layout.addWidget(new_list)
+            mainLayout.addLayout(layout,i/rows,i%rows)
+            i += 1
+         
         #set Layout
         self.setLayout(mainLayout)
 
-        
-    def callback(self):
-        for n in hou.selectedNodes():
-            if n.type().name() == 'attribwrangle':
-                addNoise(n)  
-
+    # FUNCTIONS    
     def doubleClickedList(self,item):
         item = self.callbackDict[item.data()]
-        
-        for n in hou.selectedNodes():
-            # add libs
-            if item.has_key('lib'):
-                for lib in item['lib']:
-                    lzutil.includeAddSafe(n,lib)
-            # add code
-            if item.has_key('code'):
-                lzutil.snippetAddCode(n,item['code'])    
-        
-            # execute an action
-            if item.has_key('action'):
-                exec(item['action'])
+        # process view node
+        n = lzutil.viewNode()
+        self.processItem(item,n)
+
+    def processItem(self,item,n):
+        # add libs
+        if item.has_key('lib'):
+            for lib in item['lib']:
+                lzutil.includeAddSafe(n,lib)
+        # add code
+        if item.has_key('code'):
+            lzutil.snippetAddCode(n,item['code']) 
+        # execute an action
+        if item.has_key('action'):
+            exec(item['action'])
             
             
 def createInterface():

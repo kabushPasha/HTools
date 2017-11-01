@@ -1,18 +1,52 @@
 {
 	"noise":{
-		"test 01" : {
-				"code":"float n1 = ch('a1') * pfn(@P * ch('f1'));",
-				"lib":["lzn","test"],
-				"action":"print 'HERES jhonnie'"
+	
+		"Turb: 1D: Original Perlin" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','ofn')"},
+		"Turb: 3D: Original Perlin" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','ovn')"},
+				
+		"Turb: 1D: Alligator" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','afn')"},
+		"Turb: 3D: Alligator" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','avn')"},
+
+		"Turb: 1D: Sparse Convultion" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','sfn')"},
+		"Turb: 3D: Sparse Convultion" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','svn')"},
+				
+		"Turb: 1D: Simplex" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','xfn')"},
+		"Turb: 3D: Simplex" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','xvn')"},		
+		
+		"Turb: 1D: Perlin" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','pfn')"},
+		"Turb: 3D: Perlin" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','pvn')"},
+				
+		"Turb: 1D: Corrected Perlin" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','cfn')"},
+		"Turb: 3D: Corrected Perlin" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','cvn')"}
+		},
+	"util":{
+		"include lzn" : {
+				"action":"lzutil.includeAddSafe(n,'lzn')"			
+				},	
+		"test" : {
+				"code":"//Or add code Here",
+				"lib":["lzn","math"],
+				"action":"print 'You can add actions here. Var n is the current view node'"
+				}
+		},		
+	"noise process":{
+		"Vector displacement" : {
+				"code":"@P += n1;"			
 				},
-		"test 02" : {
-				"code":"vector n1 = ch('a1') * pvn(@P * ch('f1'));"				
-				},
-		"Add Noise" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,)"			
-				},
-		"Add Vector Noise" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','avn')"			
-				}		
+		"Displace along normal" : {
+				"code":"@P += @N*n1;"			
+				}
 		}
 }
