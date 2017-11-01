@@ -78,12 +78,13 @@
 		
 	"04 UTILS":{
 		"01. Include lzn.h" : {
-				"action":"lzutil.includeAddSafe(n,'lzn')"			
-				},	
+				"action":"lzutil.includeAddSafe(n,'lzn')"},	
 		"02. Remove by Tres(points)" :{
-				"code":"if(rand(@ptnum)<chf('tres')) removepoint(0,@ptnum);"}	
-		},	
-		
+				"code":"if(rand(@ptnum)<chf('tres')) removepoint(0,@ptnum);"},
+		"03. Read Texture" :{
+				"code":"v@Cd = texture(chs('texture_path'),@uv.x,@uv.y);"}
+				},		
+				
 	"05 Model":{
 		"00. Null" : {"node":"null"},
 		"01. Duplicate" : {"node":"copyxform"},
@@ -96,7 +97,8 @@
 		},
 		
 	"06 Nodes":{
-		"01. Wrangle" : {"node":"attribwrangle"}
+		"01. Wrangle" : {"node":"attribwrangle"},
+		"02. AttribDelete" : {"node":"attribdelete"}
 		}
 }
 

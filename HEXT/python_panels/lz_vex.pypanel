@@ -74,9 +74,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
             new_node.setDisplayFlag(1)
             new_node.setRenderFlag(1)
             
-            if n.outputs() is not ():
-                n.outputs()[0].setInput(0,new_node)
-            
+           
 def createInterface():
     return LZ_vex_interface()
 
