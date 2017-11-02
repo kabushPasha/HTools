@@ -80,8 +80,14 @@
 		"02. Remove by Tres(points)" :{
 				"code":"if(rand(@ptnum)<chf('tres')) removepoint(0,@ptnum);"},
 		"03. Read Texture" :{
-				"code":"v@Cd = texture(chs('texture_path'),@uv.x,@uv.y);"}
-				},		
+				"code":"v@Cd = texture(chs('texture_path'),@uv.x,@uv.y);"},
+		"04. Extract intrinstic xform" :{
+				"code":"v@pivot = primintrinsic(0,'pivot',@ptnum);\n3@transfrom = primintrinsic(0,'transform',@ptnum);"},
+		"05. Move To Points" :{
+				"code":"int pt = nametopoint(1,s@name);\nmatrix3 t = point(1,'t',pt);\nvector pivot = point(1,'pivot',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n@P = point(1,'P',pt);"}		
+				
+				
+		},		
 				
 	"05 Model":{
 		"00. Null" : {"node":"null"},
