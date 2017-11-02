@@ -76,7 +76,7 @@
 			}	
 		},	
 		
-	"04 UTILS":{
+	"04 UTIL Scripts":{
 		"01. Include lzn.h" : {
 				"action":"lzutil.includeAddSafe(n,'lzn')"},	
 		"02. Remove by Tres(points)" :{
@@ -99,8 +99,16 @@
 	"06 Nodes":{
 		"01. Wrangle" : {"node":"attribwrangle"},
 		"02. AttribDelete" : {"node":"attribdelete"}
-		}
+		},
+		
+	"07 UTIL(Actions)":{
+		"01. Open HEXT Folder" : {
+			"action":"lzutil.openFolderFromEnv('$HEXT')"},
+		"02. Open HC Folder" : {
+			"action":"lzutil.openFolderFromEnv('$HC/$HIPNAME')"}
+	}
 }
+
 
 
 

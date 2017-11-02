@@ -375,14 +375,12 @@ else:
   </tool>
 
   <tool name="open cache folders" label="Open Cache folders" icon="hicon:/SVGIcons.index?SOP_filecache.svg">
-    <script scriptType="python"><![CDATA[import subprocess;
+    <script scriptType="python"><![CDATA[import lzutil
+lzutil.openFolderFromEnv("$HC/$HIPNAME")
 
-
-dir = hou.expandString('$HC') +"\\"+ hou.expandString('$HIPNAME')
-
-subprocess.Popen('explorer "' + dir  + '"');
-if kwargs['ctrlclick'] == True:
-    subprocess.Popen('explorer "H:\cache"');
+#
+#if kwargs['ctrlclick'] == True:
+#    subprocess.Popen('explorer "H:\cache"');
 
 ]]></script>
   </tool>

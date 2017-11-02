@@ -1,5 +1,6 @@
 import hou
 import toolutils
+import subprocess
 
 def createTopoHelper(topobuild):
 	n = topobuild
@@ -65,11 +66,16 @@ def includeAddSafe(n,lib):
 def viewNode():
 	return toolutils.sceneViewer().currentNode()
 
+def openFolderFromEnv(env):
+	dir = hou.expandString(env).replace('/','\\')
+	subprocess.Popen('explorer "' + dir  + '"')
+
+
+
+
 
 
 	
-			
-			
 			
 			
 		
