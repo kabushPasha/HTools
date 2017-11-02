@@ -1,44 +1,53 @@
 {
-	"01 Turbulent noises":{
+	"01 1D Noises":{
 	
 		"Turb: 1D: Original Perlin" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','ofn')"},
-		"Turb: 3D: Original Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','ovn')"},
-				
 		"Turb: 1D: Alligator" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','afn')"},
-		"Turb: 3D: Alligator" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','avn')"},
-
 		"Turb: 1D: Sparse Convultion" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','sfn')"},
-		"Turb: 3D: Sparse Convultion" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','svn')"},
-				
 		"Turb: 1D: Simplex" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','xfn')"},
-		"Turb: 3D: Simplex" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','xvn')"},		
-		
 		"Turb: 1D: Perlin" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','pfn')"},
-		"Turb: 3D: Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','pvn')"},
-				
 		"Turb: 1D: Corrected Perlin" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','cfn')"},
-		"Turb: 3D: Corrected Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','cvn')"}
-		},
-	"02 Others noises":{	
-	
+
+				
 		"AA: 1D: Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','apfn')"},
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','apfn')"},		
+		"AA: 1D: Simplex" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','asfn')"},		
+		
+		"Other: 1D: Worley Seed" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wseed')"},		
+		"Other: 1D: Worley F1" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wf1')"},
+		"Other: 1D: Worley F2" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wf2')"},
+		"Other: 1D: Boxes" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','boxes')"},
+		"Other: 1D: Spheres" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','spheres')"}		
+		},
+	"02 3D noises":{	
+		"Turb: 3D: Original Perlin" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','ovn')"},
+		"Turb: 3D: Alligator" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','avn')"},	
+		"Turb: 3D: Sparse Convultion" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','svn')"},	
+		"Turb: 3D: Simplex" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','xvn')"},
+		"Turb: 3D: Perlin" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','pvn')"},
+		"Turb: 3D: Corrected Perlin" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','cvn')"},
+				
+				
 		"AA: 3D: Perlin" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','apvn')"},		
-		"AA: 1D: Simplex" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','asfn')"},
 		"AA: 3D: Simplex" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','asvn')"},			
 		
@@ -51,19 +60,7 @@
 		"CURL: 3D: Alligator" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','can')"},
 		"CURL: 3D: Simplex" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','cxn')"},
-				
-		"Other: 1D: Worley Seed" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wseed')"},		
-		"Other: 1D: Worley F1" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wf1')"},
-		"Other: 1D: Worley F2" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wf2')"},
-		"Other: 1D: Boxes" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','boxes')"},
-		"Other: 1D: Spheres" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','spheres')"}
-				
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','cxn')"}
 		},
 		
 	"03 Noise Process":{
@@ -71,9 +68,10 @@
 				"code":"@P += n1;"},
 		"02. Displace along normal" : {
 				"code":"@P += @N*n1;"},	
-		"03. Delete N Attribute(point)" : {
-			"action":"n.createOutputNode('attribdelete').parm('ptdel').set('N')"
-			}	
+		"03. Dont Export N" : {
+			"action":"n.parm('vex_outputmask').set('* ^N')"	},
+		"04. Delete N Attribute(point)" : {
+			"action":"n.createOutputNode('attribdelete').parm('ptdel').set('N')"}
 		},	
 		
 	"04 UTIL Scripts":{
@@ -98,14 +96,20 @@
 		
 	"06 Nodes":{
 		"01. Wrangle" : {"node":"attribwrangle"},
-		"02. AttribDelete" : {"node":"attribdelete"}
+		"02. AttribDelete" : {"node":"attribdelete"},
+		"03. AttribPromote" : {"node":"attribpromote"}
 		},
 		
 	"07 UTIL(Actions)":{
 		"01. Open HEXT Folder" : {
 			"action":"lzutil.openFolderFromEnv('$HEXT')"},
 		"02. Open HC Folder" : {
-			"action":"lzutil.openFolderFromEnv('$HC/$HIPNAME')"}
+			"action":"lzutil.openFolderFromEnv('$HC/$HIPNAME')"},
+		"03. Open HMEGA Folder" : {
+			"action":"lzutil.openFolderFromEnv('$HMEGA')"},	
+		"02. Open Documents Folder" : {
+			"action":"lzutil.openFolderFromEnv('$HOUDINI_USER_PREF_DIR')"}		
+			
 	}
 }
 

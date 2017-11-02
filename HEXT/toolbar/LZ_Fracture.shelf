@@ -1,0 +1,1459 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="LZ Fracture" label="LZ Fracture">
+    <memberTool name="Measure Volume"/>
+    <memberTool name="Grid Cutters"/>
+    <memberTool name="Compiled Grid Cutters"/>
+    <memberTool name="Create Proxie pieces"/>
+    <memberTool name="Create Surfaced Proxy pieces"/>
+  </toolshelf>
+
+  <tool name="Measure Volume" label="Measure Volume" icon="MISC_generic">
+    <toolMenuContext name="network">
+      <contextOpType>Sop/compile_begin</contextOpType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputitem = None
+inputindex = -1
+inputitem = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if kwargs.has_key("outputnodename") and kwargs.has_key("inputindex"):
+        outputitem = pane_node.item(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if kwargs.has_key("inputnodename") and kwargs.has_key("outputindex"):
+        inputitem = pane_node.item(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if kwargs.has_key("autoplace"):
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+        if inputitem is None:
+            inputitem = pane.currentNode()
+            outputindex = 0
+    if kwargs.has_key("nodepositionx") and             kwargs.has_key("nodepositiony"):
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+
+    if not autoplace and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputitem is None:
+            pos = pane.selectPosition(inputitem, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputitem, outputindex,
+                                      outputitem, inputindex)
+
+    if pos is not None:
+        if kwargs.has_key("node_bbox"):
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if not child_type.has_key('compile_end'):
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_fracture_compile_begin2 (Sop/compile_begin)
+set _obj_fracture_compile_begin2 = `run("opadd -e -n -v compile_begin compile_begin2")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_fracture_compile_begin2
+opparm -V 16.0.671 $_obj_fracture_compile_begin2 blockpath ( ../compile_end2 )
+opcolor -c 0.75 0.75 0 $_obj_fracture_compile_begin2
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_fracture_compile_begin2
+opexprlanguage -s hscript $_obj_fracture_compile_begin2
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_compile_begin2
+opset -p on $_obj_fracture_compile_begin2
+opcf $arg1
+
+# Node $_obj_fracture_foreach_end2 (Sop/block_end)
+set _obj_fracture_foreach_end2 = `run("opadd -e -n -v block_end foreach_end2")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -2.801400000000001` $_obj_fracture_foreach_end2
+opparm -V 16.0.671 $_obj_fracture_foreach_end2 itermethod ( pieces ) method ( merge ) class ( primitive ) attrib ( name ) blockpath ( ../foreach_begin2 ) templatepath ( ../foreach_begin2 ) singlepass ( 10 ) multithread ( on )
+opcolor -c 0.75 0.40000000596046448 0 $_obj_fracture_foreach_end2
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_fracture_foreach_end2
+opexprlanguage -s hscript $_obj_fracture_foreach_end2
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_foreach_end2
+opset -p on $_obj_fracture_foreach_end2
+opcf $arg1
+
+# Node $_obj_fracture_foreach_begin2 (Sop/block_begin)
+set _obj_fracture_foreach_begin2 = `run("opadd -e -n -v block_begin foreach_begin2")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -0.76170000000000115` $_obj_fracture_foreach_begin2
+opparm -V 16.0.671 $_obj_fracture_foreach_begin2 method ( piece ) blockpath ( ../foreach_end2 )
+opcolor -c 0.75 0.40000000596046448 0 $_obj_fracture_foreach_begin2
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_fracture_foreach_begin2
+opexprlanguage -s hscript $_obj_fracture_foreach_begin2
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_foreach_begin2
+opset -p on $_obj_fracture_foreach_begin2
+opcf $arg1
+
+# Node $_obj_fracture_measure1 (Sop/measure)
+set _obj_fracture_measure1 = `run("opadd -e -n -v measure measure1")`
+oplocate -x `$arg2 + -0.0015999999999998238` -y `$arg3 + -1.520900000000001` $_obj_fracture_measure1
+opspareds '    parm {   name    "group"         baseparm        label   "Group"         export  none    bindselector prims "Measure Primitives"             "Select the primitives to measure and press Enter to complete."         0 1 0xffffffff 0 "" 0     }     parm {      name    "type"  baseparm        label   "Type"  export  none     }     parm {   name    "override"      baseparm        label   "Override Name"         export  none     }     parm {   name    "attribname"    baseparm        label   "Attribute"     export  none     }     parm {   name    "curvetype"     baseparm        label   "Curvature Type"        export  none     }     parm {   name    "curve"         baseparm        label   "Min/Max"       export  none     }     parm {   name    "t"     baseparm        label   "Center"        export  none     }     parm {   name    "spare_input0"  label   "Spare Input 0"         type    oppath  default { "" }  help    "Refer to this in expressions as -1, such as: npoint(-1)"       parmtag { "opfilter" "!!SOP!!" }        parmtag { "oprelative" "." }     } ' $_obj_fracture_measure1
+chblockbegin
+chadd -t 0 0 $_obj_fracture_measure1 tx
+chkey -t 0 -v 36.209600000000002 -m 0 -a 0 -A 0 -T a  -F 'centroid(-1,D_X)' $_obj_fracture_measure1/tx
+chadd -t 0 0 $_obj_fracture_measure1 ty
+chkey -t 0 -v -7.8718899999999996 -m 0 -a 0 -A 0 -T a  -F 'centroid(-1,D_Y)' $_obj_fracture_measure1/ty
+chadd -t 0 0 $_obj_fracture_measure1 tz
+chkey -t 0 -v -14.917899999999999 -m 0 -a 0 -A 0 -T a  -F 'centroid(-1,D_Z)' $_obj_fracture_measure1/tz
+chblockend
+opparm -V 16.0.671 $_obj_fracture_measure1 type ( volume ) t ( tx ty tz ) spare_input0 ( /obj/fracture/foreach_begin2 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_measure1
+opexprlanguage -s hscript $_obj_fracture_measure1
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_measure1
+opset -p on $_obj_fracture_measure1
+opcf $arg1
+
+# Node $_obj_fracture_analise_volume (Sop/LZ_Attrib_Analise)
+set _obj_fracture_analise_volume = `run("opadd -e -n -v LZ_Attrib_Analise analise_volume")`
+oplocate -x `$arg2 + -0.0015999999999998238` -y `$arg3 + -2.1429000000000009` $_obj_fracture_analise_volume
+opparm $_obj_fracture_analise_volume inname ( volume ) inclass ( primitive ) method ( sum )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_analise_volume
+opexprlanguage -s hscript $_obj_fracture_analise_volume
+opuserdata -n '___Version___' -v '' $_obj_fracture_analise_volume
+opset -p on $_obj_fracture_analise_volume
+opcf $arg1
+
+# Node $_obj_fracture_compile_end2 (Sop/compile_end)
+set _obj_fracture_compile_end2 = `run("opadd -e -n -v compile_end compile_end2")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -3.6117000000000026` $_obj_fracture_compile_end2
+opcolor -c 0.75 0.75 0 $_obj_fracture_compile_end2
+opset -d on -r on -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_fracture_compile_end2
+opexprlanguage -s hscript $_obj_fracture_compile_end2
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_compile_end2
+opset -p on $_obj_fracture_compile_end2
+
+opcf $arg1
+opwire -n $_obj_fracture_attribdelete1 -0 $_obj_fracture_compile_begin2
+opcf $arg1
+opwire -n $_obj_fracture_analise_volume -0 $_obj_fracture_foreach_end2
+opcf $arg1
+opwire -n $_obj_fracture_compile_begin2 -0 $_obj_fracture_foreach_begin2
+opcf $arg1
+opwire -n $_obj_fracture_foreach_begin2 -0 $_obj_fracture_measure1
+opcf $arg1
+opwire -n $_obj_fracture_measure1 -0 $_obj_fracture_analise_volume
+opcf $arg1
+opwire -n $_obj_fracture_foreach_end2 -0 $_obj_fracture_compile_end2
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_fracture_compile_end2
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_fracture_compile_begin2
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+
+  <tool name="Grid Cutters" label="Grid Cutters" icon="MISC_generic">
+    <toolMenuContext name="network">
+      <contextOpType>Sop/isooffset</contextOpType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputitem = None
+inputindex = -1
+inputitem = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if kwargs.has_key("outputnodename") and kwargs.has_key("inputindex"):
+        outputitem = pane_node.item(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if kwargs.has_key("inputnodename") and kwargs.has_key("outputindex"):
+        inputitem = pane_node.item(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if kwargs.has_key("autoplace"):
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+        if inputitem is None:
+            inputitem = pane.currentNode()
+            outputindex = 0
+    if kwargs.has_key("nodepositionx") and             kwargs.has_key("nodepositiony"):
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+
+    if not autoplace and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputitem is None:
+            pos = pane.selectPosition(inputitem, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputitem, outputindex,
+                                      outputitem, inputindex)
+
+    if pos is not None:
+        if kwargs.has_key("node_bbox"):
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if not child_type.has_key('grid'):
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_fracture_isooffset1 (Sop/isooffset)
+set _obj_fracture_isooffset1 = `run("opadd -e -n -v isooffset isooffset1")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_fracture_isooffset1
+opparm -V 16.0.671 $_obj_fracture_isooffset1 name ( density ) samplediv ( 50 ) divs ( 1 1 1 ) isodiv ( 1 1 1 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_isooffset1
+opexprlanguage -s hscript $_obj_fracture_isooffset1
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_isooffset1
+opset -p on $_obj_fracture_isooffset1
+opcf $arg1
+
+# Node $_obj_fracture_attribrandomize2 (Sop/attribrandomize)
+set _obj_fracture_attribrandomize2 = `run("opadd -e -n -v attribrandomize attribrandomize2")`
+oplocate -x `$arg2 + -0.0034499999999999531` -y `$arg3 + -1.625` $_obj_fracture_attribrandomize2
+opparm $_obj_fracture_attribrandomize2  ramp ( 3 ) values ( 4 )
+opparm $_obj_fracture_attribrandomize2 name ( N ) distribution ( uniformball ) seed ( 4479 ) ramp2pos ( 0.5 ) ramp2value ( 0.5 ) ramp3pos ( 1 ) ramp3value ( 1 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_attribrandomize2
+opexprlanguage -s hscript $_obj_fracture_attribrandomize2
+opuserdata -n '___Version___' -v '' $_obj_fracture_attribrandomize2
+opset -p on $_obj_fracture_attribrandomize2
+opcf $arg1
+
+# Node $_obj_fracture_jitter3 (Sop/attribwrangle)
+set _obj_fracture_jitter3 = `run("opadd -e -n -v attribwrangle jitter3")`
+oplocate -x `$arg2 + -0.0029999999999998916` -y `$arg3 + -3.4792999999999985` $_obj_fracture_jitter3
+opspareds '    group {  name    "folder1"       label   "Code"          parm {      name        "group"             baseparm        label       "Group"             export      none        bindselector points "Modify Points"                 "Select the points to affect and press Enter to complete."              0 1 0xffffffff 0 grouptype 0    }       parm {      name        "grouptype"         baseparm        label       "Group Type"        export      none    }       parm {      name        "class"             baseparm        label       "Run Over"          export      none    }       parm {      name        "vex_numcount"      baseparm        label       "Number Count"      export      none    }       parm {      name        "vex_threadjobsize"         baseparm        label       "Thread Job Size"           export      none    }       parm {      name        "snippet"           baseparm        label       "VEXpression"       export      all     }       parm {      name        "exportlist"        baseparm        label       "Attributes to Create"      export      none    }       parm {      name        "vex_strict"        baseparm        label       "Enforce Prototypes"        export      none    }     }      group {    name    "folder1_1"     label   "Bindings"      parm {      name        "autobind"          baseparm        label       "Autobind by Name"          export      none    }       multiparm {         name        "bindings"          label       "Number of Bindings"        baseparm        default     0           parmtag     { "autoscope" "0000000000000000" }          parmtag     { "multistartoffset" "1" }          parm {              name    "bindname#"             baseparm                label   "Attribute Name"                export  none        }       parm {              name    "bindparm#"             baseparm                label   "VEX Parameter"                 export  none        }   }       parm {      name        "groupautobind"             baseparm        label       "Autobind Groups by Name"           export      none    }       multiparm {         name        "groupbindings"             label       "Group Bindings"            baseparm        default     0           parmtag     { "autoscope" "0000000000000000" }          parmtag     { "multistartoffset" "1" }          parm {              name    "bindgroupname#"                baseparm                label   "Group Name"            export  none        }       parm {              name    "bindgroupparm#"                baseparm                label   "VEX Parameter"                 export  none        }   }       parm {      name        "vex_cwdpath"       baseparm        label       "Evaluation Node Path"      export      none    }       parm {      name        "vex_outputmask"            baseparm        label       "Export Parameters"         export      none    }       parm {      name        "vex_updatenmls"            baseparm        label       "Update Normals If Displaced"       export      none    }       parm {      name        "vex_matchattrib"           baseparm        label       "Attribute to Match"        export      none    }       parm {      name        "vex_inplace"       baseparm        label       "Compute Results In Place"          export      none    }       parm {      name        "vex_selectiongroup"        baseparm        label       "Output Selection Group"            export      none    }     }      parm {     name    "f1"    label   "F1"    type    float   default { "0" }         range   { 0 1 }     }     parm {        name    "a1"    label   "A1"    type    float   default { "0" }         range   { 0 1 }     }     parm {        name    "a2"    label   "A2"    type    float   default { "0" }         range   { 0 1 }     }     parm {        name    "f2"    label   "F2"    type    float   default { "0" }         range   { 0 1 }     } ' $_obj_fracture_jitter3
+opparm $_obj_fracture_jitter3  bindings ( 0 ) groupbindings ( 0 )
+opparm $_obj_fracture_jitter3 snippet ( '#include <lzn.h>\nvector n1 = ch("a1")* svn(@P*ch("f1"),3);\nvector n2 = ch("a2")* svn(@P*ch("f2"),5);\n\n@P += n1 + n2;' ) f1 ( 0.050000000000000003 ) a1 ( 8 ) a2 ( 2.9999999850988388 ) f2 ( 0.14999999999999999 )
+opset -d on -r on -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_jitter3
+opexprlanguage -s hscript $_obj_fracture_jitter3
+opuserdata -n '___Version___' -v '' $_obj_fracture_jitter3
+opset -p on $_obj_fracture_jitter3
+opcf $arg1
+
+# Node $_obj_fracture_scatter2 (Sop/scatter::2.0)
+set _obj_fracture_scatter2 = `run("opadd -e -n -v scatter::2.0 scatter2")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -0.87000000000000099` $_obj_fracture_scatter2
+opparm -V 16.0.671 $_obj_fracture_scatter2 densityscale ( 0.01 ) forcetotal ( off ) emergencylimit ( 8 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_scatter2
+opexprlanguage -s hscript $_obj_fracture_scatter2
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_scatter2
+opset -p on $_obj_fracture_scatter2
+opcf $arg1
+
+# Node $_obj_fracture_copytopoints2 (Sop/copytopoints)
+set _obj_fracture_copytopoints2 = `run("opadd -e -n -v copytopoints copytopoints2")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -2.6050000000000004` $_obj_fracture_copytopoints2
+opparm -V 16.0.671 $_obj_fracture_copytopoints2 doattr ( off )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_copytopoints2
+opexprlanguage -s hscript $_obj_fracture_copytopoints2
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_copytopoints2
+opset -p on $_obj_fracture_copytopoints2
+opcf $arg1
+
+# Node $_obj_fracture_grid3 (Sop/grid)
+set _obj_fracture_grid3 = `run("opadd -e -n -v grid grid3")`
+oplocate -x `$arg2 + -1.753682` -y `$arg3 + -1.625` $_obj_fracture_grid3
+opspareds '    parm {   name    "type"  baseparm        label   "Primitive Type"        export  all     }     parm {    name    "surftype"      baseparm        label   "Connectivity"  export  none     }     parm {   name    "orient"        baseparm        label   "Orientation"   export  all     }     parm {    name    "size"  baseparm        label   "Size"  export  all     }     parm {    name    "t"     baseparm        label   "Center"        export  none     }     parm {   name    "rows"  baseparm        label   "Rows"  export  all     }     parm {    name    "cols"  baseparm        label   "Columns"       export  all     }     parm {    name    "orderu"        baseparm        label   "U Order"       export  none     }     parm {   name    "orderv"        baseparm        label   "V Order"       export  none     }     parm {   name    "interpu"       baseparm        label   "End-point interpolate in U"    export  none     }     parm {   name    "interpv"       baseparm        label   "End-point interpolate in V"    export  none     }     parm {   name    "spare_input0"  label   "Spare Input 0"         type    oppath  default { "" }  help    "Refer to this in expressions as -1, such as: npoint(-1)"       parmtag { "opfilter" "!!SOP!!" }        parmtag { "oprelative" "." }     } ' $_obj_fracture_grid3
+chblockbegin
+chadd -t 0 0 $_obj_fracture_grid3 sizex
+chkey -t 0 -v 10 -m 0 -a 0 -A 0 -T a  -F '3*max(max(bbox("-1",D_XSIZE),bbox("../isooffset1",D_YSIZE)),bbox("../isooffset1",D_ZSIZE))' $_obj_fracture_grid3/sizex
+chadd -t 0 0 $_obj_fracture_grid3 sizey
+chkey -t 0 -v 10 -m 0 -a 0 -A 0 -T a  -F 'ch("sizex")' $_obj_fracture_grid3/sizey
+chadd -t 0 0 $_obj_fracture_grid3 rows
+chkey -t 0 -v 10 -m 0 -a 0 -A 0 -T a  -F 'ch("sizex")*2' $_obj_fracture_grid3/rows
+chadd -t 0 0 $_obj_fracture_grid3 cols
+chkey -t 0 -v 10 -m 0 -a 0 -A 0 -T a  -F 'ch("sizex")*2' $_obj_fracture_grid3/cols
+chblockend
+opparm -V 16.0.671 $_obj_fracture_grid3 orient ( yz ) size ( sizex sizey ) rows ( rows ) cols ( cols ) spare_input0 ( /obj/fracture/isooffset1 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_grid3
+opexprlanguage -s hscript $_obj_fracture_grid3
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_grid3
+opset -p on $_obj_fracture_grid3
+
+opcf $arg1
+opwire -n $_obj_fracture_unpack1 -0 $_obj_fracture_isooffset1
+opcf $arg1
+opwire -n $_obj_fracture_scatter2 -0 $_obj_fracture_attribrandomize2
+opcf $arg1
+opwire -n $_obj_fracture_copytopoints2 -0 $_obj_fracture_jitter3
+opcf $arg1
+opwire -n $_obj_fracture_isooffset1 -0 $_obj_fracture_scatter2
+opcf $arg1
+opwire -n $_obj_fracture_grid3 -0 $_obj_fracture_copytopoints2
+opwire -n $_obj_fracture_attribrandomize2 -1 $_obj_fracture_copytopoints2
+opcf $arg1
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_fracture_jitter3
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_fracture_isooffset1
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+
+  <tool name="Compiled Grid Cutters" label="Compiled Grid Cutters" icon="MISC_generic">
+    <toolMenuContext name="network">
+      <contextOpType>Sop/compile_begin</contextOpType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputitem = None
+inputindex = -1
+inputitem = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if kwargs.has_key("outputnodename") and kwargs.has_key("inputindex"):
+        outputitem = pane_node.item(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if kwargs.has_key("inputnodename") and kwargs.has_key("outputindex"):
+        inputitem = pane_node.item(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if kwargs.has_key("autoplace"):
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+        if inputitem is None:
+            inputitem = pane.currentNode()
+            outputindex = 0
+    if kwargs.has_key("nodepositionx") and             kwargs.has_key("nodepositiony"):
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+
+    if not autoplace and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputitem is None:
+            pos = pane.selectPosition(inputitem, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputitem, outputindex,
+                                      outputitem, inputindex)
+
+    if pos is not None:
+        if kwargs.has_key("node_bbox"):
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if not child_type.has_key('boolean::2.0'):
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_fracture_compile_begin4 (Sop/compile_begin)
+set _obj_fracture_compile_begin4 = `run("opadd -e -n -v compile_begin compile_begin4")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_fracture_compile_begin4
+opparm -V 16.0.671 $_obj_fracture_compile_begin4 blockpath ( ../compile_end4 )
+opcolor -c 0.75 0.75 0 $_obj_fracture_compile_begin4
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_fracture_compile_begin4
+opexprlanguage -s hscript $_obj_fracture_compile_begin4
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_compile_begin4
+opset -p on $_obj_fracture_compile_begin4
+opcf $arg1
+
+# Node $_obj_fracture_foreach_begin5 (Sop/block_begin)
+set _obj_fracture_foreach_begin5 = `run("opadd -e -n -v block_begin foreach_begin5")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -0.75258818872342914` $_obj_fracture_foreach_begin5
+opparm -V 16.0.671 $_obj_fracture_foreach_begin5 method ( piece ) blockpath ( ../foreach_end5 ) label1 ( 'iteration, numiteration, value, ivalue' )
+opcolor -c 0.75 0.40000000596046448 0 $_obj_fracture_foreach_begin5
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_fracture_foreach_begin5
+opexprlanguage -s hscript $_obj_fracture_foreach_begin5
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_foreach_begin5
+opset -p on $_obj_fracture_foreach_begin5
+opcf $arg1
+
+# Node $_obj_fracture_isooffset3 (Sop/isooffset)
+set _obj_fracture_isooffset3 = `run("opadd -e -n -v isooffset isooffset3")`
+oplocate -x `$arg2 + 2.5716675688863901` -y `$arg3 + -1.5211776171209195` $_obj_fracture_isooffset3
+opparm -V 16.0.671 $_obj_fracture_isooffset3 name ( density ) samplediv ( 50 ) divs ( 1 1 1 ) isodiv ( 1 1 1 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_isooffset3
+opexprlanguage -s hscript $_obj_fracture_isooffset3
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_isooffset3
+opset -p on $_obj_fracture_isooffset3
+opcf $arg1
+
+# Node $_obj_fracture_attribrandomize5 (Sop/attribrandomize)
+set _obj_fracture_attribrandomize5 = `run("opadd -e -n -v attribrandomize attribrandomize5")`
+oplocate -x `$arg2 + 2.5682175688863929` -y `$arg3 + -3.1751776171209194` $_obj_fracture_attribrandomize5
+opparm $_obj_fracture_attribrandomize5  ramp ( 3 ) values ( 4 )
+opparm $_obj_fracture_attribrandomize5 name ( N ) distribution ( uniformball ) seed ( 4479 ) ramp2pos ( 0.5 ) ramp2value ( 0.5 ) ramp3pos ( 1 ) ramp3value ( 1 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_attribrandomize5
+opexprlanguage -s hscript $_obj_fracture_attribrandomize5
+opuserdata -n '___Version___' -v '' $_obj_fracture_attribrandomize5
+opset -p on $_obj_fracture_attribrandomize5
+opcf $arg1
+
+# Node $_obj_fracture_scatter7 (Sop/scatter::2.0)
+set _obj_fracture_scatter7 = `run("opadd -e -n -v scatter::2.0 scatter7")`
+oplocate -x `$arg2 + 2.5716675688863901` -y `$arg3 + -2.3911776171209205` $_obj_fracture_scatter7
+opparm -V 16.0.671 $_obj_fracture_scatter7 densityscale ( 0.5 ) forcetotal ( off ) emergencylimit ( 8 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_scatter7
+opexprlanguage -s hscript $_obj_fracture_scatter7
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_scatter7
+opset -p on $_obj_fracture_scatter7
+opcf $arg1
+
+# Node $_obj_fracture_compile_end4 (Sop/compile_end)
+set _obj_fracture_compile_end4 = `run("opadd -e -n -v compile_end compile_end4")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -7.1831260331553928` $_obj_fracture_compile_end4
+opcolor -c 0.75 0.75 0 $_obj_fracture_compile_end4
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_fracture_compile_end4
+opexprlanguage -s hscript $_obj_fracture_compile_end4
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_compile_end4
+opset -p on $_obj_fracture_compile_end4
+opcf $arg1
+
+# Node $_obj_fracture_copytopoints4 (Sop/copytopoints)
+set _obj_fracture_copytopoints4 = `run("opadd -e -n -v copytopoints copytopoints4")`
+oplocate -x `$arg2 + 1.7895731424903865` -y `$arg3 + -3.9912353650838348` $_obj_fracture_copytopoints4
+opparm -V 16.0.671 $_obj_fracture_copytopoints4 doattr ( off )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_copytopoints4
+opexprlanguage -s hscript $_obj_fracture_copytopoints4
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_copytopoints4
+opset -p on $_obj_fracture_copytopoints4
+opcf $arg1
+
+# Node $_obj_fracture_jitter5 (Sop/attribwrangle)
+set _obj_fracture_jitter5 = `run("opadd -e -n -v attribwrangle jitter5")`
+oplocate -x `$arg2 + 1.7865731424903899` -y `$arg3 + -4.8007353650838347` $_obj_fracture_jitter5
+opspareds '    group {  name    "folder1"       label   "Code"          parm {      name        "group"             baseparm        label       "Group"             export      none        bindselector points "Modify Points"                 "Select the points to affect and press Enter to complete."              0 1 0xffffffff 0 grouptype 0    }       parm {      name        "grouptype"         baseparm        label       "Group Type"        export      none    }       parm {      name        "class"             baseparm        label       "Run Over"          export      none    }       parm {      name        "vex_numcount"      baseparm        label       "Number Count"      export      none    }       parm {      name        "vex_threadjobsize"         baseparm        label       "Thread Job Size"           export      none    }       parm {      name        "snippet"           baseparm        label       "VEXpression"       export      all     }       parm {      name        "exportlist"        baseparm        label       "Attributes to Create"      export      none    }       parm {      name        "vex_strict"        baseparm        label       "Enforce Prototypes"        export      none    }     }      group {    name    "folder1_1"     label   "Bindings"      parm {      name        "autobind"          baseparm        label       "Autobind by Name"          export      none    }       multiparm {         name        "bindings"          label       "Number of Bindings"        baseparm        default     0           parmtag     { "autoscope" "0000000000000000" }          parmtag     { "multistartoffset" "1" }          parm {              name    "bindname#"             baseparm                label   "Attribute Name"                export  none        }       parm {              name    "bindparm#"             baseparm                label   "VEX Parameter"                 export  none        }   }       parm {      name        "groupautobind"             baseparm        label       "Autobind Groups by Name"           export      none    }       multiparm {         name        "groupbindings"             label       "Group Bindings"            baseparm        default     0           parmtag     { "autoscope" "0000000000000000" }          parmtag     { "multistartoffset" "1" }          parm {              name    "bindgroupname#"                baseparm                label   "Group Name"            export  none        }       parm {              name    "bindgroupparm#"                baseparm                label   "VEX Parameter"                 export  none        }   }       parm {      name        "vex_cwdpath"       baseparm        label       "Evaluation Node Path"      export      none    }       parm {      name        "vex_outputmask"            baseparm        label       "Export Parameters"         export      none    }       parm {      name        "vex_updatenmls"            baseparm        label       "Update Normals If Displaced"       export      none    }       parm {      name        "vex_matchattrib"           baseparm        label       "Attribute to Match"        export      none    }       parm {      name        "vex_inplace"       baseparm        label       "Compute Results In Place"          export      none    }       parm {      name        "vex_selectiongroup"        baseparm        label       "Output Selection Group"            export      none    }     }      parm {     name    "f1"    label   "F1"    type    float   default { "0" }         range   { 0 1 }     }     parm {        name    "a1"    label   "A1"    type    float   default { "0" }         range   { 0 1 }     }     parm {        name    "a2"    label   "A2"    type    float   default { "0" }         range   { 0 1 }     }     parm {        name    "f2"    label   "F2"    type    float   default { "0" }         range   { 0 1 }     } ' $_obj_fracture_jitter5
+opparm $_obj_fracture_jitter5  bindings ( 0 ) groupbindings ( 0 )
+opparm $_obj_fracture_jitter5 snippet ( '#include <lzn.h>\nvector n1 = ch("a1")* svn(@P*ch("f1"),3);\nvector n2 = ch("a2")* svn(@P*ch("f2"),5);\n\n@P += n1 + n2;' ) f1 ( 0.050000000000000003 ) a1 ( 8 ) a2 ( 2.9999999850988388 ) f2 ( 0.14999999999999999 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_jitter5
+opexprlanguage -s hscript $_obj_fracture_jitter5
+opuserdata -n '___Version___' -v '' $_obj_fracture_jitter5
+opset -p on $_obj_fracture_jitter5
+opcf $arg1
+
+# Node $_obj_fracture_foreach_end5 (Sop/block_end)
+set _obj_fracture_foreach_end5 = `run("opadd -e -n -v block_end foreach_end5")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -6.432370764540611` $_obj_fracture_foreach_end5
+opparm -V 16.0.671 $_obj_fracture_foreach_end5 itermethod ( pieces ) method ( merge ) class ( primitive ) useattrib ( off ) attrib ( name ) blockpath ( ../foreach_begin5 ) templatepath ( ../foreach_begin5 ) singlepass ( 45 ) multithread ( on )
+opcolor -c 0.75 0.40000000596046448 0 $_obj_fracture_foreach_end5
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_fracture_foreach_end5
+opexprlanguage -s hscript $_obj_fracture_foreach_end5
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_foreach_end5
+opset -p on $_obj_fracture_foreach_end5
+opcf $arg1
+
+# Node $_obj_fracture_grid5 (Sop/grid)
+set _obj_fracture_grid5 = `run("opadd -e -n -v grid grid5")`
+oplocate -x `$arg2 + 0.95640425625175851` -y `$arg3 + -3.1751776171209194` $_obj_fracture_grid5
+opspareds '    parm {   name    "type"  baseparm        label   "Primitive Type"        export  all     }     parm {    name    "surftype"      baseparm        label   "Connectivity"  export  none     }     parm {   name    "orient"        baseparm        label   "Orientation"   export  all     }     parm {    name    "size"  baseparm        label   "Size"  export  all     }     parm {    name    "t"     baseparm        label   "Center"        export  none     }     parm {   name    "rows"  baseparm        label   "Rows"  export  all     }     parm {    name    "cols"  baseparm        label   "Columns"       export  all     }     parm {    name    "orderu"        baseparm        label   "U Order"       export  none     }     parm {   name    "orderv"        baseparm        label   "V Order"       export  none     }     parm {   name    "interpu"       baseparm        label   "End-point interpolate in U"    export  none     }     parm {   name    "interpv"       baseparm        label   "End-point interpolate in V"    export  none     }     parm {   name    "spare_input0"  label   "Spare Input 0"         type    oppath  default { "" }  help    "Refer to this in expressions as -1, such as: npoint(-1)"       parmtag { "opfilter" "!!SOP!!" }        parmtag { "oprelative" "." }     } ' $_obj_fracture_grid5
+chblockbegin
+chadd -t 0 0 $_obj_fracture_grid5 sizex
+chkey -t 0 -v 10 -m 0 -a 0 -A 0 -T a  -F '2*max(max(bbox(-1,D_XSIZE),bbox(-1,D_YSIZE)),bbox(-1,D_ZSIZE))' $_obj_fracture_grid5/sizex
+chadd -t 0 0 $_obj_fracture_grid5 sizey
+chkey -t 0 -v 10 -m 0 -a 0 -A 0 -T a  -F 'ch("sizex")' $_obj_fracture_grid5/sizey
+chadd -t 0 0 $_obj_fracture_grid5 rows
+chkey -t 0 -v 10 -m 0 -a 0 -A 0 -T a  -F 'ch("sizex")*2' $_obj_fracture_grid5/rows
+chadd -t 0 0 $_obj_fracture_grid5 cols
+chkey -t 0 -v 10 -m 0 -a 0 -A 0 -T a  -F 'ch("sizex")*2' $_obj_fracture_grid5/cols
+chblockend
+opparm -V 16.0.671 $_obj_fracture_grid5 orient ( yz ) size ( sizex sizey ) rows ( rows ) cols ( cols ) spare_input0 ( /obj/fracture/foreach_begin5 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_grid5
+opexprlanguage -s hscript $_obj_fracture_grid5
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_grid5
+opset -p on $_obj_fracture_grid5
+opcf $arg1
+
+# Node $_obj_fracture_boolean5 (Sop/boolean::2.0)
+set _obj_fracture_boolean5 = `run("opadd -e -n -v boolean::2.0 boolean5")`
+oplocate -x `$arg2 + -0.0016000135219655931` -y `$arg3 + -5.5874527548937039` $_obj_fracture_boolean5
+opparm -V 16.0.671 $_obj_fracture_boolean5 bsurface ( surface ) booleanop ( shatter ) detriangulate ( none ) collapsetinyedges ( off ) usebinsidea ( on )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_boolean5
+opexprlanguage -s hscript $_obj_fracture_boolean5
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_boolean5
+opset -p on $_obj_fracture_boolean5
+
+opcf $arg1
+opcf $arg1
+opwire -n $_obj_fracture_compile_begin4 -0 $_obj_fracture_foreach_begin5
+opcf $arg1
+opwire -n $_obj_fracture_foreach_begin5 -0 $_obj_fracture_isooffset3
+opcf $arg1
+opwire -n $_obj_fracture_scatter7 -0 $_obj_fracture_attribrandomize5
+opcf $arg1
+opwire -n $_obj_fracture_isooffset3 -0 $_obj_fracture_scatter7
+opcf $arg1
+opwire -n $_obj_fracture_foreach_end5 -0 $_obj_fracture_compile_end4
+opcf $arg1
+opwire -n $_obj_fracture_grid5 -0 $_obj_fracture_copytopoints4
+opwire -n $_obj_fracture_attribrandomize5 -1 $_obj_fracture_copytopoints4
+opcf $arg1
+opwire -n $_obj_fracture_copytopoints4 -0 $_obj_fracture_jitter5
+opcf $arg1
+opwire -n $_obj_fracture_boolean5 -0 $_obj_fracture_foreach_end5
+opcf $arg1
+opcf $arg1
+opwire -n $_obj_fracture_foreach_begin5 -0 $_obj_fracture_boolean5
+opwire -n $_obj_fracture_jitter5 -1 $_obj_fracture_boolean5
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_fracture_boolean5
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_fracture_compile_begin4
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+
+  <tool name="Create Proxie pieces" label="Create Proxie pieces" icon="MISC_generic">
+    <toolMenuContext name="network">
+      <contextOpType>Sop/null</contextOpType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputitem = None
+inputindex = -1
+inputitem = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if kwargs.has_key("outputnodename") and kwargs.has_key("inputindex"):
+        outputitem = pane_node.item(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if kwargs.has_key("inputnodename") and kwargs.has_key("outputindex"):
+        inputitem = pane_node.item(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if kwargs.has_key("autoplace"):
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+        if inputitem is None:
+            inputitem = pane.currentNode()
+            outputindex = 0
+    if kwargs.has_key("nodepositionx") and             kwargs.has_key("nodepositiony"):
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+
+    if not autoplace and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputitem is None:
+            pos = pane.selectPosition(inputitem, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputitem, outputindex,
+                                      outputitem, inputindex)
+
+    if pos is not None:
+        if kwargs.has_key("node_bbox"):
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if not child_type.has_key('measure'):
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_fracture_IN (Sop/null)
+set _obj_fracture_IN = `run("opadd -e -n -v null IN")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_fracture_IN
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_IN
+opexprlanguage -s hscript $_obj_fracture_IN
+opset -p on $_obj_fracture_IN
+opcf $arg1
+
+# Node $_obj_fracture_attribpromote6 (Sop/attribpromote)
+set _obj_fracture_attribpromote6 = `run("opadd -e -n -v attribpromote attribpromote6")`
+oplocate -x `$arg2 + 1.4004385687550425` -y `$arg3 + -1.6546999881684741` $_obj_fracture_attribpromote6
+opparm -V 16.0.671 $_obj_fracture_attribpromote6 inname ( name ) outclass ( primitive )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_attribpromote6
+opexprlanguage -s hscript $_obj_fracture_attribpromote6
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_attribpromote6
+opset -p on $_obj_fracture_attribpromote6
+opcf $arg1
+
+# Node $_obj_fracture_PROXIES_CULLED2 (Sop/null)
+set _obj_fracture_PROXIES_CULLED2 = `run("opadd -e -n -v null PROXIES_CULLED2")`
+oplocate -x `$arg2 + -0.15641888082695843` -y `$arg3 + -11.519932175354953` $_obj_fracture_PROXIES_CULLED2
+opset -d on -r on -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_PROXIES_CULLED2
+opexprlanguage -s hscript $_obj_fracture_PROXIES_CULLED2
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_PROXIES_CULLED2
+opset -p on $_obj_fracture_PROXIES_CULLED2
+opcf $arg1
+
+# Node $_obj_fracture_polyreduce3 (Sop/polyreduce)
+set _obj_fracture_polyreduce3 = `run("opadd -e -n -v polyreduce polyreduce3")`
+oplocate -x `$arg2 + 1.4004385552330767` -y `$arg3 + -4.194409285723971` $_obj_fracture_polyreduce3
+opparm -V 16.0.671 $_obj_fracture_polyreduce3 percentage ( 5 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_polyreduce3
+opexprlanguage -s hscript $_obj_fracture_polyreduce3
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_polyreduce3
+opset -p on $_obj_fracture_polyreduce3
+opcf $arg1
+
+# Node $_obj_fracture_foreach_begin6 (Sop/block_begin)
+set _obj_fracture_foreach_begin6 = `run("opadd -e -n -v block_begin foreach_begin6")`
+oplocate -x `$arg2 + 1.4020385687550423` -y `$arg3 + -2.5236999881684739` $_obj_fracture_foreach_begin6
+opparm -V 16.0.671 $_obj_fracture_foreach_begin6 method ( piece ) blockpath ( ../foreach_end6 )
+opcolor -c 0.75 0.40000000596046448 0 $_obj_fracture_foreach_begin6
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_fracture_foreach_begin6
+opexprlanguage -s hscript $_obj_fracture_foreach_begin6
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_foreach_begin6
+opset -p on $_obj_fracture_foreach_begin6
+opcf $arg1
+
+# Node $_obj_fracture_foreach_end6 (Sop/block_end)
+set _obj_fracture_foreach_end6 = `run("opadd -e -n -v block_end foreach_end6")`
+oplocate -x `$arg2 + 1.402038578068268` -y `$arg3 + -7.4898341135782331` $_obj_fracture_foreach_end6
+opparm -V 16.0.671 $_obj_fracture_foreach_end6 itermethod ( pieces ) method ( merge ) class ( primitive ) attrib ( name ) blockpath ( ../foreach_begin6 ) templatepath ( ../foreach_begin6 ) singlepass ( 28 )
+opcolor -c 0.75 0.40000000596046448 0 $_obj_fracture_foreach_end6
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_fracture_foreach_end6
+opexprlanguage -s hscript $_obj_fracture_foreach_end6
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_foreach_end6
+opset -p on $_obj_fracture_foreach_end6
+opcf $arg1
+
+# Node $_obj_fracture_attribcopy3 (Sop/attribcopy)
+set _obj_fracture_attribcopy3 = `run("opadd -e -n -v attribcopy attribcopy3")`
+oplocate -x `$arg2 + -0.15986887936403704` -y `$arg3 + -9.0643999881684749` $_obj_fracture_attribcopy3
+opparm -V 16.0.671 $_obj_fracture_attribcopy3 matchbyattribute ( on ) attributetomatch ( name ) attribname ( '* ^volume' ) copyp ( off )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_attribcopy3
+opexprlanguage -s hscript $_obj_fracture_attribcopy3
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_attribcopy3
+opset -p on $_obj_fracture_attribcopy3
+opcf $arg1
+
+# Node $_obj_fracture_polyreduce4 (Sop/polyreduce)
+set _obj_fracture_polyreduce4 = `run("opadd -e -n -v polyreduce polyreduce4")`
+oplocate -x `$arg2 + 3.2094385552330778` -y `$arg3 + -4.194409285723971` $_obj_fracture_polyreduce4
+opparm -V 16.0.671 $_obj_fracture_polyreduce4 stdswitcher ( 1 1 1 1 ) percentage ( 5 ) numpolys ( 4 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_polyreduce4
+opexprlanguage -s hscript $_obj_fracture_polyreduce4
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_polyreduce4
+opset -p on $_obj_fracture_polyreduce4
+opcf $arg1
+
+# Node $_obj_fracture_assemble9 (Sop/assemble)
+set _obj_fracture_assemble9 = `run("opadd -e -n -v assemble assemble9")`
+oplocate -x `$arg2 + 1.4004385780682682` -y `$arg3 + -8.2994341135782363` $_obj_fracture_assemble9
+opparm -V 1 $_obj_fracture_assemble9 newname ( off ) pack_geo ( on ) transfer_attributes ( volume )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_assemble9
+opexprlanguage -s hscript $_obj_fracture_assemble9
+opuserdata -n '___Version___' -v '1' $_obj_fracture_assemble9
+opuserdata -n '___toolcount___' -v '5' $_obj_fracture_assemble9
+opuserdata -n '___toolid___' -v 'dop_rbdfracturedobject' $_obj_fracture_assemble9
+opset -p on $_obj_fracture_assemble9
+opcf $arg1
+
+# Node $_obj_fracture_unpack6 (Sop/unpack)
+set _obj_fracture_unpack6 = `run("opadd -e -n -v unpack unpack6")`
+oplocate -x `$arg2 + 1.4004385687550425` -y `$arg3 + -0.93499998816847807` $_obj_fracture_unpack6
+opparm -V 16.0.671 $_obj_fracture_unpack6 transfer_attributes ( name )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_unpack6
+opexprlanguage -s hscript $_obj_fracture_unpack6
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_unpack6
+opset -p on $_obj_fracture_unpack6
+opcf $arg1
+
+# Node $_obj_fracture_analise_volume1 (Sop/LZ_Attrib_Analise)
+set _obj_fracture_analise_volume1 = `run("opadd -e -n -v LZ_Attrib_Analise analise_volume1")`
+oplocate -x `$arg2 + 1.4004385645463024` -y `$arg3 + -6.6823737982498272` $_obj_fracture_analise_volume1
+opparm $_obj_fracture_analise_volume1 inname ( volume ) inclass ( primitive ) method ( sum )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_analise_volume1
+opexprlanguage -s hscript $_obj_fracture_analise_volume1
+opuserdata -n '___Version___' -v '' $_obj_fracture_analise_volume1
+opset -p on $_obj_fracture_analise_volume1
+opcf $arg1
+
+# Node $_obj_fracture_fuse2 (Sop/fuse)
+set _obj_fracture_fuse2 = `run("opadd -e -n -v fuse fuse2")`
+oplocate -x `$arg2 + 1.4004385552330767` -y `$arg3 + -3.3380092857239703` $_obj_fracture_fuse2
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_fuse2
+opexprlanguage -s hscript $_obj_fracture_fuse2
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_fuse2
+opset -p on $_obj_fracture_fuse2
+opcf $arg1
+
+# Node $_obj_fracture_remove_small (Sop/attribwrangle)
+set _obj_fracture_remove_small = `run("opadd -e -n -v attribwrangle remove_small")`
+oplocate -x `$arg2 + -0.15941888082695854` -y `$arg3 + -9.9349499841183402` $_obj_fracture_remove_small
+opspareds '    group {  name    "folder1"       label   "Code"          parm {      name        "group"             baseparm        label       "Group"             export      none        bindselector points "Modify Points"                 "Select the points to affect and press Enter to complete."              0 1 0xffffffff 0 grouptype 0    }       parm {      name        "grouptype"         baseparm        label       "Group Type"        export      none    }       parm {      name        "class"             baseparm        label       "Run Over"          export      none    }       parm {      name        "vex_numcount"      baseparm        label       "Number Count"      export      none    }       parm {      name        "vex_threadjobsize"         baseparm        label       "Thread Job Size"           export      none    }       parm {      name        "snippet"           baseparm        label       "VEXpression"       export      all     }       parm {      name        "exportlist"        baseparm        label       "Attributes to Create"      export      none    }       parm {      name        "vex_strict"        baseparm        label       "Enforce Prototypes"        export      none    }     }      group {    name    "folder1_1"     label   "Bindings"      parm {      name        "autobind"          baseparm        label       "Autobind by Name"          export      none    }       multiparm {         name        "bindings"          label       "Number of Bindings"        baseparm        default     0           parmtag     { "autoscope" "0000000000000000" }          parmtag     { "multistartoffset" "1" }          parm {              name    "bindname#"             baseparm                label   "Attribute Name"                export  none        }       parm {              name    "bindparm#"             baseparm                label   "VEX Parameter"                 export  none        }   }       parm {      name        "groupautobind"             baseparm        label       "Autobind Groups by Name"           export      none    }       multiparm {         name        "groupbindings"             label       "Group Bindings"            baseparm        default     0           parmtag     { "autoscope" "0000000000000000" }          parmtag     { "multistartoffset" "1" }          parm {              name    "bindgroupname#"                baseparm                label   "Group Name"            export  none        }       parm {              name    "bindgroupparm#"                baseparm                label   "VEX Parameter"                 export  none        }   }       parm {      name        "vex_cwdpath"       baseparm        label       "Evaluation Node Path"      export      none    }       parm {      name        "vex_outputmask"            baseparm        label       "Export Parameters"         export      none    }       parm {      name        "vex_updatenmls"            baseparm        label       "Update Normals If Displaced"       export      none    }       parm {      name        "vex_matchattrib"           baseparm        label       "Attribute to Match"        export      none    }       parm {      name        "vex_inplace"       baseparm        label       "Compute Results In Place"          export      none    }       parm {      name        "vex_selectiongroup"        baseparm        label       "Output Selection Group"            export      none    }     }      parm {     name    "tres"  label   "Tres"  type    float   default { "0" }         range   { 0 1 }     } ' $_obj_fracture_remove_small
+opparm $_obj_fracture_remove_small  bindings ( 0 ) groupbindings ( 0 )
+opparm $_obj_fracture_remove_small class ( primitive ) snippet ( 'if (@volume < chf("tres"))\n    @group_too_small = 1;' ) tres ( 0.0001 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_remove_small
+opexprlanguage -s hscript $_obj_fracture_remove_small
+opuserdata -n '___Version___' -v '' $_obj_fracture_remove_small
+opset -p on $_obj_fracture_remove_small
+opcf $arg1
+
+# Node $_obj_fracture_split5 (Sop/split)
+set _obj_fracture_split5 = `run("opadd -e -n -v split split5")`
+oplocate -x `$arg2 + -0.15641888082695843` -y `$arg3 + -10.706049984118337` $_obj_fracture_split5
+opparm $_obj_fracture_split5 group ( too_small )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_split5
+opexprlanguage -s hscript $_obj_fracture_split5
+opuserdata -n '___Version___' -v '' $_obj_fracture_split5
+opset -p on $_obj_fracture_split5
+opcf $arg1
+
+# Node $_obj_fracture_switch2 (Sop/switch)
+set _obj_fracture_switch2 = `run("opadd -e -n -v switch switch2")`
+oplocate -x `$arg2 + 1.4004385552330767` -y `$arg3 + -5.1028092857239713` $_obj_fracture_switch2
+opspareds '    parm {   name    "input"         baseparm        label   "Select Input"  export  all     }     parm {    name    "spare_input0"  label   "Spare Input 0"         type    oppath  default { "" }  help    "Refer to this in expressions as -1, such as: npoint(-1)"       parmtag { "opfilter" "!!SOP!!" }        parmtag { "oprelative" "." }     } ' $_obj_fracture_switch2
+chblockbegin
+chadd -t 0 0 $_obj_fracture_switch2 input
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'nprims(-1)<4' $_obj_fracture_switch2/input
+chblockend
+opparm -V 16.0.671 $_obj_fracture_switch2 input ( input ) spare_input0 ( /obj/fracture/polyreduce3 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_switch2
+opexprlanguage -s hscript $_obj_fracture_switch2
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_switch2
+opset -p on $_obj_fracture_switch2
+opcf $arg1
+
+# Node $_obj_fracture_measure4 (Sop/measure)
+set _obj_fracture_measure4 = `run("opadd -e -n -v measure measure4")`
+oplocate -x `$arg2 + 1.4004385645463024` -y `$arg3 + -5.9734744180868518` $_obj_fracture_measure4
+opspareds '    parm {   name    "group"         baseparm        label   "Group"         export  none    bindselector prims "Measure Primitives"             "Select the primitives to measure and press Enter to complete."         0 1 0xffffffff 0 "" 0     }     parm {      name    "type"  baseparm        label   "Type"  export  none     }     parm {   name    "override"      baseparm        label   "Override Name"         export  none     }     parm {   name    "attribname"    baseparm        label   "Attribute"     export  none     }     parm {   name    "curvetype"     baseparm        label   "Curvature Type"        export  none     }     parm {   name    "curve"         baseparm        label   "Min/Max"       export  none     }     parm {   name    "t"     baseparm        label   "Center"        export  none     }     parm {   name    "spare_input0"  label   "Spare Input 0"         type    oppath  default { "" }  help    "Refer to this in expressions as -1, such as: npoint(-1)"       parmtag { "opfilter" "!!SOP!!" }        parmtag { "oprelative" "." }     } ' $_obj_fracture_measure4
+chblockbegin
+chadd -t 0 0 $_obj_fracture_measure4 tx
+chkey -t 0 -v 36.209600000000002 -m 0 -a 0 -A 0 -T a  -F 'centroid(-1,D_X)' $_obj_fracture_measure4/tx
+chadd -t 0 0 $_obj_fracture_measure4 ty
+chkey -t 0 -v -7.8718899999999996 -m 0 -a 0 -A 0 -T a  -F 'centroid(-1,D_Y)' $_obj_fracture_measure4/ty
+chadd -t 0 0 $_obj_fracture_measure4 tz
+chkey -t 0 -v -14.917899999999999 -m 0 -a 0 -A 0 -T a  -F 'centroid(-1,D_Z)' $_obj_fracture_measure4/tz
+chblockend
+opparm -V 16.0.671 $_obj_fracture_measure4 type ( volume ) t ( tx ty tz ) spare_input0 ( /obj/fracture/switch2 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_measure4
+opexprlanguage -s hscript $_obj_fracture_measure4
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_measure4
+opset -p on $_obj_fracture_measure4
+
+opcf $arg1
+opcf $arg1
+opwire -n $_obj_fracture_unpack6 -0 $_obj_fracture_attribpromote6
+opcf $arg1
+opwire -n -o 1 $_obj_fracture_split5 -0 $_obj_fracture_PROXIES_CULLED2
+opcf $arg1
+opwire -n $_obj_fracture_fuse2 -0 $_obj_fracture_polyreduce3
+opcf $arg1
+opwire -n $_obj_fracture_attribpromote6 -0 $_obj_fracture_foreach_begin6
+opcf $arg1
+opwire -n $_obj_fracture_analise_volume1 -0 $_obj_fracture_foreach_end6
+opcf $arg1
+opwire -n $_obj_fracture_assemble9 -0 $_obj_fracture_attribcopy3
+opwire -n $_obj_fracture_IN -1 $_obj_fracture_attribcopy3
+opcf $arg1
+opwire -n $_obj_fracture_fuse2 -0 $_obj_fracture_polyreduce4
+opcf $arg1
+opwire -n $_obj_fracture_foreach_end6 -0 $_obj_fracture_assemble9
+opcf $arg1
+opwire -n $_obj_fracture_IN -0 $_obj_fracture_unpack6
+opcf $arg1
+opwire -n $_obj_fracture_measure4 -0 $_obj_fracture_analise_volume1
+opcf $arg1
+opwire -n $_obj_fracture_foreach_begin6 -0 $_obj_fracture_fuse2
+opcf $arg1
+opwire -n $_obj_fracture_attribcopy3 -0 $_obj_fracture_remove_small
+opcf $arg1
+opwire -n $_obj_fracture_remove_small -0 $_obj_fracture_split5
+opcf $arg1
+opwire -n $_obj_fracture_polyreduce3 -0 $_obj_fracture_switch2
+opwire -n $_obj_fracture_polyreduce4 -1 $_obj_fracture_switch2
+opcf $arg1
+opwire -n $_obj_fracture_switch2 -0 $_obj_fracture_measure4
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_fracture_PROXIES_CULLED2
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_fracture_IN
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+
+  <tool name="Create Surfaced Proxy pieces" label="Create Surfaced Proxy pieces" icon="MISC_generic">
+    <toolMenuContext name="network">
+      <contextOpType>Sop/null</contextOpType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputitem = None
+inputindex = -1
+inputitem = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if kwargs.has_key("outputnodename") and kwargs.has_key("inputindex"):
+        outputitem = pane_node.item(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if kwargs.has_key("inputnodename") and kwargs.has_key("outputindex"):
+        inputitem = pane_node.item(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if kwargs.has_key("autoplace"):
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+        if inputitem is None:
+            inputitem = pane.currentNode()
+            outputindex = 0
+    if kwargs.has_key("nodepositionx") and             kwargs.has_key("nodepositiony"):
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+
+    if not autoplace and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputitem is None:
+            pos = pane.selectPosition(inputitem, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputitem, outputindex,
+                                      outputitem, inputindex)
+
+    if pos is not None:
+        if kwargs.has_key("node_bbox"):
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if not child_type.has_key('split'):
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_fracture_IN (Sop/null)
+set _obj_fracture_IN = `run("opadd -e -n -v null IN")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_fracture_IN
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_IN
+opexprlanguage -s hscript $_obj_fracture_IN
+opset -p on $_obj_fracture_IN
+opcf $arg1
+
+# Node $_obj_fracture_foreach_end6 (Sop/block_end)
+set _obj_fracture_foreach_end6 = `run("opadd -e -n -v block_end foreach_end6")`
+oplocate -x `$arg2 + 1.211600170256645` -y `$arg3 + -10.10528987680263` $_obj_fracture_foreach_end6
+opparm -V 16.0.671 $_obj_fracture_foreach_end6 itermethod ( pieces ) method ( merge ) class ( primitive ) attrib ( name ) blockpath ( ../foreach_begin6 ) templatepath ( ../foreach_begin6 ) singlepass ( 28 )
+opcolor -c 0.75 0.40000000596046448 0 $_obj_fracture_foreach_end6
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_fracture_foreach_end6
+opexprlanguage -s hscript $_obj_fracture_foreach_end6
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_foreach_end6
+opset -p on $_obj_fracture_foreach_end6
+opcf $arg1
+
+# Node $_obj_fracture_attribpromote5 (Sop/attribpromote)
+set _obj_fracture_attribpromote5 = `run("opadd -e -n -v attribpromote attribpromote5")`
+oplocate -x `$arg2 + 1.2100001702566452` -y `$arg3 + -1.8224898768026279` $_obj_fracture_attribpromote5
+opparm -V 16.0.671 $_obj_fracture_attribpromote5 inname ( name ) outclass ( primitive )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_attribpromote5
+opexprlanguage -s hscript $_obj_fracture_attribpromote5
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_attribpromote5
+opset -p on $_obj_fracture_attribpromote5
+opcf $arg1
+
+# Node $_obj_fracture_foreach_begin6 (Sop/block_begin)
+set _obj_fracture_foreach_begin6 = `run("opadd -e -n -v block_begin foreach_begin6")`
+oplocate -x `$arg2 + 1.211600170256645` -y `$arg3 + -2.6914898768026276` $_obj_fracture_foreach_begin6
+opparm -V 16.0.671 $_obj_fracture_foreach_begin6 method ( piece ) blockpath ( ../foreach_end6 )
+opcolor -c 0.75 0.40000000596046448 0 $_obj_fracture_foreach_begin6
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_fracture_foreach_begin6
+opexprlanguage -s hscript $_obj_fracture_foreach_begin6
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_foreach_begin6
+opset -p on $_obj_fracture_foreach_begin6
+opcf $arg1
+
+# Node $_obj_fracture_measure3 (Sop/measure)
+set _obj_fracture_measure3 = `run("opadd -e -n -v measure measure3")`
+oplocate -x `$arg2 + 1.2100001702566452` -y `$arg3 + -7.5706898768026321` $_obj_fracture_measure3
+opparm -V 16.0.671 $_obj_fracture_measure3 type ( volume )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_measure3
+opexprlanguage -s hscript $_obj_fracture_measure3
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_measure3
+opset -p on $_obj_fracture_measure3
+opcf $arg1
+
+# Node $_obj_fracture_unpack6 (Sop/unpack)
+set _obj_fracture_unpack6 = `run("opadd -e -n -v unpack unpack6")`
+oplocate -x `$arg2 + 1.2100001702566452` -y `$arg3 + -1.1027898768026319` $_obj_fracture_unpack6
+opparm -V 16.0.671 $_obj_fracture_unpack6 transfer_attributes ( name )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_unpack6
+opexprlanguage -s hscript $_obj_fracture_unpack6
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_unpack6
+opset -p on $_obj_fracture_unpack6
+opcf $arg1
+
+# Node $_obj_fracture_PROXIES_CULLED1 (Sop/null)
+set _obj_fracture_PROXIES_CULLED1 = `run("opadd -e -n -v null PROXIES_CULLED1")`
+oplocate -x `$arg2 + -0.17379875685955071` -y `$arg3 + -15.347884297226251` $_obj_fracture_PROXIES_CULLED1
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_PROXIES_CULLED1
+opexprlanguage -s hscript $_obj_fracture_PROXIES_CULLED1
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_PROXIES_CULLED1
+opset -p on $_obj_fracture_PROXIES_CULLED1
+opcf $arg1
+
+# Node $_obj_fracture_switch2 (Sop/switch)
+set _obj_fracture_switch2 = `run("opadd -e -n -v switch switch2")`
+oplocate -x `$arg2 + 1.2100001702566452` -y `$arg3 + -6.5740898768026312` $_obj_fracture_switch2
+opspareds '    parm {   name    "input"         baseparm        label   "Select Input"  export  all     }     parm {    name    "spare_input0"  label   "Spare Input 0"         type    oppath  default { "" }  help    "Refer to this in expressions as -1, such as: npoint(-1)"       parmtag { "opfilter" "!!SOP!!" }        parmtag { "oprelative" "." }     } ' $_obj_fracture_switch2
+chblockbegin
+chadd -t 0 0 $_obj_fracture_switch2 input
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'nprims(-1)<4' $_obj_fracture_switch2/input
+chblockend
+opparm -V 16.0.671 $_obj_fracture_switch2 input ( input ) spare_input0 ( /obj/fracture/polyreduce3 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_switch2
+opexprlanguage -s hscript $_obj_fracture_switch2
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_switch2
+opset -p on $_obj_fracture_switch2
+opcf $arg1
+
+# Node $_obj_fracture_attribpromote7 (Sop/attribpromote)
+set _obj_fracture_attribpromote7 = `run("opadd -e -n -v attribpromote attribpromote7")`
+oplocate -x `$arg2 + 1.206600170256646` -y `$arg3 + -8.4236898768026336` $_obj_fracture_attribpromote7
+opparm -V 16.0.671 $_obj_fracture_attribpromote7 inname ( volume ) inclass ( primitive ) outclass ( detail ) method ( sum )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_attribpromote7
+opexprlanguage -s hscript $_obj_fracture_attribpromote7
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_attribpromote7
+opset -p on $_obj_fracture_attribpromote7
+opcf $arg1
+
+# Node $_obj_fracture_proxies1 (Sop/filecache)
+set _obj_fracture_proxies1 = `run("opadd -e -n -v filecache proxies1")`
+oplocate -x `$arg2 + -0.17379875685955071` -y `$arg3 + -14.513355145617638` $_obj_fracture_proxies1
+opspareds '    parm {   name    "loadfromdisk"  baseparm        label   "Load from Disk     "   joinnext        export  none     }     parm {   name    "reload"        baseparm        label   "Reload Geometry"       export  none     }     parm {   name    "filemode"      baseparm        label   "File Mode"     export  none     }     parm {   name    "version"       label   "Version"       type    integer         default { "0" }         range   { 0! 20 }     }     parm {      name    "note0"         label   "Note"  type    string  default { "" }  hidewhen        "{ version != 0 }"     }     parm {     name    "note1"         label   "Note"  type    string  default { "" }  hidewhen        "{ version != 1 }"     }     parm {     name    "note2"         label   "Note"  type    string  default { "" }  hidewhen        "{ version != 2 }"     }     parm {     name    "note3"         label   "Note"  type    string  default { "" }  hidewhen        "{ version != 3 }"     }     parm {     name    "note4"         label   "Note"  type    string  default { "" }  hidewhen        "{ version != 4 }"     }     parm {     name    "note5"         label   "Note"  type    string  default { "" }  hidewhen        "{ version != 5 }"     }     parm {     name    "note6"         label   "Note"  type    string  default { "" }  hidewhen        "{ version != 6 }"     }     parm {     name    "note7"         label   "Note"  type    string  default { "" }  hidewhen        "{ version != 7 }"     }     parm {     name    "note8"         label   "Note"  type    string  default { "" }  hidewhen        "{ version != 8 }"     }     parm {     name    "note9"         label   "Note"  type    string  default { "" }  hidewhen        "{ version != 9 }"     }     parm {     name    "note10"        label   "Note"  type    string  default { "" }  hidewhen        "{ version != 10 }"     }     parm {    name    "note11"        label   "Note"  type    string  default { "" }  hidewhen        "{ version != 11 }"     }     parm {    name    "note12"        label   "Note"  type    string  default { "" }  hidewhen        "{ version != 12 }"     }     parm {    name    "note13"        label   "Note"  type    string  default { "" }  hidewhen        "{ version != 13 }"     }     parm {    name    "note14"        label   "Note"  type    string  default { "" }  hidewhen        "{ version != 14 }"     }     parm {    name    "note15"        label   "Note"  type    string  default { "" }  hidewhen        "{ version != 15 }"     }     parm {    name    "note16"        label   "Note"  type    string  default { "" }  hidewhen        "{ version != 16 }"     }     parm {    name    "note17"        label   "Note"  type    string  default { "" }  hidewhen        "{ version != 17 }"     }     parm {    name    "note18"        label   "Note"  type    string  default { "" }  hidewhen        "{ version != 18 }"     }     parm {    name    "note19"        label   "Note"  type    string  default { "" }  hidewhen        "{ version != 19 }"     }     parm {    name    "note20"        label   "Note"  type    string  default { "" }  hidewhen        "{ version != 20 }"     }     parm {    name    "file"  baseparm        label   "Geometry File"         export  none     }     parm {   name    "open_cache_folder"     label   "Open Cache Folder"     type    button  default { "0" }         parmtag { "script_callback" "import subprocess;subprocess.Popen(\'explorer \\"\' + hou.expandString(\'$HC\') + \'\\"\');print hou.expandString(\'$HC\')" }      parmtag { "script_callback_language" "python" }     }     group {       name    "folder2"       label   "Save to File"          parm {      name        "execute"           baseparm        label       "Save to Disk"      joinnext        export      none    }       parm {      name        "executebackground"         baseparm        label       "Save to Disk in Background"        joinnext        export      none    }       parm {      name        "renderdialog"      baseparm        label       "Controls..."       export      none    }       parm {      name        "trange"            baseparm        label       "Valid Frame Range"         export      none    }       parm {      name        "f"         baseparm        label       "Start/End/Inc"             export      none    }       parm {      name        "substeps"          baseparm        label       "Substeps"          export      none    }       parm {      name        "take"      baseparm        label       "Render With Take"          export      none    }       parm {      name        "xformtype"         baseparm        label       "Transform"         export      none    }       parm {      name        "mkpath"            baseparm        label       "Create Intermediate Directories"           export      none    }       parm {      name        "initsim"           baseparm        label       "Initialize Simulation OPs"         export      none    }       parm {      name        "alfprogress"       baseparm        label       "Alfred Style Progress"             export      none    }       parm {      name        "saveretry"         baseparm        label       "Save Retries"      export      none    }       parm {      name        "savebackground"            baseparm        label       "Save in Background"        export      none    }       parm {      name        "tprerender"        baseparm        label       "Pre-Render Script"         nolabel         joinnext        export      none    }       parm {      name        "prerender"         baseparm        label       "Pre-Render Script"         joinnext        export      none    }       parm {      name        "lprerender"        baseparm        label       "Pre-Render Script Language"        nolabel         export      none    }       parm {      name        "tpreframe"         baseparm        label       "Pre-Frame Script"          nolabel         joinnext        export      none    }       parm {      name        "preframe"          baseparm        label       "Pre-Frame Script"          joinnext        export      none    }       parm {      name        "lpreframe"         baseparm        label       "Pre-Frame Script Language"         nolabel         export      none    }       parm {      name        "tpostframe"        baseparm        label       "Post-Frame Script"         nolabel         joinnext        export      none    }       parm {      name        "postframe"         baseparm        label       "Post-Frame Script"         joinnext        export      none    }       parm {      name        "lpostframe"        baseparm        label       "Post-Frame Script Language"        nolabel         export      none    }       parm {      name        "tpostrender"       baseparm        label       "Post-Render Script"        nolabel         joinnext        export      none    }       parm {      name        "postrender"        baseparm        label       "Post-Render Script"        joinnext        export      none    }       parm {      name        "lpostrender"       baseparm        label       "Post-Render Script Language"       nolabel         export      none    }     }      group {    name    "folder2_1"     label   "Save Filter"   parm {      name        "deleteattributes"          baseparm        label       "Delete Attributes"         export      none    }       parm {      name        "deletegroups"      baseparm        label       "Delete Groups"             export      none    }       multiparm {         name        "numcasts"          label       "Number of Casts"           baseparm        default     0           parmtag     { "autoscope" "0000000000000000" }          parm {              name    "class#"                baseparm                label   "Class"                 export  none        }       parm {              name    "attribs#"              baseparm                label   "Attributes"            export  none        }       parm {              name    "precision#"            baseparm                label   "Precision"             export  none        }   }      }      group {   name    "folder2_2"     label   "Load from File"        parm {      name        "missingframe"      baseparm        label       "Missing Frame"             export      none    }       parm {      name        "loadtype"          baseparm        label       "Load"      export      none    }       parm {      name        "packedviewedit"            baseparm        label       "Display Packed As"         export      none    }       parm {      name        "viewportlod"       baseparm        label       "Display As"        export      none    }       parm {      name        "packexpanded"      baseparm        label       "Pack Using Expanded/Absolute File Path"            export      none    }       parm {      name        "delayload"         baseparm        label       "Delay Load Geometry"       export      none    }       parm {      name        "cachesize"         baseparm        label       "Cache Frames"      export      none    }       parm {      name        "prefetch"          baseparm        label       "Pre-fetch Geometry"        export      none    }     }  ' $_obj_fracture_proxies1
+opparm $_obj_fracture_proxies1  numcasts ( 0 )
+chblockbegin
+chadd -t 0 0 $_obj_fracture_proxies1 f1
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '$FSTART' $_obj_fracture_proxies1/f1
+chadd -t 0 0 $_obj_fracture_proxies1 f2
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '$FEND' $_obj_fracture_proxies1/f2
+chblockend
+opparm $_obj_fracture_proxies1 loadfromdisk ( on ) file ( '$HC/$HIPNAME/$OS/v_`chs("version")`.bgeo.sc' ) trange ( off ) version ( -1 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_proxies1
+opexprlanguage -s hscript $_obj_fracture_proxies1
+opuserdata -n '___Version___' -v '' $_obj_fracture_proxies1
+opset -p on $_obj_fracture_proxies1
+opcf $arg1
+
+# Node $_obj_fracture_attribwrangle6 (Sop/attribwrangle)
+set _obj_fracture_attribwrangle6 = `run("opadd -e -n -v attribwrangle attribwrangle6")`
+oplocate -x `$arg2 + -0.17679875685955082` -y `$arg3 + -12.804189877041054` $_obj_fracture_attribwrangle6
+opspareds '    group {  name    "folder1"       label   "Code"          parm {      name        "group"             baseparm        label       "Group"             export      none        bindselector points "Modify Points"                 "Select the points to affect and press Enter to complete."              0 1 0xffffffff 0 grouptype 0    }       parm {      name        "grouptype"         baseparm        label       "Group Type"        export      none    }       parm {      name        "class"             baseparm        label       "Run Over"          export      none    }       parm {      name        "vex_numcount"      baseparm        label       "Number Count"      export      none    }       parm {      name        "vex_threadjobsize"         baseparm        label       "Thread Job Size"           export      none    }       parm {      name        "snippet"           baseparm        label       "VEXpression"       export      all     }       parm {      name        "exportlist"        baseparm        label       "Attributes to Create"      export      none    }       parm {      name        "vex_strict"        baseparm        label       "Enforce Prototypes"        export      none    }     }      group {    name    "folder1_1"     label   "Bindings"      parm {      name        "autobind"          baseparm        label       "Autobind by Name"          export      none    }       multiparm {         name        "bindings"          label       "Number of Bindings"        baseparm        default     0           parmtag     { "autoscope" "0000000000000000" }          parmtag     { "multistartoffset" "1" }          parm {              name    "bindname#"             baseparm                label   "Attribute Name"                export  none        }       parm {              name    "bindparm#"             baseparm                label   "VEX Parameter"                 export  none        }   }       parm {      name        "groupautobind"             baseparm        label       "Autobind Groups by Name"           export      none    }       multiparm {         name        "groupbindings"             label       "Group Bindings"            baseparm        default     0           parmtag     { "autoscope" "0000000000000000" }          parmtag     { "multistartoffset" "1" }          parm {              name    "bindgroupname#"                baseparm                label   "Group Name"            export  none        }       parm {              name    "bindgroupparm#"                baseparm                label   "VEX Parameter"                 export  none        }   }       parm {      name        "vex_cwdpath"       baseparm        label       "Evaluation Node Path"      export      none    }       parm {      name        "vex_outputmask"            baseparm        label       "Export Parameters"         export      none    }       parm {      name        "vex_updatenmls"            baseparm        label       "Update Normals If Displaced"       export      none    }       parm {      name        "vex_matchattrib"           baseparm        label       "Attribute to Match"        export      none    }       parm {      name        "vex_inplace"       baseparm        label       "Compute Results In Place"          export      none    }       parm {      name        "vex_selectiongroup"        baseparm        label       "Output Selection Group"            export      none    }     }      parm {     name    "tres"  label   "Tres"  type    float   default { "0" }         range   { 0 1 }     } ' $_obj_fracture_attribwrangle6
+opparm $_obj_fracture_attribwrangle6  bindings ( 0 ) groupbindings ( 0 )
+opparm $_obj_fracture_attribwrangle6 group ( '@surface_piece=0' ) class ( primitive ) snippet ( 'if (@volume < chf("tres"))\n    @group_too_small = 1;' ) tres ( 0.0001 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_attribwrangle6
+opexprlanguage -s hscript $_obj_fracture_attribwrangle6
+opuserdata -n '___Version___' -v '' $_obj_fracture_attribwrangle6
+opset -p on $_obj_fracture_attribwrangle6
+opcf $arg1
+
+# Node $_obj_fracture_attribcopy3 (Sop/attribcopy)
+set _obj_fracture_attribcopy3 = `run("opadd -e -n -v attribcopy attribcopy3")`
+oplocate -x `$arg2 + -0.17724875539662932` -y `$arg3 + -11.967189876802628` $_obj_fracture_attribcopy3
+opparm -V 16.0.671 $_obj_fracture_attribcopy3 matchbyattribute ( on ) attributetomatch ( name ) attribname ( '* ^volume' ) copyp ( off )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_attribcopy3
+opexprlanguage -s hscript $_obj_fracture_attribcopy3
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_attribcopy3
+opset -p on $_obj_fracture_attribcopy3
+opcf $arg1
+
+# Node $_obj_fracture_fuse2 (Sop/fuse)
+set _obj_fracture_fuse2 = `run("opadd -e -n -v fuse fuse2")`
+oplocate -x `$arg2 + 1.2100001702566452` -y `$arg3 + -4.8092898768026302` $_obj_fracture_fuse2
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_fuse2
+opexprlanguage -s hscript $_obj_fracture_fuse2
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_fuse2
+opset -p on $_obj_fracture_fuse2
+opcf $arg1
+
+# Node $_obj_fracture_polyreduce4 (Sop/polyreduce)
+set _obj_fracture_polyreduce4 = `run("opadd -e -n -v polyreduce polyreduce4")`
+oplocate -x `$arg2 + 3.0190001702566462` -y `$arg3 + -5.6656898768026309` $_obj_fracture_polyreduce4
+opparm -V 16.0.671 $_obj_fracture_polyreduce4 stdswitcher ( 1 1 1 1 ) percentage ( 5 ) numpolys ( 4 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_polyreduce4
+opexprlanguage -s hscript $_obj_fracture_polyreduce4
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_polyreduce4
+opset -p on $_obj_fracture_polyreduce4
+opcf $arg1
+
+# Node $_obj_fracture_polyreduce3 (Sop/polyreduce)
+set _obj_fracture_polyreduce3 = `run("opadd -e -n -v polyreduce polyreduce3")`
+oplocate -x `$arg2 + 1.2100001702566452` -y `$arg3 + -5.6656898768026309` $_obj_fracture_polyreduce3
+opparm -V 16.0.671 $_obj_fracture_polyreduce3 percentage ( 5 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_polyreduce3
+opexprlanguage -s hscript $_obj_fracture_polyreduce3
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_polyreduce3
+opset -p on $_obj_fracture_polyreduce3
+opcf $arg1
+
+# Node $_obj_fracture_assemble9 (Sop/assemble)
+set _obj_fracture_assemble9 = `run("opadd -e -n -v assemble assemble9")`
+oplocate -x `$arg2 + 1.2100001702566452` -y `$arg3 + -10.914889876802633` $_obj_fracture_assemble9
+opparm -V 1 $_obj_fracture_assemble9 newname ( off ) pack_geo ( on ) transfer_attributes ( 'surface_piece volume' )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_assemble9
+opexprlanguage -s hscript $_obj_fracture_assemble9
+opuserdata -n '___Version___' -v '1' $_obj_fracture_assemble9
+opuserdata -n '___toolcount___' -v '5' $_obj_fracture_assemble9
+opuserdata -n '___toolid___' -v 'dop_rbdfracturedobject' $_obj_fracture_assemble9
+opset -p on $_obj_fracture_assemble9
+opcf $arg1
+
+# Node $_obj_fracture_attribpromote6 (Sop/attribpromote)
+set _obj_fracture_attribpromote6 = `run("opadd -e -n -v attribpromote attribpromote6")`
+oplocate -x `$arg2 + 1.206600170256646` -y `$arg3 + -9.2321898768026287` $_obj_fracture_attribpromote6
+opparm -V 16.0.671 $_obj_fracture_attribpromote6 inname ( 'volume surface_piece' ) inclass ( detail ) outclass ( primitive )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_attribpromote6
+opexprlanguage -s hscript $_obj_fracture_attribpromote6
+opuserdata -n '___Version___' -v '16.0.671' $_obj_fracture_attribpromote6
+opset -p on $_obj_fracture_attribpromote6
+opcf $arg1
+
+# Node $_obj_fracture_check_if_surface1 (Sop/attribwrangle)
+set _obj_fracture_check_if_surface1 = `run("opadd -e -n -v attribwrangle check_if_surface1")`
+oplocate -x `$arg2 + 1.2070001702566451` -y `$arg3 + -3.7713898768026297` $_obj_fracture_check_if_surface1
+opparm $_obj_fracture_check_if_surface1  bindings ( 0 ) groupbindings ( 0 )
+opparm $_obj_fracture_check_if_surface1 class ( detail ) snippet ( 'i@surface_piece = findattribval(0,"point","surface",1) != -1;\n\n\n\n\n' )
+opcolor -c 1 0 0 $_obj_fracture_check_if_surface1
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_fracture_check_if_surface1
+opexprlanguage -s hscript $_obj_fracture_check_if_surface1
+opuserdata -n '___Version___' -v '' $_obj_fracture_check_if_surface1
+opset -p on $_obj_fracture_check_if_surface1
+opcf $arg1
+
+# Node $_obj_fracture_split5 (Sop/split)
+set _obj_fracture_split5 = `run("opadd -e -n -v split split5")`
+oplocate -x `$arg2 + -0.17379875685955071` -y `$arg3 + -13.575289877041044` $_obj_fracture_split5
+opparm $_obj_fracture_split5 group ( too_small )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_fracture_split5
+opexprlanguage -s hscript $_obj_fracture_split5
+opuserdata -n '___Version___' -v '' $_obj_fracture_split5
+opset -p on $_obj_fracture_split5
+
+opcf $arg1
+opcf $arg1
+opwire -n $_obj_fracture_attribpromote6 -0 $_obj_fracture_foreach_end6
+opcf $arg1
+opwire -n $_obj_fracture_unpack6 -0 $_obj_fracture_attribpromote5
+opcf $arg1
+opwire -n $_obj_fracture_attribpromote5 -0 $_obj_fracture_foreach_begin6
+opcf $arg1
+opwire -n $_obj_fracture_switch2 -0 $_obj_fracture_measure3
+opcf $arg1
+opwire -n $_obj_fracture_IN -0 $_obj_fracture_unpack6
+opcf $arg1
+opwire -n $_obj_fracture_proxies1 -0 $_obj_fracture_PROXIES_CULLED1
+opcf $arg1
+opwire -n $_obj_fracture_polyreduce3 -0 $_obj_fracture_switch2
+opwire -n $_obj_fracture_polyreduce4 -1 $_obj_fracture_switch2
+opcf $arg1
+opwire -n $_obj_fracture_measure3 -0 $_obj_fracture_attribpromote7
+opcf $arg1
+opwire -n -o 1 $_obj_fracture_split5 -0 $_obj_fracture_proxies1
+opcf $arg1
+opwire -n $_obj_fracture_attribcopy3 -0 $_obj_fracture_attribwrangle6
+opcf $arg1
+opwire -n $_obj_fracture_assemble9 -0 $_obj_fracture_attribcopy3
+opwire -n $_obj_fracture_IN -1 $_obj_fracture_attribcopy3
+opcf $arg1
+opwire -n $_obj_fracture_check_if_surface1 -0 $_obj_fracture_fuse2
+opcf $arg1
+opwire -n $_obj_fracture_fuse2 -0 $_obj_fracture_polyreduce4
+opcf $arg1
+opwire -n $_obj_fracture_fuse2 -0 $_obj_fracture_polyreduce3
+opcf $arg1
+opwire -n $_obj_fracture_foreach_end6 -0 $_obj_fracture_assemble9
+opcf $arg1
+opwire -n $_obj_fracture_attribpromote7 -0 $_obj_fracture_attribpromote6
+opcf $arg1
+opwire -n $_obj_fracture_foreach_begin6 -0 $_obj_fracture_check_if_surface1
+opcf $arg1
+opwire -n $_obj_fracture_attribwrangle6 -0 $_obj_fracture_split5
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_fracture_split5
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_fracture_IN
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+</shelfDocument>
