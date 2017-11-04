@@ -24,6 +24,7 @@
     <memberTool name="check vis sel nodes"/>
     <memberTool name="lz_add_vis_controll"/>
     <memberTool name="add deform"/>
+    <memberTool name="replace obj/ to ../"/>
   </toolshelf>
 
   <tool name="box slice" label="box slice" icon="MISC_generic">

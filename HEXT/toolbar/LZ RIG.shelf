@@ -320,18 +320,18 @@ for n in hou.selectedNodes():
     <script scriptType="python"><![CDATA[if kwargs['ctrlclick'] == False:
     user_input = hou.ui.readInput("Bone group name",buttons=('OK',),initial_contents="bones" )
     for bone in hou.selectedNodes():
-        if bone.type().name() == 'bone':
-            nodeGroup = bone.parent().addNodeGroup(user_input[1])
-            nodeGroup.addNode(bone)
-            bone.setColor(hou.Color(1,0.8,0))
+        #if bone.type().name() == 'bone':
+        nodeGroup = bone.parent().addNodeGroup(user_input[1])
+        nodeGroup.addNode(bone)
+        bone.setColor(hou.Color(1,0.8,0))
 else:
     for bone in hou.selectedNodes():
-        if bone.type().name() == 'bone':
-            nodeGroups = bone.parent().nodeGroups()
-            for g in nodeGroups:
-                if bone in g.nodes():
-                    g.removeNode(bone)            
-            bone.setColor(hou.Color(1,0.976,0.666))]]></script>
+        #if bone.type().name() == 'bone':
+        nodeGroups = bone.parent().nodeGroups()
+        for g in nodeGroups:
+            if bone in g.nodes():
+                g.removeNode(bone)            
+        bone.setColor(hou.Color(1,0.976,0.666))]]></script>
   </tool>
 
   <tool name="select all bones" label="Select all bones" icon="hicon:/SVGIcons.index?OBJ_tooncharacter.svg">
