@@ -126,7 +126,8 @@
 		"01. Voronoi Fracture" : {"node":"voronoifracture"},
 		"02. Scatter" : {"node":"scatter"},
 		"03. Isooffset" : {"node":"isooffset"},	
-		"04. Exploded View" : {"node":"explodedview"}				
+		"04. Exploded View" : {"node":"explodedview"},				
+		"05. Assemble" : {"node":"assemble"}				
 	},
 	"08 VDB":{
 		"01. VDB From Polygons" : {"node":"vdbfrompolygons"},
