@@ -77,7 +77,7 @@
 		
 		},	
 		
-	"04 UTIL Scripts":{
+	"04 VEX UTIL Scripts":{
 		"01. Include lzn.h" : {
 				"action":"lzutil.includeAddSafe(n,'lzn')"},	
 		"02. Remove by Tres(points)" :{
@@ -87,7 +87,9 @@
 		"04. Extract intrinstic xform" :{
 				"code":"v@pivot = primintrinsic(0,'pivot',@ptnum);\n3@transfrom = primintrinsic(0,'transform',@ptnum);"},
 		"05. Move To Points" :{
-				"code":"int pt = nametopoint(1,s@name);\nmatrix3 t = point(1,'t',pt);\nvector pivot = point(1,'pivot',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n@P = point(1,'P',pt);"}		
+				"code":"int pt = nametopoint(1,s@name);\nmatrix3 t = point(1,'t',pt);\nvector pivot = point(1,'pivot',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n@P = point(1,'P',pt);"},		
+		
+		"06. removepoint" :{"code":"removepoint(0,@ptnum);"}		
 				
 				
 		},		
