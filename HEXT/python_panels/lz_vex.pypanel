@@ -10,7 +10,7 @@
 import lzutil
 
 # number of rows
-rows = 3
+rows = 4
 
 class LZ_vex_interface(QtWidgets.QWidget):
     def __init__(self):

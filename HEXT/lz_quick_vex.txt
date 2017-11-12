@@ -62,7 +62,8 @@
 		"CURL: 3D: Simplex" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','cxn')"}
 		},
-		
+	
+
 	"03 Noise Process":{
 		"01. Vector displace" : {
 				"code":"@P += n1;"},
@@ -77,7 +78,14 @@
 		
 		},	
 		
-	"04 VEX UTIL Scripts":{
+	"04 Modelling Vex":{
+		"01. Simple Spiral":{"code": "@P.y = chf('h')*f@u;\n@P.x = ch('r')*sin(f@u*chf('f')*6.18);\n@P.z = ch('r')*cos(f@u*chf('f')*6.18);"},
+		"02. Get Curve u":{"code":"f@u = float(@ptnum)/@numpt;"}
+	},	
+	
+
+	
+	"05 UTIL Scripts":{
 		"01. Include lzn.h" : {
 				"action":"lzutil.includeAddSafe(n,'lzn')"},	
 		"02. Remove by Tres(points)" :{
@@ -87,14 +95,12 @@
 		"04. Extract intrinstic xform" :{
 				"code":"v@pivot = primintrinsic(0,'pivot',@ptnum);\n3@transfrom = primintrinsic(0,'transform',@ptnum);"},
 		"05. Move To Points" :{
-				"code":"int pt = nametopoint(1,s@name);\nmatrix3 t = point(1,'t',pt);\nvector pivot = point(1,'pivot',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n@P = point(1,'P',pt);"},		
-		
-		"06. removepoint" :{"code":"removepoint(0,@ptnum);"}		
+				"code":"int pt = nametopoint(1,s@name);\nmatrix3 t = point(1,'t',pt);\nvector pivot = point(1,'pivot',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n@P = point(1,'P',pt);"}		
 				
 				
 		},		
 				
-	"05 Model":{
+	"06 Model":{
 		"00. Null" : {"node":"null"},
 		"01. Duplicate" : {"node":"copyxform"},
 		"02. Polyextrude" : {"node":"polyextrude"},
@@ -102,17 +108,23 @@
 		"04. Subdivide" : {"node":"subdivide"},
 		"05. Copy To Points" : {"node":"copytopoints"},
 		"06. Transform" : {"node":"xform"},
-		"07. Polyframe" : {"node":"polyframe"}
+		"07. Polyframe" : {"node":"polyframe"},
+		"08. Resample" : {"node":"resample"}
 		},
 		
-	"06 Nodes":{
+	"07 Nodes":{
 		"01. Wrangle" : {"node":"attribwrangle"},
 		"02. AttribDelete" : {"node":"attribdelete"},
 		"03. AttribPromote" : {"node":"attribpromote"},
 		"04. AttribTransfer" : {"node":"attribtransfer"}
 		},
 		
-	"07 UTIL(Actions)":{
+	"08 Vex Functions":{
+		"01. removepoint": {"code":"removepoint(0,@ptnum);"}
+	
+	},		
+
+	"09 UTIL(Actions)":{
 		"01. Open HEXT Folder" : {
 			"action":"lzutil.openFolderFromEnv('$HEXT')"},
 		"02. Open HC Folder" : {
@@ -124,18 +136,21 @@
 			
 	},
 	
-	"08 Fracture":{
+	"10 Fracture":{
 		"01. Voronoi Fracture" : {"node":"voronoifracture"},
 		"02. Scatter" : {"node":"scatter"},
 		"03. Isooffset" : {"node":"isooffset"},	
-		"04. Exploded View" : {"node":"explodedview"},				
-		"05. Assemble" : {"node":"assemble"}				
+		"04. Exploded View" : {"node":"explodedview"}				
 	},
-	"08 VDB":{
+	"11 VDB":{
 		"01. VDB From Polygons" : {"node":"vdbfrompolygons"},
 		"02. VDB From Particles" : {"node":"vdbfromparticles"},
 		"03. VDB Convert" : {"node":"convertvdb"},
 		"04. VDB Combine" : {"node":"vdbcombine"}
+	},
+	
+	"12 Temp 03":{
+	
 	}
 }
 
