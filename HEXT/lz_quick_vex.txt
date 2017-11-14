@@ -95,9 +95,13 @@
 		"04. Extract intrinstic xform" :{
 				"code":"v@pivot = primintrinsic(0,'pivot',@ptnum);\n3@transfrom = primintrinsic(0,'transform',@ptnum);"},
 		"05. Move To Points" :{
-				"code":"int pt = nametopoint(1,s@name);\nmatrix3 t = point(1,'t',pt);\nvector pivot = point(1,'pivot',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n@P = point(1,'P',pt);"}		
-				
-				
+				"code":"int pt = nametopoint(1,s@name);\nmatrix3 t = point(1,'t',pt);\nvector pivot = point(1,'pivot',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n@P = point(1,'P',pt);"},		
+		"06. Move To Simmed Pieces":{
+			"code":"int pt = nametopoint(1,s@name);\n@P = point(1,'P',pt);\n\nmatrix3 t = primintrinsic(1,'transform',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n\nvector pivot =  primintrinsic(1,'pivot',pt);\nsetprimintrinsic(0,'pivot',@ptnum,pivot);\nv@v = point(1,'v',pt);"},		
+		"07. Bullet Settings ":{
+			"code" : "i@active = chi('active');\ni@animated = chi('animated');\n\n//f@min_activation_impulse = chf('min_activation_impulse');\n//f@density = chf('density');"},		
+		"08. Bottom Inactive ":{
+			"code" : "if( @P.y<chf('tres')) i@active = 0;"}
 		},		
 				
 	"06 Model":{
@@ -124,16 +128,15 @@
 	
 	},		
 
-	"09 UTIL(Actions)":{
+	"09 FOLDERS":{
 		"01. Open HEXT Folder" : {
 			"action":"lzutil.openFolderFromEnv('$HEXT')"},
 		"02. Open HC Folder" : {
 			"action":"lzutil.openFolderFromEnv('$HC/$HIPNAME')"},
 		"03. Open HMEGA Folder" : {
 			"action":"lzutil.openFolderFromEnv('$HMEGA')"},	
-		"02. Open Documents Folder" : {
+		"04. Open Documents Folder" : {
 			"action":"lzutil.openFolderFromEnv('$HOUDINI_USER_PREF_DIR')"}		
-			
 	},
 	
 	"10 Fracture":{
@@ -149,8 +152,8 @@
 		"04. VDB Combine" : {"node":"vdbcombine"}
 	},
 	
-	"12 Temp 03":{
-	
+	"12 Clipboard":{
+		"01. opinputpath" : {"clip":"`opinputpath('..',0)`"}
 	}
 }
 

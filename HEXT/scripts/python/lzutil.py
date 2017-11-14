@@ -70,12 +70,41 @@ def openFolderFromEnv(env):
 	dir = hou.expandString(env).replace('/','\\')
 	subprocess.Popen('explorer "' + dir  + '"')
 
+def setProject():
+	import os
+	# get root dir
+	start_dir = hou.expandString("$HMEGA") + "/! Projects/"
+	answer = hou.ui.selectFile(start_directory=start_dir,file_type=hou.fileType.Directory)
 
+	if answer is not '':
+		# Make dirs
+		os.makedirs(answer)
+		os.makedirs(answer + "/hip")
+		os.makedirs(answer + "/flipbook")
+		os.makedirs(answer + "/render")
+		
+		hipname = answer.split("/").pop()
+		
+		hou.appendSessionModuleSource("import lzutil\nlzutil.updateJobFromHipLocation()")
+		
+		hou.hscript('setenv JOBNAME ='+ hipname)
+		#print answer
+		hou.hscript('setenv JOB ='+ answer)    
+		
+		hou.hipFile.save(answer + "/hip/" + hipname +".000" +".hip")   
 
-
-
-
+def updateJobFromHipLocation():
+	import os
+	hip = hou.expandString("$HIP")
+	JOB = os.path.dirname(hip)
+	hou.hscript('setenv JOB ='+ JOB)
+			
+def copyToClipboard(str):
+	#import PySide.QtGui as qtg
+	#app = qtg.QApplication.instance()
+	#clipboard = app.clipboard()
+	#clipboard.setText(str)
+	from PySide2.QtWidgets  import  QApplication
+	QApplication.clipboard().setText(str)
 	
-			
-			
 		

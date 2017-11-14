@@ -12,6 +12,7 @@
     <memberTool name="LZ RS Setup"/>
     <memberTool name="LZ N2S"/>
     <memberTool name="LZ kwargs"/>
+    <memberTool name="Perfomance Monitor"/>
   </toolshelf>
 
   <tool name="LZ Add fur" label="LZ Add fur" icon="PLASMA_App">
@@ -324,5 +325,19 @@ QApplication.clipboard().setText(script)
 
 
 ]]></script>
+  </tool>
+
+  <tool name="Perfomance Monitor" label="Perfomance Monitor" icon="hicon:/SVGIcons.index?CHOP_record.svg">
+    <script scriptType="python"><![CDATA[d = hou.ui.curDesktop()
+
+import ctypes
+user32 = ctypes.windll.user32
+sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
+dy = [0.4,0.95];
+dx = [0.5,0.8];    
+
+pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
+size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))  
+panel = d.createFloatingPanel(hou.paneTabType.PerformanceMonitor,pos,size)]]></script>
   </tool>
 </shelfDocument>

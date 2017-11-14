@@ -4177,4 +4177,61 @@ print ''
 sv = toolutils.sceneViewer()
 sv.displayRadialMenu("LZ Main Menu")]]></script>
   </tool>
+
+  <tool name="replace obj/ to ../" label="replace obj/ to ../" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[def fixAbsPaths(n):
+    parms = n.parms()
+    for p in parms:
+        pt = p.parmTemplate()
+        if pt.type() == hou.parmTemplateType.String :
+            if pt.stringType() == hou.stringParmType.NodeReference :
+                if p.evalAsString() != '' :
+                    if p.evalAsString().startswith('/obj'):
+                        p.set(p.evalAsString().replace('/obj','..'))
+
+for n in hou.selectedNodes():
+    fixAbsPaths(n)
+    if n.type().name() == 'chopnet':
+        for child in n.children():
+            fixAbsPaths(child)]]></script>
+  </tool>
+
+  <tool name="add deform" label="Add guide Deform" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    groom = hou.node(n.parm('sourcegroomobject').eval())
+    
+    deform = n.parent().createNode('guidedeform',groom.name() + '_deform')
+    deform.parm('animskin').set('/obj/HASDRUBAL_SKIN/ANIM_SKIN/') 
+    deform.parm('sourcegroomobject').set(groom.path())
+    deform.setPosition(n.position() + hou.Vector2(-2.5,0))
+    
+    n.parm('sourcegroomobject').set(deform.path())
+    
+    
+    
+    ]]></script>
+  </tool>
+
+  <tool name="lz_add_vis_controll" label="Add display controll " icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    p = n.parm('display')
+    p.setExpression(p.expression() + ' && !ch("../Masterctrldisplay")')
+    #p.setExpression(p.expression() + ' && !ch("../Mastergeodisplay")')
+
+]]></script>
+  </tool>
+
+  <tool name="check vis sel nodes" label="check vis sel nodes" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    if n.parm('display').eval()==1:
+        if n.isDisplayFlagSet():
+            print n.name()
+    ]]></script>
+  </tool>
+
+  <tool name="fix_rs_resample" label="Fix_rs_resample" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    r = n.node("resample")
+    r.parm("length").set(0.005)]]></script>
+  </tool>
 </shelfDocument>
