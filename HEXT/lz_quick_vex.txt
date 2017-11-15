@@ -124,8 +124,8 @@
 		},
 		
 	"08 Vex Functions":{
-		"01. removepoint": {"code":"removepoint(0,@ptnum);"}
-	
+		"01. removepoint": {"code":"removepoint(0,@ptnum);"},
+		"02. removeprim": {"code":"removeprim(0,@primnum,1);"}
 	},		
 
 	"09 FOLDERS":{
