@@ -136,7 +136,13 @@
 		"03. Open HMEGA Folder" : {
 			"action":"lzutil.openFolderFromEnv('$HMEGA')"},	
 		"04. Open Documents Folder" : {
-			"action":"lzutil.openFolderFromEnv('$HOUDINI_USER_PREF_DIR')"}		
+			"action":"lzutil.openFolderFromEnv('$HOUDINI_USER_PREF_DIR')"},	
+		"05. Open HIP" : {
+			"action":"lzutil.openFolderFromEnv('$HIP')"},
+		"06. Open JOB" : {
+			"action":"lzutil.openFolderFromEnv('$JOB')"}	
+
+			
 	},
 	
 	"10 Fracture":{
