@@ -6,8 +6,9 @@
  same interface or of the interfaces menu are not allowed
  in a single file. -->
   <interface name="LZ_Vex" label="LZ Vex" icon="hicon:/SVGIcons.index?SOP_attribvop.svg" help_url="">
-    <script><![CDATA[from hutil.Qt import QtWidgets
+    <script><![CDATA[from hutil.Qt import QtWidgets,QtGui
 import lzutil
+import os
 
 # number of rows
 rows = 4
@@ -32,10 +33,18 @@ class LZ_vex_interface(QtWidgets.QWidget):
             items = self.json[list_key]
             
             for key in sorted(items.keys()):
-                new_list.addItem(key)
+                list_item = QtWidgets.QListWidgetItem(key)
+
+                
+                picName =  key.split(". ")[len(key.split(". "))-1].lower().replace(":","").replace(" ","")
+                #print picName
+                pic_path = hou.expandString('$HEXT\pic') + '\\' + picName + r".svg"
+                if os.path.isfile(pic_path):
+                    list_item.setIcon(QtGui.QIcon(pic_path))
+                new_list.addItem(list_item)
                 self.callbackDict[key] = items[key]
             new_list.doubleClicked.connect(self.doubleClickedList)
-            
+           
             # create label
             label = QtWidgets.QLabel(list_key)
             
@@ -48,14 +57,15 @@ class LZ_vex_interface(QtWidgets.QWidget):
          
         #set Layout
         self.setLayout(mainLayout)
-
+          
     # FUNCTIONS    
     def doubleClickedList(self,item):
         item = self.callbackDict[item.data()]
         # process view node
         n = lzutil.viewNode()
         self.processItem(item,n)
-
+        
+  
     def processItem(self,item,n):
         # add libs
         if item.has_key('lib'):
@@ -80,6 +90,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
            
 def createInterface():
     return LZ_vex_interface()
+    
 
 
 
