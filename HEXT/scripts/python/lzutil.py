@@ -93,6 +93,12 @@ def setProject():
 		
 		hou.hipFile.save(answer + "/hip/" + hipname +".000" +".hip")   
 
+def updateJobFromHipLocation():
+	import os
+	hip = hou.expandString("$HIP")
+	JOB = os.path.dirname(hip)
+	hou.hscript('setenv JOB ='+ JOB)
+	
 def updateJobNameFromHipLocation():
 	import os
 	hip = hou.expandString("$HIP")
