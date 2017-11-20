@@ -791,15 +791,19 @@ hou.hscript(h_preamble + h_extra_args + h_cmd)
   </tool>
 
   <tool name="start server" label="Start Server" icon="hicon:/SVGIcons.index?BUTTONS_internet.svg">
-    <script scriptType="python"><![CDATA[import hrpyc
+    <script scriptType="python"><![CDATA[import hrpyc,lzutil
 hrpyc.start_server()
 
 
+lzutil.copyToClipboard("con, hou = hrpyc.import_remote_module()")
+
+'''
 import PySide.QtGui as qtg
 app = qtg.QApplication.instance()
 clipboard = app.clipboard()
 string = "con, hou = hrpyc.import_remote_module()"
-clipboard.setText(string)]]></script>
+clipboard.setText(string)
+''']]></script>
   </tool>
 
   <tool name="LZ QuickVex PyPanel" label="LZ QuickVex PyPanel" icon="hicon:/SVGIcons.index?NETWORKS_vopnet.svg">
