@@ -115,4 +115,17 @@ def copyToClipboard(str):
 	from PySide2.QtWidgets  import  QApplication
 	QApplication.clipboard().setText(str)
 	
-		
+def updateSnippetFromClipboard(node):
+	snippet = node.parm('snippet')
+	if snippet is not None:
+		from PySide2.QtWidgets  import  QApplication
+		code =  QApplication.clipboard().text()
+		code =  code.replace('\t', '    ')
+		snippet.set(code)
+
+	
+	
+
+
+
+	
