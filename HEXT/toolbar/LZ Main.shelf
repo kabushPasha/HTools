@@ -8,7 +8,6 @@
   <toolshelf name="LZ Main" label="LZ Main">
     <memberTool name="Create Project"/>
     <memberTool name="save and increment"/>
-    <memberTool name="LZ QuickVex PyPanel"/>
     <memberTool name="LZ Create Visualisers"/>
     <memberTool name="Render View"/>
     <memberTool name="ropnet3"/>
@@ -16,6 +15,7 @@
     <memberTool name="BackGroundImage"/>
     <memberTool name="tool_2"/>
     <memberTool name="start server"/>
+    <memberTool name="LZ QuickVex PyPanel"/>
     <memberTool name="New Flooating Panel"/>
     <memberTool name="Reload Textures"/>
     <memberTool name="update snippets from clipboard"/>
