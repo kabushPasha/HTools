@@ -8,6 +8,7 @@
   <toolshelf name="LZ sim" label="LZ sim">
     <memberTool name="lz bullet setings"/>
     <memberTool name="LZ basic constraints"/>
+    <memberTool name="upres_sand"/>
   </toolshelf>
 
   <tool name="LZ basic constraints" label="LZ basic constraints" icon="hicon:/SVGIcons.index?SOP_connectadjacentpieces.svg">
@@ -296,6 +297,155 @@ if ($argc >= 5 && "$arg4" != "") then
 endif
 if ($argc >= 6 && "$arg6" != "") then
     set input = $_obj_sim_lz_bullet_setings
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+
+  <tool name="upres_sand" label="upres_sand" icon="hicon:/SVGIcons.index?POP_awaken.svg">
+    <helpURL>operator:Dop/popwrangle</helpURL>
+    <toolMenuContext name="network">
+      <contextOpType>Dop/popwrangle</contextOpType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputitem = None
+inputindex = -1
+inputitem = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if kwargs.has_key("outputnodename") and kwargs.has_key("inputindex"):
+        outputitem = pane_node.item(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if kwargs.has_key("inputnodename") and kwargs.has_key("outputindex"):
+        inputitem = pane_node.item(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if kwargs.has_key("autoplace"):
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+        if inputitem is None:
+            inputitem = pane.currentNode()
+            outputindex = 0
+    if kwargs.has_key("nodepositionx") and             kwargs.has_key("nodepositiony"):
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+
+    if not autoplace and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputitem is None:
+            pos = pane.selectPosition(inputitem, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputitem, outputindex,
+                                      outputitem, inputindex)
+
+    if pos is not None:
+        if kwargs.has_key("node_bbox"):
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if not child_type.has_key('popwrangle'):
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_sim_popnet8_upres_sand (Dop/popwrangle)
+set _obj_sim_popnet8_upres_sand = `run("opadd -e -n -v popwrangle upres_sand")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_sim_popnet8_upres_sand
+opspareds '    parm {   name    "activate"      baseparm        label   "Activation"    export  none     }     parm {   name    "usegroup"      baseparm        label   "Label"         nolabel         joinnext        export  none     }     parm {   name    "partgroup"     baseparm        label   "Group"         export  none     }     group {  name    "folder2"       label   "Code"          parm {      name        "snippet"           baseparm        label       "VEXpression"       export      all     }       parm {      name        "exportlist"        baseparm        label       "Attributes to Create"      export      none    }       parm {      name        "vex_strict"        baseparm        label       "Enforce Prototypes"        export      none    }     }      group {    name    "folder2_1"     label   "Data Bindings"         parm {      name        "autobind"          baseparm        label       "Autobind by Name"          export      none    }       multiparm {         name        "bindings"          label       "Attribute Bindings"        baseparm        default     0           parmtag     { "autoscope" "0000000000000000" }          parmtag     { "multistartoffset" "1" }          parm {              name    "binddata#"             baseparm                label   "Attribute Name"                export  none        }       parm {              name    "bindparm#"             baseparm                label   "VEX Parameter"                 export  none        }   }       multiparm {         name        "bindfield_num"             label       "Field Bindings"            baseparm        default     0           parmtag     { "autoscope" "0000000000000000" }          parmtag     { "multistartoffset" "1" }          parm {              name    "bindfield_data#"               baseparm                label   "Field Name"            export  none        }       parm {              name    "bindfield_parm#"               baseparm                label   "VEX Parameter"                 export  none        }   }       parm {      name        "groupautobind"             baseparm        label       "Autobind Groups by Name"           export      none    }       multiparm {         name        "groupbindings"             label       "Group Bindings"            baseparm        default     0           parmtag     { "autoscope" "0000000000000000" }          parmtag     { "multistartoffset" "1" }          parm {              name    "bindgroupname#"                baseparm                label   "Group Name"            export  none        }       parm {              name    "bindgroupparm#"                baseparm                label   "VEX Parameter"                 export  none        }   }       parm {      name        "vex_updatenmls"            baseparm        label       "Update Normals If Displaced"       export      none    }     }      group {    name    "folder2_2"     label   "Inputs"        parm {      name        "bindinputmenu1"            baseparm        label       "Input 1"           export      none    }       parm {      name        "bindgeoinput1"             baseparm        label       "SOP Path"          export      none    }       parm {      name        "binddopinput1"             baseparm        label       "DOP Data"          export      none    }       parm {      name        "bindinputmenu2"            baseparm        label       "Input 2"           export      none    }       parm {      name        "bindgeoinput2"             baseparm        label       "SOP Path"          export      none    }       parm {      name        "binddopinput2"             baseparm        label       "DOP Data"          export      none    }       parm {      name        "bindinputmenu3"            baseparm        label       "Input 3"           export      none    }       parm {      name        "bindgeoinput3"             baseparm        label       "SOP Path"          export      none    }       parm {      name        "binddopinput3"             baseparm        label       "DOP Data"          export      none    }       parm {      name        "bindinputmenu4"            baseparm        label       "Input 4"           export      none    }       parm {      name        "bindgeoinput4"             baseparm        label       "SOP Path"          export      none    }       parm {      name        "binddopinput4"             baseparm        label       "DOP Data"          export      none    }     }      group {    name    "folder2_3"     label   "Bindings"      parm {      name        "bindgeo"           baseparm        label       "Geometry"          export      none    }       parm {      name        "vex_cwdpath"       baseparm        label       "Evaluation Node Path"      export      none    }       parm {      name        "vex_outputmask"            baseparm        label       "Export Parameters"         export      none    }     }      parm {     name    "usetimestep"   baseparm        label   "Use Timestep"  export  none     }     parm {   name    "timescale"     baseparm        label   "Timescale"     export  none     }     parm {   name    "global_vel_mult"       label   "Global Vel Mult"       type    float   default { "0" }         range   { 0 1 }     } ' $_obj_sim_popnet8_upres_sand
+opparm $_obj_sim_popnet8_upres_sand  bindings ( 0 ) bindfield_num ( 0 ) groupbindings ( 0 )
+opparm $_obj_sim_popnet8_upres_sand snippet ( '//Set Closest Points\nif(@Frame == 1)\n{\n    float maxDist = 1;\n    int maxPts = 10;\n    int minPts = 1;\n\n    int minHandle = pcopen(1, "P", @P, maxDist, maxPts);\n    int minCnt = pcnumfound(minHandle);\n    if(minCnt>=minPts)\n    {\n        int handle = pcopen(1, "P", @P, maxDist, maxPts);\n        while(pciterate(handle))\n        {\n            int npt;\n            pcimport(handle,"point.number",npt);\n            push(i[]@npts,npt);\n        }  \n    }\n}\n\n// get Target V\nvector weightedTarget = {0,0,0};\nfloat distTres = 0.2;\nforeach (int i; int ptnum; i[]@npts)\n{\n    vector targetP = point(1,"P",ptnum);\n    float dist = length(@P - targetP);\n    if(dist <= distTres){\n        if( length(weightedTarget)==0 ) weightedTarget = targetP;\n        weightedTarget += targetP;\n        weightedTarget *= 0.5;\n    }\n}\n\n\nif(length(weightedTarget) > 0)\n{    \n    v@force = 0;\n    float global_mult = chf("global_vel_mult")/@TimeInc;\n    v@v= (weightedTarget - @P)*global_mult; // old amp 20\n}\nelse\n{\n    float maxDist = 1;\n    int maxPts = 10;\n    int minPts = 2;\n\n    int minHandle = pcopen(1, "P", @P, maxDist, maxPts);\n    int minCnt = pcnumfound(minHandle);\n    if(minCnt>=minPts)\n    {\n        int handle = pcopen(1, "P", @P, maxDist, maxPts);\n        while(pciterate(handle))\n        {\n            int npt;\n            pcimport(handle,"point.number",npt);\n            push(i[]@npts,npt);\n        }  \n    }\n}\n\n\n\n\n\n\n\n    \n    \n' ) bindinputmenu1 ( self ) bindinputmenu2 ( third ) global_vel_mult ( 1 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_sim_popnet8_upres_sand
+opexprlanguage -s hscript $_obj_sim_popnet8_upres_sand
+opuserdata -n '___Version___' -v '' $_obj_sim_popnet8_upres_sand
+opset -p on $_obj_sim_popnet8_upres_sand
+
+opcf $arg1
+opwire -n $_obj_sim_popnet8_popcolor1 -0 $_obj_sim_popnet8_upres_sand
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_sim_popnet8_upres_sand
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_sim_popnet8_upres_sand
     if ($arg8) then
         opwire -n -i $arg6 -0 $input
     else
