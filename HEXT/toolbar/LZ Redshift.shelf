@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="LZ_Redshift" label="LZ Redshift">
+    <memberTool name="LZ RS Setup"/>
+    <memberTool name="rs_cam_from_view"/>
+    <memberTool name="RS obj shader"/>
+    <memberTool name="Rs vol shader"/>
+    <memberTool name="RS Hair Params"/>
+    <memberTool name="Rs Directional Light"/>
+    <memberTool name="Rs Light Sun"/>
+    <memberTool name="LZ RS LightDome"/>
+    <memberTool name="Rs displacement"/>
+    <memberTool name="substance material"/>
+  </toolshelf>
+
+  <tool name="rs_cam_from_view" label="Rs camera from view" icon="hicon:/SVGIcons.index?OBJ_camera.svg">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'cam', 'cam1',False)
+hou.hscript('Redshift_cameraSpareParameters')
+
+newnode.setDisplayFlag(False)]]></script>
+  </tool>
+
+  <tool name="RS obj shader" label="RS obj shader" icon="RS_objectSpareParameters_icon">
+    <script scriptType="python"><![CDATA[ctrlclick = kwargs["ctrlclick"] 
+hou.hscript('Redshift_objectSpareParameters')
+
+for n in hou.selectedNodes():
+    if ctrlclick:
+        shader = hou.node("/shop").createNode('RS_Material',n.name())
+    else :
+        shader = hou.node("/shop").createNode('redshift_vopnet',n.name())
+        mat = shader.createNode('Material')
+        mat.setDetailHighFlag(True)
+        out = shader.node('redshift_material1')        
+        out.setInput(0,mat)
+        mat.setPosition(out.position() + hou.Vector2(-2,0))
+        
+        
+        
+    n.parm('shop_materialpath').set(shader.path())]]></script>
+  </tool>
+
+  <tool name="Rs vol shader" label="Rs vol shader" icon="hicon:/SVGIcons.index?SOP_volume.svg">
+    <script scriptType="python"><![CDATA[hou.hscript('Redshift_objectSpareParameters')
+
+for n in hou.selectedNodes():
+    n.parm('RS_objprop_volume_enable').set(1)
+    n.parm('RS_objprop_volume_type').set(1)
+    
+    shader = hou.node("/shop").createNode("rs_volume",n.name())
+    
+    n.parm('shop_materialpath').set(shader.path())
+]]></script>
+  </tool>
+
+  <tool name="Rs Directional Light" label="Rs Directional Light" icon="RS_light_icon">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+kwargs['ctrlclick'] = True
+
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'rslight')
+newnode.parm('RSL_intensityMultiplier').set(1)
+newnode.parm('RSL_volumeScale').set(1)
+
+
+newnode.setDisplayFlag(False)]]></script>
+  </tool>
+
+  <tool name="Rs Light Sun" label="Rs Light Sun" icon="RS_lightSun_icon">
+    <script scriptType="python"><![CDATA[import objecttoolutils
+
+kwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)
+kwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)
+kwargs['ctrlclick'] = True
+
+newnode = objecttoolutils.genericCameraLightTool(kwargs, 'rslightsun')
+
+newnode.parm('RSL_volumeScale').set(1)
+
+newnode.setDisplayFlag(False)]]></script>
+  </tool>
+
+  <tool name="RS Hair Params" label="RS Hair Params" icon="FUR_part_hair">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    if n.type().name() == 'hairgen': 
+        rs = n.createOutputNode('geo',n.name()+'_rs_render')
+        merge = rs.createNode('object_merge')
+        merge.parm('objpath1').set('`opinputpath("..",0)`/DISPLAY')
+        rs.node('file1').destroy()
+        null = rs.createNode('null','display')
+        null.setDisplayFlag(1)
+        
+        #create resample1 node
+        resample = merge.createOutputNode("resample","resample")
+        resample.setPosition(merge.position() + hou.Vector2(0.00125002861023,-1.00310001201))
+        resample.parm("length").set(0.01)
+        resample.parm("treatpolysas").set(1)
+        
+        #create scale_width node
+        scale_width = resample.createOutputNode("attribwrangle","scale_width")
+        scale_width.parm("snippet").set("f@width *= 0.5;")
+        scale_width.setRenderFlag(True)               
+        
+        rs.layoutChildren()
+        rs.setSelected(1)
+        n.setSelected(0)
+
+
+hou.hscript('Redshift_objectSpareParameters')
+
+for n in hou.selectedNodes():
+    shader = hou.node("/shop").createNode('rs_hair',n.name())
+    n.parm('shop_materialpath').set(shader.path())
+    n.parm('RS_objprop_renderAsHair').set(1)
+    ]]></script>
+  </tool>
+
+  <tool name="LZ RS Setup" label="LZ RS Setup" icon="ROP_Redshift_ROP">
+    <script scriptType="python"><![CDATA[rs = hou.node("/out/Redshift_ROP1")
+
+if rs is None:
+    rs = __import__('roptoolutils').createRenderNode('Redshift_ROP')
+    ipr = __import__('roptoolutils').createRenderNode('Redshift_IPR')
+    
+    rs.parm('RS_renderAOVsToMPlay').set(1)
+    rs.parm('RS_outputEnable').set(0)
+    
+    rs.parm('RS_outputFileNamePrefix').set('$HC/$HIPNAME/render/$OS.frame_$F.bgeo.sc')
+    rs.parm('RS_iprOverrideCameraRes').set(0)
+    rs.parm('RS_iprUpdateMeshDeform').set(0)
+    rs.parm('RS_lights_exclude').set('PROXY_LIGHT*')
+    
+    rs.parm("RS_aov").set(1)
+    rs.parm("RS_aovID_1").set(1)
+    rs.parm("RS_aovSuffix_1").set('Z')
+    
+    
+    
+# Check if we have aprms and render view already
+has_render_panel = 0
+has_rs_parms = 0
+floatingPanels = hou.ui.floatingPanels()
+for panel in floatingPanels:
+    if panel.name() == 'RenderView':
+        has_render_panel = 1
+    if panel.name() == 'Render_Settings':
+        has_rs_parms = 1
+    
+# Open Parms Window
+if has_rs_parms == 0:
+    d = hou.ui.curDesktop()
+    
+    import ctypes
+    user32 = ctypes.windll.user32
+    sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
+    #pos goes from bottom to top, from left to rigth
+    dy = [0.025,0.65];
+    dx = [0.57,0.85];
+    
+    pos = (sz[0] + int(sz[0]*dx[0]),int(sz[1]*(1 - dy[1] - dy[0])))
+    size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
+    
+    panel = d.createFloatingPanel(hou.paneTabType.Parm,pos,size)
+    panel.setName('Render_Settings')
+    pane = panel.panes()[0]
+    tab = pane.tabs()[0]
+    tab.setCurrentNode(rs)
+    tab.setPin(1)
+
+#create RenderView
+if has_render_panel == 0:
+    exec(hou.shelves.tool('Render View').script())]]></script>
+  </tool>
+
+  <tool name="LZ RS LightDome" label="LZ RS LightDome" icon="RS_lightDome_icon">
+    <script scriptType="python"><![CDATA[import hou
+obj = hou.node("/obj")
+newnode = obj.createNode("rslightdome")
+newnode.moveToGoodPosition()
+
+newnode.parm('RSL_volumeScale').set(1)
+newnode.setDisplayFlag(False)
+
+newnode.parm('tex0').set('$HASS/HDRI/panorama_map.hdr')
+newnode.parm('ogl_enablelight').set(0)
+
+env = newnode.createOutputNode('envlight','PROXY_LIGHT_'+newnode.name())
+env.setDisplayFlag(False)
+]]></script>
+  </tool>
+
+  <tool name="substance material" label="substance material" icon="RS_objectSpareParameters_icon">
+    <script scriptType="python"><![CDATA[hou.hscript('Redshift_objectSpareParameters')
+for n in hou.selectedNodes():
+    shader = hou.node("/shop").createNode('redshift_vopnet',n.name())
+    out = shader.node('redshift_material1')   
+    
+    mat = shader.createNode('Material')
+    mat.setDetailHighFlag(True)
+    mat.parm('refl_fresnel_mode').set('2')
+    mat.parm('refl_brdf').set('1')
+    mat.setPosition(out.position() + hou.Vector2(-2,0))
+    out.setInput(0,mat)
+    
+    disp = shader.createNode('Displacement')
+    disp.setDetailHighFlag(True)
+    disp.setPosition(out.position() + hou.Vector2(-2,2.5))
+    disp.parm('scale').set(0.01)
+    out.setInput(1,disp) 
+    
+    tex = shader.createNode('LZ_substance_textures')
+    tex.setDetailHighFlag(True)
+    tex.setPosition(out.position() + hou.Vector2(-4,0)) 
+    # set texture inputs
+    mat.setInput(0,tex,0)
+    disp.setInput(0,tex,1)
+    mat.setInput(14,tex,2)
+    out.setInput(2,tex,3)
+    mat.setInput(7,tex,4)
+    mat.setInput(47,tex,5)
+    mat.setInput(46,tex,6)
+    
+    
+    
+    n.parm("RS_objprop_rstess_enable").set(1)
+    n.parm("RS_objprop_displace_enable").set(1)
+    n.parm('shop_materialpath').set(shader.path())
+
+
+
+]]></script>
+  </tool>
+</shelfDocument>

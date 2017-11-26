@@ -1,6 +1,7 @@
 [
 	"fileversion","16.0.671",
 	"name","LZ Main Menu",
+	"categories","!LZ",
 	"submenu",["submenu",
 		"label","LZ Main Menu",
 		"top",["submenu",
@@ -48,8 +49,8 @@
 				"top",["script",
 					"label","RSLight",
 					"icon","RS_light_icon",
-					"script","import objecttoolutils\n\nkwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)\nkwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)\nkwargs['ctrlclick'] = True\n\nnewnode = objecttoolutils.genericCameraLightTool(kwargs, 'rslight')\nnewnode.parm('RSL_intensityMultiplier').set(1)\nnewnode.parm('RSL_volumeScale').set(1)\n\n\nnewnode.setDisplayFlag(False)"],
-				
+					"script","radialmenu.runShelfTool(kwargs, 'Rs Directional Light')",
+				],
 				"left",["script",
 					"label","RSLightDome",
 					"icon","RS_lightDome_icon",
@@ -58,17 +59,17 @@
 				"right",["script",
 					"label","RSLightSun",
 					"icon","RS_lightSun_icon",
-					"script","import objecttoolutils\n\nkwargs['bbox_min'] = hou.Vector3(-1.5, -1.5, -1.5)\nkwargs['bbox_max'] = hou.Vector3(1.5, 1.5, 1.5)\nkwargs['ctrlclick'] = True\n\nnewnode = objecttoolutils.genericCameraLightTool(kwargs, 'rslightsun')\n\nnewnode.parm('RSL_volumeScale').set(1)\n\nnewnode.setDisplayFlag(False)"]
+					"script","radialmenu.runShelfTool(kwargs, 'Rs Light Sun')"]
 			],
 			"top_left",["script",
 				"label","VolParms",
 				"icon","RS_objectSpareParameters_icon",
-				"script","hou.hscript('Redshift_objectSpareParameters')\n\nfor n in hou.selectedNodes():\n    n.parm('RS_objprop_volume_enable').set(1)\n    n.parm('RS_objprop_volume_type').set(1)\n    \n    shader = hou.node(\"/shop\").createNode(\"rs_volume\",n.name())\n    \n    n.parm('shop_materialpath').set(shader.path())\n\n    \n    \n"],
+				"script","radialmenu.runShelfTool(kwargs, 'RS vol shader')"],
 			
 			"left",["script",
 				"label","ObjParms",
 				"icon","RS_objectSpareParameters_icon",
-				"script","radialmenu.runShelfTool(kwargs, 'Add Object Spare Parameters')\n\nfor n in hou.selectedNodes():\n    shader = hou.node(\"/shop\").createNode('rs_architectural',n.name())\n    n.parm('shop_materialpath').set(shader.path())"],
+				"script","radialmenu.runShelfTool(kwargs, 'RS obj shader')"],
 			
 			"bottom_left",["script",
 				"label","Redshift",
@@ -78,7 +79,7 @@
 			"bottom",["script",
 				"label","Camera",
 				"icon","OBJ_camera",
-				"script","import objecttoolutils\nnewnode = objecttoolutils.genericCameraLightTool(kwargs, 'cam', 'cam1',False)\nhou.hscript('Redshift_cameraSpareParameters')\n\nnewnode.setDisplayFlag(False)"
+				"script","radialmenu.runShelfTool(kwargs, 'rs_cam_from_view')"
 			],
 			"bottom_right",["script",
 				"label","HairParms",
