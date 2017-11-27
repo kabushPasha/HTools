@@ -8,12 +8,13 @@
   <toolshelf name="LZ Sim Presets" label="LZ Sim Presets">
     <memberTool name="LZ Smoke Sim"/>
     <memberTool name="LZ bullet sim"/>
-    <memberTool name="LZ Grains Setup0"/>
     <memberTool name="LZ debirs source"/>
     <memberTool name="LZ Smoke Cluster"/>
     <memberTool name="attribwrangle3"/>
     <memberTool name="lz_instance_pieces"/>
     <memberTool name="LZ_Gravity_Groundplane"/>
+    <memberTool name="LZ Grains Setup0"/>
+    <memberTool name="LZ Grains Deforming"/>
   </toolshelf>
 
   <tool name="LZ_Gravity_Groundplane" label="LZ_Gravity_Groundplane" icon="hicon:/SVGIcons.index?DOP_groundplane.svg">
@@ -4037,6 +4038,374 @@ if ($argc >= 5 && "$arg4" != "") then
 endif
 if ($argc >= 6 && "$arg6" != "") then
     set input = $_obj_ShockWaves_vdbfromparticles3
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+
+  <tool name="LZ Grains Deforming" label="LZ Grains Deforming" icon="hicon:/SVGIcons.index?SHELF_sandbox.svg">
+    <toolMenuContext name="network">
+      <contextOpType>Sop/dopnet</contextOpType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputitem = None
+inputindex = -1
+inputitem = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if kwargs.has_key("outputnodename") and kwargs.has_key("inputindex"):
+        outputitem = pane_node.item(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if kwargs.has_key("inputnodename") and kwargs.has_key("outputindex"):
+        inputitem = pane_node.item(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if kwargs.has_key("autoplace"):
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+        if inputitem is None:
+            inputitem = pane.currentNode()
+            outputindex = 0
+    if kwargs.has_key("nodepositionx") and             kwargs.has_key("nodepositiony"):
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+
+    if not autoplace and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputitem is None:
+            pos = pane.selectPosition(inputitem, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputitem, outputindex,
+                                      outputitem, inputindex)
+
+    if pos is not None:
+        if kwargs.has_key("node_bbox"):
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if not child_type.has_key('xform'):
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_grid1_popnet (Sop/dopnet)
+set _obj_grid1_popnet = `run("opadd -e -n -v dopnet popnet")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_grid1_popnet
+opspareds '    parm {   name    "isplayer"      baseparm        label   "Dopnet is Player"      joinnext        export  none     }     parm {   name    "playfilesname"         baseparm        label   "Playback Simulation"   export  none     }     group {  name    "stdswitcher4"  label   "Object Merge"          multiparm {         name        "numobj"            label       "Number of Objects"         baseparm        default     1           parm {              name    "enable#"               baseparm                label   "Enable"                export  none        }       parm {              name    "objname#"              baseparm                label   "Object"                export  none        }       parm {              name    "dataname#"             baseparm                label   "Data"          export  none        }   }      }      group {   name    "stdswitcher4_1"        label   "Simulation"    parm {      name        "resimulate"        baseparm        label       "Reset Simulation"          export      none    }       parm {      name        "initialstate"      baseparm        label       "Initial State"             export      none    }       parm {      name        "timestep"          baseparm        label       "Time Step"         export      none    }       parm {      name        "substep"           baseparm        label       "Sub Steps"         export      none    }       parm {      name        "timeoffset"        baseparm        label       "Offset Time"       export      none    }       parm {      name        "startframe"        baseparm        label       "Start Frame"       export      none    }       parm {      name        "timescale"         baseparm        label       "Scale Time"        export      none    }       parm {      name        "maxfeedback"       baseparm        label       "Max Feedback Loops"        export      none    }       parm {      name        "autoresim"         baseparm        label       "Enable Automatic Resimulation"             export      none    }       parm {      name        "datahints"         baseparm        label       "Provide Data Hints"        export      none    }       parm {      name        "interpolate"       baseparm        label       "Interpolate Display Data"          export      none    }     }      group {    name    "stdswitcher4_2"        label   "Cache"         parm {      name        "cacheenabled"      baseparm        label       "Cache Simulation"          export      none    }       parm {      name        "compresssims"      baseparm        label       "Compress .sim Files"       export      none    }       parm {      name        "cachetodisk"       baseparm        label       "Allow Caching To Disk"             export      none    }       parm {      name        "cachetodisknoninteractive"         baseparm        label       "Cache to Disk in Non-Interactive Sessions"         export      none    }       parm {      name        "cachesubsteps"             baseparm        label       "Cache Substep Data"        export      none    }       parm {      name        "cachemaxsize"      baseparm        label       "Cache Memory (MB)"         export      none    }       parm {      name        "timeless"          baseparm        label       "Timeless (No History)"             export      none    }       parm {      name        "explicitcache"             baseparm        label       "Save Checkpoints"          export      none    }       parm {      name        "explicitcachename"         baseparm        label       "Checkpoint File"           export      none    }       parm {      name        "explicitcachensteps"       baseparm        label       "Checkpoint Trail Length"           export      none    }       parm {      name        "explicitcachecheckpointspacing"            baseparm        label       "Checkpoint Interval"       export      none    }     }      parm {     name    "particle_separation"   label   "Particle Separation"   type    float   default { "0" }         range   { 0! 10 }     } ' $_obj_grid1_popnet
+opparm $_obj_grid1_popnet  numobj ( 1 )
+chblockbegin
+chadd -t 0 0 $_obj_grid1_popnet timestep
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch("timescale")/(ch("substep")*$FPS)' $_obj_grid1_popnet/timestep
+chadd -t 0 0 $_obj_grid1_popnet timeoffset
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '(ch("startframe")-1)/$FPS' $_obj_grid1_popnet/timeoffset
+chadd -t 0 0 $_obj_grid1_popnet particle_separation
+chkey -t 0 -v 0.10000000000000001 -m 0 -a 0 -A 0 -T a  -F 'ch("../grainsource1/particlesep")' $_obj_grid1_popnet/particle_separation
+chblockend
+opparm -V 16.0.671 $_obj_grid1_popnet objname1 ( p* ) particle_separation ( particle_separation )
+opset -d on -r on -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_popnet
+opexprlanguage -s hscript $_obj_grid1_popnet
+opuserdata -n '___Version___' -v '16.0.671' $_obj_grid1_popnet
+opcf $_obj_grid1_popnet
+
+# Node $_obj_grid1_popnet_popsolver (Dop/popsolver::2.0)
+set _obj_grid1_popnet_popsolver = `run("opadd -e -n -v popsolver::2.0 popsolver")`
+oplocate -x `$arg2 + 1.433829` -y `$arg3 + -5.719983` $_obj_grid1_popnet_popsolver
+chblockbegin
+chadd -t 0 0 $_obj_grid1_popnet_popsolver substeps
+chkey -t 0 -v 1 -m 0 -a 0 -A 0 -T a  -F 'ch("minimumsubsteps")' $_obj_grid1_popnet_popsolver/substeps
+chblockend
+opparm $_obj_grid1_popnet_popsolver minimumsubsteps ( 10 ) substeps ( substeps )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_popnet_popsolver
+opexprlanguage -s hscript $_obj_grid1_popnet_popsolver
+opuserdata -n '___Version___' -v '' $_obj_grid1_popnet_popsolver
+opuserdata -n '___toolcount___' -v '1' $_obj_grid1_popnet_popsolver
+opuserdata -n '___toolid___' -v 'dynamics_poplocation' $_obj_grid1_popnet_popsolver
+
+# Node $_obj_grid1_popnet_source_first_input (Dop/popsource::2.0)
+set _obj_grid1_popnet_source_first_input = `run("opadd -e -n -v popsource::2.0 source_first_input")`
+oplocate -x `$arg2 + 2.5645790120163001` -y `$arg3 + -0.50420044068796999` $_obj_grid1_popnet_source_first_input
+chblockbegin
+chadd -t 0 0 $_obj_grid1_popnet_source_first_input impulseactiveate
+chkey -t 0 -v 1 -m 0 -a 0 -A 0 -T a  -F '$F==1' $_obj_grid1_popnet_source_first_input/impulseactiveate
+chblockend
+opparm $_obj_grid1_popnet_source_first_input folder0 ( 1 1 1 1 1 ) emittype ( allgeo ) usecontextgeo ( first ) impulseactiveate ( impulseactiveate )
+opset -d off -r off -h off -f off -y off -t on -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_popnet_source_first_input
+opexprlanguage -s hscript $_obj_grid1_popnet_source_first_input
+opuserdata -n '___Version___' -v '' $_obj_grid1_popnet_source_first_input
+opuserdata -n '___toolcount___' -v '2' $_obj_grid1_popnet_source_first_input
+opuserdata -n '___toolid___' -v 'dynamics_popsource' $_obj_grid1_popnet_source_first_input
+
+# Node $_obj_grid1_popnet_popsprite1 (Dop/popsprite)
+set _obj_grid1_popnet_popsprite1 = `run("opadd -e -n -v popsprite popsprite1")`
+oplocate -x `$arg2 + 2.5645790120163001` -y `$arg3 + -1.4816863573915` $_obj_grid1_popnet_popsprite1
+opparm $_obj_grid1_popnet_popsprite1  alpharamp ( 2 )
+opparm $_obj_grid1_popnet_popsprite1 spritemap ( '$HFS/houdini/pic/sphere_matte.pic' ) alpharamp2pos ( 1 ) alpharamp2value ( 1 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_popnet_popsprite1
+opexprlanguage -s hscript $_obj_grid1_popnet_popsprite1
+opuserdata -n '___Version___' -v '' $_obj_grid1_popnet_popsprite1
+opuserdata -n '___toolcount___' -v '2' $_obj_grid1_popnet_popsprite1
+opuserdata -n '___toolid___' -v 'dynamics_popsprite' $_obj_grid1_popnet_popsprite1
+
+# Node $_obj_grid1_popnet_popcolor1 (Dop/popcolor)
+set _obj_grid1_popnet_popcolor1 = `run("opadd -e -n -v popcolor popcolor1")`
+oplocate -x `$arg2 + 2.5669481427235001` -y `$arg3 + -2.4816863693124001` $_obj_grid1_popnet_popcolor1
+opparm $_obj_grid1_popnet_popcolor1  ramp ( 3 ) blendramp ( 2 ) alpharamp ( 2 )
+opparm $_obj_grid1_popnet_popcolor1 colortype ( ramp ) ramp ( 3 ) localramp ( 'ramp = rand(@id);' ) ramp1c ( 0.44900000095367432 0.20417217910289764 0.14547599852085114 ) ramp2pos ( 0.23719675838947296 ) ramp2c ( 0.89999997615814209 0.49850195646286011 0.23939996957778931 ) blendramp2pos ( 1 ) blendramp2value ( 1 ) alpharamp2pos ( 1 ) alpharamp2value ( 1 ) ramp3pos ( 0.98382747173309326 ) ramp3c ( 0.89999997615814209 0.65166199207305908 0.49140000343322754 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_popnet_popcolor1
+opexprlanguage -s hscript $_obj_grid1_popnet_popcolor1
+opuserdata -n '___Version___' -v '' $_obj_grid1_popnet_popcolor1
+opuserdata -n '___toolcount___' -v '2' $_obj_grid1_popnet_popcolor1
+opuserdata -n '___toolid___' -v 'dynamics_popcolor' $_obj_grid1_popnet_popcolor1
+
+# Node $_obj_grid1_popnet_groundplane1 (Dop/groundplane)
+set _obj_grid1_popnet_groundplane1 = `run("opadd -e -n -v groundplane groundplane1")`
+oplocate -x `$arg2 + -0.066170999999999994` -y `$arg3 + -6.469983` $_obj_grid1_popnet_groundplane1
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_popnet_groundplane1
+opexprlanguage -s hscript $_obj_grid1_popnet_groundplane1
+opuserdata -n '___Version___' -v '' $_obj_grid1_popnet_groundplane1
+opuserdata -n '___toolcount___' -v '1' $_obj_grid1_popnet_groundplane1
+opuserdata -n '___toolid___' -v 'dop_groundplane' $_obj_grid1_popnet_groundplane1
+
+# Node $_obj_grid1_popnet_staticobject1 (Dop/staticobject)
+set _obj_grid1_popnet_staticobject1 = `run("opadd -e -n -v staticobject staticobject1")`
+oplocate -x `$arg2 + -1.566171` -y `$arg3 + -6.469983` $_obj_grid1_popnet_staticobject1
+chblockbegin
+chadd -t 0 0 $_obj_grid1_popnet_staticobject1 createframe
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch(opcreator(".")+"/startframe")' $_obj_grid1_popnet_staticobject1/createframe
+chadd -t 0 0 $_obj_grid1_popnet_staticobject1 bullet_shrink_amount
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch("bullet_collision_margin")' $_obj_grid1_popnet_staticobject1/bullet_shrink_amount
+chblockend
+opparm -V 4 $_obj_grid1_popnet_staticobject1 soppath ( '`opinputpath("..",3)`' ) animategeo ( on )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_popnet_staticobject1
+opexprlanguage -s hscript $_obj_grid1_popnet_staticobject1
+opuserdata -n '___Version___' -v '4' $_obj_grid1_popnet_staticobject1
+opuserdata -n '___toolcount___' -v '16' $_obj_grid1_popnet_staticobject1
+opuserdata -n '___toolid___' -v 'dop_staticobject' $_obj_grid1_popnet_staticobject1
+
+# Node $_obj_grid1_popnet_popgrains1 (Dop/popgrains)
+set _obj_grid1_popnet_popgrains1 = `run("opadd -e -n -v popgrains popgrains1")`
+oplocate -x `$arg2 + 2.5634981476527998` -y `$arg3 + -3.5085320188172999` $_obj_grid1_popnet_popgrains1
+chblockbegin
+chadd -t 0 0 $_obj_grid1_popnet_popgrains1 particlesep
+chkey -t 0 -v 0.10000000000000001 -m 0 -a 0 -A 0 -T a  -F 'ch("../particle_separation")' $_obj_grid1_popnet_popgrains1/particlesep
+chblockend
+opparm $_obj_grid1_popnet_popgrains1 particlesep ( particlesep ) folder0 ( 1 1 1 ) kinetic_scale ( 0.50000000596046446 ) dodriftprevention ( on ) opencl ( on )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_popnet_popgrains1
+opexprlanguage -s hscript $_obj_grid1_popnet_popgrains1
+opuserdata -n '___Version___' -v '' $_obj_grid1_popnet_popgrains1
+opuserdata -n '___toolcount___' -v '2' $_obj_grid1_popnet_popgrains1
+opuserdata -n '___toolid___' -v 'dynamics_popgrains' $_obj_grid1_popnet_popgrains1
+opcf ..
+opcf $_obj_grid1_popnet
+
+# Node $_obj_grid1_popnet_output (Dop/output)
+set _obj_grid1_popnet_output = `run("opadd -e -n -v output output")`
+oplocate -x `$arg2 + 1.433829` -y `$arg3 + -8.7199829999999992` $_obj_grid1_popnet_output
+chblockbegin
+chadd -t 0 0 $_obj_grid1_popnet_output f1
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '$FSTART' $_obj_grid1_popnet_output/f1
+chadd -t 0 0 $_obj_grid1_popnet_output f2
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '$FEND' $_obj_grid1_popnet_output/f2
+chblockend
+opparm $_obj_grid1_popnet_output
+opset -d on -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_popnet_output
+opexprlanguage -s hscript $_obj_grid1_popnet_output
+opuserdata -n '___Version___' -v '' $_obj_grid1_popnet_output
+
+# Node $_obj_grid1_popnet_popobject (Dop/popobject)
+set _obj_grid1_popnet_popobject = `run("opadd -e -n -v popobject popobject")`
+oplocate -x `$arg2 + -0.066171000000000035` -y `$arg3 + -4.7426829968038469` $_obj_grid1_popnet_popobject
+chblockbegin
+chadd -t 0 0 $_obj_grid1_popnet_popobject createframe
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch(opcreator(".")+"/startframe")' $_obj_grid1_popnet_popobject/createframe
+chblockend
+opparm $_obj_grid1_popnet_popobject
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_popnet_popobject
+opexprlanguage -s hscript $_obj_grid1_popnet_popobject
+opuserdata -n '___Version___' -v '' $_obj_grid1_popnet_popobject
+opuserdata -n '___toolcount___' -v '2' $_obj_grid1_popnet_popobject
+opuserdata -n '___toolid___' -v 'dynamics_poplocation' $_obj_grid1_popnet_popobject
+
+# Node $_obj_grid1_popnet_wire_pops_into_here (Dop/merge)
+set _obj_grid1_popnet_wire_pops_into_here = `run("opadd -e -n -v merge wire_pops_into_here")`
+oplocate -x `$arg2 + 2.5634290000000002` -y `$arg3 + -4.7410829910235002` $_obj_grid1_popnet_wire_pops_into_here
+chblockbegin
+chadd -t 0 0 $_obj_grid1_popnet_wire_pops_into_here activation
+chkey -t 0 -v 1 -m 0 -a 0 -A 0 -T a  -F 'constant()' $_obj_grid1_popnet_wire_pops_into_here/activation
+chblockend
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_popnet_wire_pops_into_here
+opexprlanguage -s hscript $_obj_grid1_popnet_wire_pops_into_here
+
+# Node $_obj_grid1_popnet_gravity1 (Dop/gravity)
+set _obj_grid1_popnet_gravity1 = `run("opadd -e -n -v gravity gravity1")`
+oplocate -x `$arg2 + 1.433829` -y `$arg3 + -7.969983` $_obj_grid1_popnet_gravity1
+chblockbegin
+chadd -t 0 0 $_obj_grid1_popnet_gravity1 activation
+chkey -t 0 -v 1 -m 0 -a 0 -A 0 -T a  -F 'constant()' $_obj_grid1_popnet_gravity1/activation
+chblockend
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_popnet_gravity1
+opexprlanguage -s hscript $_obj_grid1_popnet_gravity1
+opuserdata -n '___toolcount___' -v '1' $_obj_grid1_popnet_gravity1
+opuserdata -n '___toolid___' -v 'LZ_Gravity_Groundplane' $_obj_grid1_popnet_gravity1
+
+# Node $_obj_grid1_popnet_merge1 (Dop/merge)
+set _obj_grid1_popnet_merge1 = `run("opadd -e -n -v merge merge1")`
+oplocate -x `$arg2 + 1.433829` -y `$arg3 + -7.219983` $_obj_grid1_popnet_merge1
+chblockbegin
+chadd -t 0 0 $_obj_grid1_popnet_merge1 activation
+chkey -t 0 -v 1 -m 0 -a 0 -A 0 -T a  -F 'constant()' $_obj_grid1_popnet_merge1/activation
+chblockend
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_popnet_merge1
+opexprlanguage -s hscript $_obj_grid1_popnet_merge1
+opuserdata -n '___toolcount___' -v '1' $_obj_grid1_popnet_merge1
+opuserdata -n '___toolid___' -v 'LZ_Gravity_Groundplane' $_obj_grid1_popnet_merge1
+oporder -e output popsolver popobject wire_pops_into_here source_first_input popsprite1 popcolor1 gravity1 merge1 groundplane1 staticobject1 popgrains1 
+opcf ..
+opset -p on $_obj_grid1_popnet
+opcf $arg1
+
+# Node $_obj_grid1_vdbfrompolygons1 (Sop/vdbfrompolygons)
+set _obj_grid1_vdbfrompolygons1 = `run("opadd -e -n -v vdbfrompolygons vdbfrompolygons1")`
+oplocate -x `$arg2 + 1.7293505015911128` -y `$arg3 + 0.79714768796159152` $_obj_grid1_vdbfrompolygons1
+opparm $_obj_grid1_vdbfrompolygons1  numattrib ( 0 )
+opparm -V 16.0.671 $_obj_grid1_vdbfrompolygons1 voxelsize ( 0.0050000000000000001 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_vdbfrompolygons1
+opexprlanguage -s hscript $_obj_grid1_vdbfrompolygons1
+opset -p on $_obj_grid1_vdbfrompolygons1
+opcf $arg1
+
+# Node $_obj_grid1_grainsource1 (Sop/grainsource)
+set _obj_grid1_grainsource1 = `run("opadd -e -n -v grainsource grainsource1")`
+oplocate -x `$arg2 + -1.4173815727069359` -y `$arg3 + 1.560698370978943` $_obj_grid1_grainsource1
+opparm -V 3 $_obj_grid1_grainsource1 particlesep ( 0.01 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_grainsource1
+opexprlanguage -s hscript $_obj_grid1_grainsource1
+opuserdata -n '___Version___' -v '3' $_obj_grid1_grainsource1
+opuserdata -n '___toolcount___' -v '2' $_obj_grid1_grainsource1
+opuserdata -n '___toolid___' -v 'dynamics_popgrains' $_obj_grid1_grainsource1
+opset -p on $_obj_grid1_grainsource1
+opcf $arg1
+
+# Node $_obj_grid1_transform2 (Sop/xform)
+set _obj_grid1_transform2 = `run("opadd -e -n -v xform transform2")`
+oplocate -x `$arg2 + -1.4173815727069359` -y `$arg3 + 0.7955976879170743` $_obj_grid1_transform2
+opspareds '    parm {   name    "group"         baseparm        label   "Group"         export  none    bindselector everything "Transform Geometry"        "Select the geometry to transform and press Enter to complete. Middle mouse to select. Left mouse to select and drag."          0 1 0xffffffff 1 grouptype 0     }     parm {       name    "grouptype"     baseparm        label   "Group Type"    export  none     }     parm {   name    "xOrd"  baseparm        label   "Transform Order"       joinnext        export  none     }     parm {   name    "rOrd"  baseparm        label   "Rotate Order"  nolabel         export  none     }     parm {   name    "t"     baseparm        label   "Translate"     export  none     }     parm {   name    "r"     baseparm        label   "Rotate"        export  none     }     parm {   name    "s"     baseparm        label   "Scale"         export  none     }     parm {   name    "shear"         baseparm        label   "Shear"         export  none     }     parm {   name    "p"     baseparm        label   "Pivot"         export  none     }     parm {   name    "scale"         baseparm        label   "Uniform Scale"         export  none     }     parm {   name    "movecentroid"  baseparm        label   "Move Centroid to Origin"       export  none     }     parm {   name    "attribs"       baseparm        label   "Attributes"    export  none     }     parm {   name    "updatenmls"    baseparm        label   "Recompute Point Normals"       export  none     }     parm {   name    "updateaffectednmls"    baseparm        label   "Recompute Affected Normals"    export  none     }     parm {   name    "vlength"       baseparm        label   "Preserve Normal Length"        export  none     }     parm {   name    "invertxform"   baseparm        label   "Invert Transformation"         export  none     }     parm {   name    "center_pivot"  label   "Center Pivot"  type    button  default { "0" }         parmtag { "script_callback" "node = kwargs[\'node\'];node.parm(\'px\').setExpression(\'$CEX\');node.parm(\'py\').setExpression(\'$CEY\');node.parm(\'pz\').setExpression(\'$CEZ\')" }   parmtag { "script_callback_language" "python" }     } ' $_obj_grid1_transform2
+chblockbegin
+chadd -t 0 0 $_obj_grid1_transform2 ty
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '-0.5*ch("../grainsource1/particlesep")' $_obj_grid1_transform2/ty
+chblockend
+opparm -V 16.0.671 $_obj_grid1_transform2 t ( 0 ty 0 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_grid1_transform2
+opexprlanguage -s hscript $_obj_grid1_transform2
+opset -p on $_obj_grid1_transform2
+
+opcf $arg1
+opwire -n $_obj_grid1_transform2 -0 $_obj_grid1_popnet
+opwire -n $_obj_grid1_vdbfrompolygons1 -3 $_obj_grid1_popnet
+opcf $_obj_grid1_popnet
+opwire -n $_obj_grid1_popnet_gravity1 -0 $_obj_grid1_popnet_output
+opwire -n $_obj_grid1_popnet_popobject -0 $_obj_grid1_popnet_popsolver
+opwire -n $_obj_grid1_popnet_wire_pops_into_here -2 $_obj_grid1_popnet_popsolver
+opwire -n $_obj_grid1_popnet_popgrains1 -0 $_obj_grid1_popnet_wire_pops_into_here
+opwire -n $_obj_grid1_popnet_source_first_input -0 $_obj_grid1_popnet_popsprite1
+opwire -n $_obj_grid1_popnet_popsprite1 -0 $_obj_grid1_popnet_popcolor1
+opwire -n $_obj_grid1_popnet_merge1 -0 $_obj_grid1_popnet_gravity1
+opwire -n $_obj_grid1_popnet_staticobject1 -0 $_obj_grid1_popnet_merge1
+opwire -n $_obj_grid1_popnet_groundplane1 -1 $_obj_grid1_popnet_merge1
+opwire -n $_obj_grid1_popnet_popsolver -2 $_obj_grid1_popnet_merge1
+opwire -n $_obj_grid1_popnet_popcolor1 -0 $_obj_grid1_popnet_popgrains1
+opcf ..
+opcf $arg1
+opwire -n $_obj_grid1_temp_rbd -0 $_obj_grid1_vdbfrompolygons1
+opcf $arg1
+opwire -n $_obj_grid1_box1 -0 $_obj_grid1_grainsource1
+opcf $arg1
+opwire -n $_obj_grid1_grainsource1 -0 $_obj_grid1_transform2
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_grid1_transform2
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_grid1_popnet
     if ($arg8) then
         opwire -n -i $arg6 -0 $input
     else

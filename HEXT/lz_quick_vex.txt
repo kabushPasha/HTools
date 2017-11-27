@@ -127,7 +127,9 @@
 	"08 Vex Functions":{
 		"01. removepoint": {"code":"removepoint(0,@ptnum);"},
 		"02. removeprim": {"code":"removeprim(0,@primnum,1);"},
-		"03. volumesample": {"code":"float density = volumesample(1,0,@P);"}
+		"03. volumesample": {"code":"float density = volumesample(1,0,@P);"},
+		"04. fit": {"code":" = fit(,chp('fit').x,chp('fit').y,chp('fit').z,chp('fit').w);"}
+		
 	},		
 
 	"09 FOLDERS":{
