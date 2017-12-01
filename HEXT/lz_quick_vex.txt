@@ -102,7 +102,9 @@
 		"07. Bullet Settings ":{
 			"code" : "i@active = chi('active');\ni@animated = chi('animated');\n\n//f@min_activation_impulse = chf('min_activation_impulse');\n//f@density = chf('density');"},		
 		"08. Bottom Inactive ":{
-			"code" : "if( @P.y<chf('tres')) i@active = 0;"}
+			"code" : "if( @P.y<chf('tres')) i@active = 0;"},
+		"09. Sphere Sprite ":{
+			"code" : "v@spritescale = {1,1,1};\ns@spriteshop = '/obj/sim/popnet/popsprite1/shopnet1/spritefog';\np@spriteuv = {0,0,1,1};"}	
 		},		
 				
 	"06 Model":{
