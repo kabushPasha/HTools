@@ -123,8 +123,31 @@ def updateSnippetFromClipboard(node):
 		code =  code.replace('\t', '    ')
 		snippet.set(code)
 
-	
-	
+# installs all hdas from a  lib directory in $hext/otls		
+def installOtlLib(lib):
+	import hou,glob
+
+	hext = hou.expandString('$OTLS')
+
+	path = hext + "/" + lib + "/*.hda"
+	otls = glob.glob(path)
+	for otl in otls:
+		hou.hda.installFile(otl)
+
+# shows a ui to install libs in current hip file, then adds their installation to the python source editor		
+def installOtlLibsUI():
+	import glob
+	path = hou.expandString('$OTLS') + "\\*/"
+	libs =  glob.glob(path)
+	libs = [e.split("\\")[-2] for e in libs]
+	print libs
+
+	answer =  hou.ui.selectFromList(libs)
+	for ans in answer:
+		lib = libs[ans]
+		installOtlLib(lib)
+		print  "\nimport lzutil\nlzutil.installOtlLib('"+lib +"')"
+		hou.appendSessionModuleSource( "import lzutil\nlzutil.installOtlLib('"+lib +"')" )
 
 
 

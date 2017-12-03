@@ -19,6 +19,7 @@
     <memberTool name="New Flooating Panel"/>
     <memberTool name="Reload Textures"/>
     <memberTool name="update snippets from clipboard"/>
+    <memberTool name="Install Otl Lib"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -908,5 +909,25 @@ glcache -c]]></script>
     <script scriptType="python"><![CDATA[import lzutil
 for n in hou.selectedNodes():
     lzutil.updateSnippetFromClipboard(n)]]></script>
+  </tool>
+
+  <tool name="Install Otl Lib" label="Install Otl Lib" icon="hicon:/SVGIcons.index?VOP_subnetconnector.svg">
+    <script scriptType="python"><![CDATA[import lzutil
+lzutil.installOtlLibsUI()
+
+'''
+import glob
+path = hou.expandString("$OTLS") + "\\*/"
+libs =  glob.glob(path)
+libs = [e.split("\\")[-2] for e in libs]
+print libs
+
+answer =  hou.ui.selectFromList(libs)
+for ans in answer:
+    lib = libs[ans]
+    installOtlLib(lib)
+    print  "\nimport lzutil\nlzutil.installOtlLib('"+lib +"')"
+    hou.appendSessionModuleSource( "import lzutil\nlzutil.installOtlLib('"+lib +"')" )
+''']]></script>
   </tool>
 </shelfDocument>
