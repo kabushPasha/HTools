@@ -1,8 +1,6 @@
 set exif=%~dp0"exiftool.exe"
+set file="%*"
+for /f %%i in ('%exif% -s -s -s -XMP:source %file%') do set RESULT=%%i
+explorer "%RESULT%"
 
-for /f %%i in ('%exif% -s -s -s -XMP:source %1') do set RESULT=%%i
-start %RESULT%
-
-
-
-
+::pause

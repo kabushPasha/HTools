@@ -5,4 +5,4 @@ set /p new_url="Enter URL: "
 echo %new_url%
 %exif% "-XMP:source=%new_url%" %1
 
-pause
+::pause
