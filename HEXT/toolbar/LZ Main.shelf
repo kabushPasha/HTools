@@ -19,6 +19,7 @@
     <memberTool name="New Flooating Panel"/>
     <memberTool name="Reload Textures"/>
     <memberTool name="update snippets from clipboard"/>
+    <memberTool name="fileCache finder"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
