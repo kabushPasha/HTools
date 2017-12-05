@@ -1,1 +1,0 @@
-"%HTOOLS%/batch/ImgUrl/IMGURL_set.bat" %OutPath

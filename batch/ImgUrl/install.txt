@@ -1,0 +1,20 @@
+set HTOOLS env with .bat in git folder
+merge the reg file
+
+
+setup gadwin printscreen
+- in prefs turn off widget,messages and sound
+- in image shadow and coursor
+- in post-capture preview,copy to clipboard a
+ + format jpeg
+ + fix save folder
+ + custom action
+"%HTOOLS%/batch/ImgUrl/IMGURL_set.bat" %OutPath
+
+
+Add features:
+- rename manual
+- dont open cmd
+
+- open mega/git from desktop
+- add hotkeys to windows
