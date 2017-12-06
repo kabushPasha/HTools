@@ -3889,6 +3889,7 @@ for node in nodes:
 
   <tool name="bake anim" label="Bake Sim Anim" icon="PLASMA_App">
     <script scriptType="python"><![CDATA[step = 1
+step = int( hou.ui.readInput("select step size",default_choice=1, initial_contents='1')[1])
 
 for n in hou.selectedNodes():
     timeshift = n.createOutputNode('timeshift')
@@ -3910,7 +3911,7 @@ for n in hou.selectedNodes():
     for i in range(start_frame,end_frame):
             if i%step == 0:
                     hou.setFrame(i)
-                    print i
+                    #print i
     
                     Time = int(hou.expandString('$F'))
                     g = n.geometryAtFrame(Time)
