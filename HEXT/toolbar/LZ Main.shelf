@@ -936,4 +936,24 @@ for ans in answer:
   <tool name="set project" label="Set Project" icon="hicon:/SVGIcons.index?BUTTONS_down.svg">
     <script scriptType="python"><![CDATA[hou.appendSessionModuleSource("import lzutil\nlzutil.updateJobFromHipLocation()")]]></script>
   </tool>
+
+  <tool name="fileCache finder" label="FileCache finder" icon="hicon:/SVGIcons.index?SOP_filecache.svg">
+    <script scriptType="python"><![CDATA[d = hou.ui.curDesktop()
+
+import ctypes
+user32 = ctypes.windll.user32
+sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
+dy = [0.4,0.95];
+dx = [0.5,0.8];    
+
+pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
+size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
+
+pos = (3387, 103)
+size = (1100, 1254)
+
+panel = d.createFloatingPanel(hou.paneTabType.PythonPanel,pos,size)
+pypanel = panel.paneTabs()[0]
+pypanel.setActiveInterface(hou.pypanel.interfaceByName('File Cache Finder'))]]></script>
+  </tool>
 </shelfDocument>
