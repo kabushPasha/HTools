@@ -238,4 +238,18 @@ for n in hou.selectedNodes():
 
 ]]></script>
   </tool>
+
+  <tool name="Rs displacement" label="Rs displacement" icon="SOP_mountain">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    n.parm("RS_objprop_rstess_enable").set(1)
+    n.parm("RS_objprop_displace_enable").set(1)
+    mat = hou.node(n.parm('shop_materialpath').eval())
+    if mat.type().name() == 'redshift_vopnet':
+        disp = mat.createNode('Displacement')
+        disp.setDetailHighFlag(True)
+        out = mat.node('redshift_material1')        
+        out.setInput(1,disp)
+        
+        disp.setPosition(out.position() + hou.Vector2(-2,2.5))]]></script>
+  </tool>
 </shelfDocument>
