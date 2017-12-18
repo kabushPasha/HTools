@@ -1,5 +1,5 @@
 ::echo off
-%HFS%/bin/mplay.exe *.jpg *.png *.exr *.pic
-pause
+start %HFS%/bin/mplay.exe *.jpg *.png *.exr *.pic
+::pause
 
 
