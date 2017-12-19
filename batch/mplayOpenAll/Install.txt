@@ -1,0 +1,4 @@
+-Set HTOOLS with setHtolls.bat 
+(HTOOLS should have batch folder in it,which has maplyOpenAll subfolder)
+-Set HFS that points to Houdini install dir with setHFS.bat
+-merge MplayOpenAll.reg
