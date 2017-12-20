@@ -198,6 +198,9 @@ env.setDisplayFlag(False)
   </tool>
 
   <tool name="substance material" label="substance material" icon="RS_objectSpareParameters_icon">
+    <helpText><![CDATA["""Select obj to apply mat to
+Substance folder must hacve the same name as textures"""
+]]></helpText>
     <script scriptType="python"><![CDATA[hou.hscript('Redshift_objectSpareParameters')
 for n in hou.selectedNodes():
     shader = hou.node("/shop").createNode('redshift_vopnet',n.name())
