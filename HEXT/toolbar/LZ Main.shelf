@@ -934,7 +934,9 @@ for ans in answer:
   </tool>
 
   <tool name="set project" label="Set Project" icon="hicon:/SVGIcons.index?BUTTONS_down.svg">
-    <script scriptType="python"><![CDATA[hou.appendSessionModuleSource("import lzutil\nlzutil.updateJobFromHipLocation()")]]></script>
+    <script scriptType="python"><![CDATA[hou.appendSessionModuleSource("import lzutil\nlzutil.updateJobFromHipLocation()")
+import lzutil
+lzutil.updateJobNameFromHipLocation()]]></script>
   </tool>
 
   <tool name="fileCache finder" label="FileCache finder" icon="hicon:/SVGIcons.index?SOP_filecache.svg">
