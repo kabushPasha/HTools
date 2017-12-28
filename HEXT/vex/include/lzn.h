@@ -416,6 +416,63 @@ vector cxn(vector4 pos;int turb){
 vector cxn(vector4 pos){
 	return curlNoiseVV(pos,3,0.5,1,"xnoise");}	
 
+//AAFlow Noise
+float aaffn(vector pos;int turb;float rough;float flow;float flowRate;float selfAdvect){	
+	float noise = vop_fbmFlowNoiseFV(pos, rough, turb, flow, flowRate, selfAdvect);	
+	return noise;}
+float aaffn(vector pos;int turb;float rough){	
+	float noise = vop_fbmFlowNoiseFV(pos, rough, turb, 0, 1, 0);	
+	return noise;}
+float aaffn(vector pos;int turb){	
+	float noise = vop_fbmFlowNoiseFV(pos, 0.5, turb, 0, 1, 0);		
+	return noise;}
+float aaffn(vector pos){	
+	float noise = vop_fbmFlowNoiseFV(pos, 0.5, 8, 0, 1, 0);		
+	return noise;}
+
+float aaffn(vector4 pos;int turb;float rough;float flow;float flowRate;float selfAdvect){	
+	float noise = vop_fbmFlowNoiseFP(pos, rough, turb, flow, flowRate, selfAdvect);	
+	return noise;}
+float aaffn(vector4 pos;int turb;float rough){	
+	float noise = vop_fbmFlowNoiseFP(pos, rough, turb, 0, 1, 0);	
+	return noise;}
+float aaffn(vector4 pos;int turb){	
+	float noise = vop_fbmFlowNoiseFP(pos, 0.5, turb, 0, 1, 0);		
+	return noise;}
+float aaffn(vector4 pos){	
+	float noise = vop_fbmFlowNoiseFP(pos, 0.5, 8, 0, 1, 0);		
+	return noise;}
+
+vector aafvn(vector pos;int turb;float rough;float flow;float flowRate;float selfAdvect){	
+	vector noise = vop_fbmFlowNoiseVV(pos, rough, turb, flow, flowRate, selfAdvect);	
+	return noise;}
+vector aafvn(vector pos;int turb;float rough){	
+	vector noise = vop_fbmFlowNoiseVV(pos, rough, turb, 0, 1, 0);	
+	return noise;}
+vector aafvn(vector pos;int turb){	
+	vector noise = vop_fbmFlowNoiseVV(pos, 0.5, turb, 0, 1, 0);		
+	return noise;}
+vector aafvn(vector pos){	
+	vector noise = vop_fbmFlowNoiseVV(pos, 0.5, 8, 0, 1, 0);		
+	return noise;}
+
+vector aafvn(vector4 pos;int turb;float rough;float flow;float flowRate;float selfAdvect){	
+	vector noise = vop_fbmFlowNoiseVP(pos, rough, turb, flow, flowRate, selfAdvect);	
+	return noise;}
+vector aafvn(vector4 pos;int turb;float rough){	
+	vector noise = vop_fbmFlowNoiseVP(pos, rough, turb, 0, 1, 0);	
+	return noise;}
+vector aafvn(vector4 pos;int turb){	
+	vector noise = vop_fbmFlowNoiseVP(pos, 0.5, turb, 0, 1, 0);		
+	return noise;}
+vector aafvn(vector4 pos){	
+	vector noise = vop_fbmFlowNoiseVP(pos, 0.5, 8, 0, 1, 0);		
+	return noise;}
+
+
+
+	
+
 	
 // WORLEY NOISES
 float wseed(vector P)	

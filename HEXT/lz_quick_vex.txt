@@ -18,7 +18,11 @@
 		"AA: 1D: Perlin" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','apfn')"},		
 		"AA: 1D: Simplex" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','asfn')"},		
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','asfn')"},
+
+		"AA:1D:Flow" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','aaffn')"},	
+				
 		
 		"Other: 1D: Worley Seed" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wseed')"},		
@@ -49,7 +53,10 @@
 		"AA: 3D: Perlin" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','apvn')"},		
 		"AA: 3D: Simplex" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','asvn')"},			
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','asvn')"},
+
+		"AA:3D:Flow" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','aafvn')"},				
 		
 		"CURL: 3D: Perlin" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','cpn')"},

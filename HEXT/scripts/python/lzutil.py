@@ -40,7 +40,8 @@ def createNoiseFolderParmTemplate(id):
 
 # checks if node is a snippet and if it has a folder with noises, adds a noise and creates spare amp and freq
 def addNoiseScriptAndParmsToSnippet(n,dim = 'float',fun = 'pfn'):
-	if n.type().name() == 'attribwrangle': 
+	if n.parm('snippet') is not None:
+	#if n.type().name() == 'attribwrangle' or n.type().name() =='volumewrangle': 
 		includeAddSafe(n,'lzn')
 		ptg = n.parmTemplateGroup()    
 		parm = ptg.findFolder('Noises')
