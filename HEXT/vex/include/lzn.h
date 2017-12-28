@@ -331,6 +331,7 @@ vector cpn(vector pos;int turb){
 vector cpn(vector pos){
 	return curlNoiseVV(pos,3,0.5,1,"pnoise");}	
 	
+	
 vector cpn(vector4 pos;int turb;float rough;float atten){
 	return curlNoiseVV(pos,turb,rough,atten,"pnoise");}
 vector cpn(vector4 pos;int turb;float rough){
@@ -535,7 +536,11 @@ float saturate(float v)
 }	
 
 
-
+// set remapping
+vector4 set(vector P;float x)
+{
+	return set(P.x,P.y,P.z,x);	
+}
 
 
 	

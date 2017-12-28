@@ -81,7 +81,8 @@
 		"04. Delete N Attribute(point)" : {
 			"action":"n.createOutputNode('attribdelete').parm('ptdel').set('N')"},
 		"05. Create Rest" : {"code":"v@rest = @P;"},	
-		"06. Restore Rest" : {"code":"@P = v@rest;"}	
+		"06. Restore Rest" : {"code":"@P = v@rest;"},
+		"07. Create Vector4" : {"lib":["lzn"],"code":"vector4 pos = set(@P,@Time*chf('flow_speed'));"}
 		
 		},	
 		
