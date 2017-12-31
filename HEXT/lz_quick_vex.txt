@@ -112,8 +112,13 @@
 		"08. Bottom Inactive ":{
 			"code" : "if( @P.y<chf('tres')) i@active = 0;"},
 		"09. Sphere Sprite ":{
-			"code" : "v@spritescale = {1,1,1};\ns@spriteshop = '/obj/sim/popnet/popsprite1/shopnet1/spritefog';\np@spriteuv = {0,0,1,1};"}	
-		},		
+			"code" : "v@spritescale = {1,1,1};\ns@spriteshop = '/obj/sim/popnet/popsprite1/shopnet1/spritefog';\np@spriteuv = {0,0,1,1};"},
+		"10. Set Pscale":{
+			"code" : "f@pscale = chf('pscale');"},
+		"11. Pscale Ramp":{
+			"code" : "f@pscale = chf('pscale')*chramp('scaleRamp',rand(i@id));"}
+		
+	},		
 				
 	"06 Model":{
 		"00. Null" : {"node":"null"},
