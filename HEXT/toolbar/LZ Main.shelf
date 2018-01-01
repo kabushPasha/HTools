@@ -22,6 +22,7 @@
     <memberTool name="update snippets from clipboard"/>
     <memberTool name="Install Otl Lib"/>
     <memberTool name="fileCache finder"/>
+    <memberTool name="Particle Display Type"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -957,5 +958,20 @@ size = (1100, 1254)
 panel = d.createFloatingPanel(hou.paneTabType.PythonPanel,pos,size)
 pypanel = panel.paneTabs()[0]
 pypanel.setActiveInterface(hou.pypanel.interfaceByName('File Cache Finder'))]]></script>
+  </tool>
+
+  <tool name="Particle Display Type" label="Particle Display Type" icon="hicon:/SVGIcons.index?POP_property.svg">
+    <script scriptType="python"><![CDATA[import toolutils
+sv = toolutils.sceneViewer()
+vp = sv.curViewport()
+settings = vp.settings()
+
+curr_type = settings.particleDisplayType()
+points = hou.viewportParticleDisplay.Points
+pixels = hou.viewportParticleDisplay.Pixels
+
+new_type = pixels if (curr_type == points) else points
+
+settings.particleDisplayType( new_type )]]></script>
   </tool>
 </shelfDocument>
