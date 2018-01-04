@@ -1,2 +1,4 @@
 Rem set Houdinitools environment variable to current folder
-setx HFS  %~dp0
+set "dir=%~dp0"
+setx HINST "%dir:~0,-1%"
+pause
