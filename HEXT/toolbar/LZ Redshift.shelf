@@ -54,8 +54,8 @@ for n in hou.selectedNodes():
     <script scriptType="python"><![CDATA[hou.hscript('Redshift_objectSpareParameters')
 
 for n in hou.selectedNodes():
-    n.parm('RS_objprop_volume_enable').set(1)
-    n.parm('RS_objprop_volume_type').set(1)
+    #n.parm('RS_objprop_volume_enable').set(1)
+    #n.parm('RS_objprop_volume_type').set(1)
     
     shader = hou.node("/shop").createNode("rs_volume",n.name())
     
@@ -199,11 +199,11 @@ newnode.moveToGoodPosition()
 newnode.parm('RSL_volumeScale').set(1)
 newnode.setDisplayFlag(False)
 
-newnode.parm('tex0').set('$HASS/HDRI/panorama_map.hdr')
+newnode.parm('env_map').set('$HASS/HDRI/panorama_map.hdr')
 newnode.parm('ogl_enablelight').set(0)
 
-env = newnode.createOutputNode('envlight','PROXY_LIGHT_'+newnode.name())
-env.setDisplayFlag(False)
+#env = newnode.createOutputNode('envlight','PROXY_LIGHT_'+newnode.name())
+#env.setDisplayFlag(False)
 ]]></script>
   </tool>
 
