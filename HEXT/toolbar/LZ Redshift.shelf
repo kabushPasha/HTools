@@ -23,7 +23,11 @@
 newnode = objecttoolutils.genericCameraLightTool(kwargs, 'cam', 'cam1',False)
 hou.hscript('Redshift_cameraSpareParameters')
 
-newnode.setDisplayFlag(False)]]></script>
+newnode.setDisplayFlag(False)
+newnode.setName("RS_Cam")
+
+newnode.parm("resx").set(1920)
+newnode.parm("resx").set(1080)]]></script>
   </tool>
 
   <tool name="RS obj shader" label="RS obj shader" icon="RS_objectSpareParameters_icon">
@@ -141,6 +145,12 @@ if rs is None:
     rs.parm("RS_aov").set(1)
     rs.parm("RS_aovID_1").set(1)
     rs.parm("RS_aovSuffix_1").set('Z')
+    
+    rs.parm("RS_renderCamera").set("/obj/RS_Cam")
+    rs.parm("RS_lights_candidate").set("RS_*")
+    rs.parm("RS_objects_candidate").set("RS_*")
+    
+    
     
     
     
