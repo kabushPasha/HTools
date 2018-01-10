@@ -23,6 +23,7 @@
     <memberTool name="Install Otl Lib"/>
     <memberTool name="fileCache finder"/>
     <memberTool name="Particle Display Type"/>
+    <memberTool name="OpenJOB"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -974,5 +975,10 @@ pixels = hou.viewportParticleDisplay.Pixels
 new_type = pixels if (curr_type == points) else points
 
 settings.particleDisplayType( new_type )]]></script>
+  </tool>
+
+  <tool name="OpenJOB" label="OpenJOB" icon="hicon:/SVGIcons.index?SOP_pack.svg">
+    <script scriptType="python"><![CDATA[import lzutil
+lzutil.openFolderFromEnv("JOB")]]></script>
   </tool>
 </shelfDocument>
