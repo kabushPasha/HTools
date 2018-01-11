@@ -27,7 +27,7 @@ newnode.setDisplayFlag(False)
 newnode.setName("RS_Cam")
 
 newnode.parm("resx").set(1920)
-newnode.parm("resx").set(1080)]]></script>
+newnode.parm("resy").set(1080)]]></script>
   </tool>
 
   <tool name="RS obj shader" label="RS obj shader" icon="RS_objectSpareParameters_icon">
