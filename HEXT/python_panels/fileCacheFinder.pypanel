@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="File Cache Finder" label="File Cache Finder" icon="MISC_python" help_url="">
+    <script><![CDATA[from hutil.Qt import QtWidgets
+import os
+
+
+def doubleClicked(item):
+    data = item.data()
+    n = hou.node(data)
+    path = n.parent().path()
+    
+    net_editor =  hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    net_editor.cd(path)
+    pos = n.position()
+    offset = hou.Vector2(3,3)  
+    net_editor.setVisibleBounds(hou.BoundingRect(pos-offset,pos+offset),0.02,100,True)
+    
+    n.setSelected(True)
+
+    
+class interface(QtWidgets.QWidget):
+    def __init__(self):
+        super(interface, self).__init__() 
+        #create Layout
+        mainLayout = QtWidgets.QHBoxLayout()  
+        # CUSTOM :        
+        nodes_list = QtWidgets.QListWidget()
+        paths_list = QtWidgets.QListWidget()
+        versions_list = QtWidgets.QListWidget()
+        size_list = QtWidgets.QListWidget()
+        
+        node_type = hou.nodeType(hou.sopNodeTypeCategory(),'filecache')
+        filecaches =  node_type.instances()
+        
+        for filecache in filecaches:
+            nodes_list.addItem(filecache.path())
+            
+            file_paths = filecache.parm('file').eval().replace('\\','/')
+            path =  os.path.dirname(os.path.dirname(file_paths))
+            paths_list.addItem(path)
+            
+            #print os.listdir(path)
+            
+            
+            
+        nodes_list.doubleClicked.connect(doubleClicked)    
+        
+        mainLayout.addWidget(nodes_list)  
+        mainLayout.addWidget(paths_list) 
+       
+        nodes_list.adjustSize()
+        
+                #set Layout
+        self.setLayout(mainLayout)
+                
+                
+def createInterface():
+    return interface()          
+        
+    
+    
+'''    
+def createInterface():    
+    
+    list = QtWidgets.QListWidget()
+    
+    node_type = hou.nodeType(hou.sopNodeTypeCategory(),'filecache')
+    filecaches =  node_type.instances()
+    
+    for filecache in filecaches:
+        list.addItem(filecache.path())
+        
+    list.doubleClicked.connect(doubleClicked)    
+        
+    return list
+'''
+]]></script>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>
