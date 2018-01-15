@@ -7,7 +7,7 @@
  in a single file. -->
   <interface name="File Cache Finder" label="File Cache Finder" icon="MISC_python" help_url="">
     <script><![CDATA[from hutil.Qt import QtWidgets
-import os
+import os,lzutil
 
 
 def doubleClicked(item):
@@ -22,7 +22,10 @@ def doubleClicked(item):
     net_editor.setVisibleBounds(hou.BoundingRect(pos-offset,pos+offset),0.02,100,True)
     
     n.setSelected(True)
-
+    
+def doubleClickedPath(item):
+    data = item.data().rsplit('/', 1)[0]
+    lzutil.explorer(data)
     
 class interface(QtWidgets.QWidget):
     def __init__(self):
@@ -50,6 +53,7 @@ class interface(QtWidgets.QWidget):
             
             
         nodes_list.doubleClicked.connect(doubleClicked)    
+        paths_list.doubleClicked.connect(doubleClickedPath) 
         
         mainLayout.addWidget(nodes_list)  
         mainLayout.addWidget(paths_list) 

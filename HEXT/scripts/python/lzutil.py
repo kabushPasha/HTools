@@ -150,6 +150,7 @@ def installOtlLibsUI():
 		print  "\nimport lzutil\nlzutil.installOtlLib('"+lib +"')"
 		hou.appendSessionModuleSource( "import lzutil\nlzutil.installOtlLib('"+lib +"')" )
 
-
+def explorer(dir):
+	subprocess.Popen('explorer "' + dir.replace('/','\\')  + '"')
 
 	
