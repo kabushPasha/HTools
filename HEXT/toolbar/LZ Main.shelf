@@ -978,7 +978,12 @@ settings.particleDisplayType( new_type )]]></script>
   </tool>
 
   <tool name="OpenJOB" label="OpenJOB" icon="hicon:/SVGIcons.index?SOP_pack.svg">
+    <helpText><![CDATA["""click - open JOB folder
+ctrl+click - open HIP folder"""]]></helpText>
     <script scriptType="python"><![CDATA[import lzutil
-lzutil.openFolderFromEnv("$JOB")]]></script>
+if kwargs['ctrlclick']:
+    lzutil.openFolderFromEnv("$HIP")
+else:
+    lzutil.openFolderFromEnv("$JOB")]]></script>
   </tool>
 </shelfDocument>
