@@ -16,6 +16,8 @@
     <memberTool name="LZ RS LightDome"/>
     <memberTool name="Rs displacement"/>
     <memberTool name="substance material"/>
+    <memberTool name="Add Object Spare Parameters"/>
+    <memberTool name="Import RS_Proxies"/>
   </toolshelf>
 
   <tool name="rs_cam_from_view" label="Rs camera from view" icon="hicon:/SVGIcons.index?OBJ_camera.svg">
@@ -264,5 +266,47 @@ for n in hou.selectedNodes():
         out.setInput(1,disp)
         
         disp.setPosition(out.position() + hou.Vector2(-2,2.5))]]></script>
+  </tool>
+
+  <tool name="Import RS_Proxies" label="Import RS_Proxies" icon="PLASMA_App">
+    <helpText><![CDATA["""imports and scales all proxies in $JOB/Cache/Redshift"""]]></helpText>
+    <script scriptType="python"><![CDATA[# import all proxies from $JOB/Cache/redshift
+import glob
+subdir = "/Cache/Redshift/"
+rsCache =  hou.expandString("$JOB")+subdir
+proxies = glob.glob(rsCache + "*.rs")
+
+obj = hou.node("/obj")
+null = obj.createNode("null","Scale")
+null.parm("scale").set(0.01)
+null.parm("picking").set(0)
+null.setDisplayFlag(0)
+offset = 0
+
+for proxy in proxies:
+    print proxy
+    filename = proxy.split("\\").pop()
+    pName = filename.split(".")[0]
+    pNode = null.createOutputNode("geo",pName) 
+    pNode.setPosition(null.position() + hou.Vector2(offset,-1))
+    offset += 2
+    
+    pNode.setSelected(1,1)
+    hou.hscript('Redshift_objectSpareParameters')
+    
+    pNode.parm("RS_objprop_proxy_enable").set(1)
+    pNode.parm("RS_objprop_proxy_file").set("$JOB" + subdir + filename)
+    
+    pSOP = pNode.createNode('redshift_proxySOP')
+    pSOP.setDisplayFlag(1)
+    pSOP.setRenderFlag(1)
+    
+    file = pNode.node("file1")
+    file.destroy()
+    
+    
+    
+    
+    ]]></script>
   </tool>
 </shelfDocument>
