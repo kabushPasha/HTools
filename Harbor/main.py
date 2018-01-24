@@ -63,53 +63,53 @@ class Example(QWidget):
     def addShotButtons(self,dir):
         shotBox = QHBoxLayout()
         dirName = dir.split("\\").pop(-2)
-
+        print("test_02")
         self.shotDict[dirName] = dir;
-        shotNum = int(dirName.split("s").pop())//10
-        self.lastShot = max(self.lastShot,shotNum)
+        # We need to check if our string matches the s000 pattern
+        if len(dirName)==4 and dirName[1].isdigit():
+            shotNum = int(dirName.split("s").pop())//10
+            self.lastShot = max(self.lastShot,shotNum)
+            # Create Buttons
+            # Directory Button
+            dirButton = QPushButton(dirName)
+            dirButton.clicked.connect(lambda state, _dir=dir: subprocess.Popen('explorer "' + _dir + '"'))
+            shotBox.addWidget(dirButton)
 
-        # Create Buttons
-        # Directory Button
-        dirButton = QPushButton(dirName)
-        dirButton.clicked.connect(lambda state, _dir=dir: subprocess.Popen('explorer "' + _dir + '"'))
-        shotBox.addWidget(dirButton)
+            buttonLabels = ["Anim","Layout","Houdini","Nuke","Render"]
+            extensions = {
+                            "Anim":[],
+                            "Layout":["mb","ma"],
+                            "Houdini":["hip"],
+                            "Nuke":["nk"],
+                            "Render":[]
+            }
 
+            # create buttons and add calbacks
+            for buttonLabel in buttonLabels:
+                # Create button
+                button = QPushButton("")
+                # Add callback
+                button.clicked.connect(lambda state, _dir=dir + buttonLabel: subprocess.Popen('explorer "' + _dir + '"'))
+                # set icon and icon size
+                button.setFixedSize(self.size, self.size)
+                button.setIcon(QIcon(QPixmap('icons/' + buttonLabel + '.png')))
+                button.setIconSize(QtCore.QSize(self.size ** self.iconScale, self.size * self.iconScale));
 
-        buttonLabels = ["Anim","Layout","Houdini","Nuke","Render"]
-        extensions = {
-                        "Anim":[],
-                        "Layout":["mb","ma"],
-                        "Houdini":["hip"],
-                        "Nuke":["nk"],
-                        "Render":[]
-        }
+                # Context Menus
+                button.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+                ext = extensions[buttonLabel]
+                button.customContextMenuRequested.connect(lambda point,button=button,_dir=dir + buttonLabel,_ext = ext:self.on_context_menu(point,button,_dir,_ext))
 
-        # create buttons and add calbacks
-        for buttonLabel in buttonLabels:
-            # Create button
-            button = QPushButton("")
-            # Add callback
-            button.clicked.connect(lambda state, _dir=dir + buttonLabel: subprocess.Popen('explorer "' + _dir + '"'))
-            # set icon and icon size
-            button.setFixedSize(self.size, self.size)
-            button.setIcon(QIcon(QPixmap('icons/' + buttonLabel + '.png')))
-            button.setIconSize(QtCore.QSize(self.size ** self.iconScale, self.size * self.iconScale));
+                # add button to current shot
+                shotBox.addWidget(button)
 
-            # Context Menus
-            button.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-            ext = extensions[buttonLabel]
-            button.customContextMenuRequested.connect(lambda point,button=button,_dir=dir + buttonLabel,_ext = ext:self.on_context_menu(point,button,_dir,_ext))
-
-            # add button to current shot
-            shotBox.addWidget(button)
-
-        # add shot to shot box
-        self.shotsBox.addLayout(shotBox)
+            # add shot to shot box
+            self.shotsBox.addLayout(shotBox)
 
     def updateShotsBox(self):
         self.clearLayout(self.shotsBox)
         self.lastShot = 0
-        dirs = glob(self.sourceFolder + "/s*/")
+        dirs = glob(self.sourceFolder + "\\s*\\")
         for dir in dirs:
             self.addShotButtons(dir)
 
@@ -117,9 +117,9 @@ class Example(QWidget):
     def createProjectComboBox(self):
         # select project
         self.ProjectComboBox = QComboBox();
-        dirs = glob(self.projectsFolder + "/*/")
+        dirs = glob(self.projectsFolder + "\\*\\")
         for dir in dirs:
-            print(dir)
+            #print(dir)
             dirName = dir.split("\\")[-2]
             self.ProjectComboBox.addItem(dirName, dir)
         self.ProjectComboBox.currentIndexChanged.connect(self.projectChanged)
@@ -129,11 +129,9 @@ class Example(QWidget):
 
 
     def projectChanged(self):
-        print(self.ProjectComboBox.currentData())
-        print(self.sourceFolder )
         self.sourceFolder = self.ProjectComboBox.currentData()
-        print(self.sourceFolder)
         self.updateShotsBox()
+
 
     def createTopBar(self):
         #Create top bar
