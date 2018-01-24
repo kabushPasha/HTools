@@ -80,9 +80,14 @@ def setProject():
 	if answer is not '':
 		# Make dirs
 		os.makedirs(answer)
-		os.makedirs(answer + "/hip")
-		os.makedirs(answer + "/flipbook")
-		os.makedirs(answer + "/render")
+		os.makedirs(answer + "/Hip")
+		os.makedirs(answer + "/Flipbook")
+		os.makedirs(answer + "/Render")
+		os.makedirs(answer + "/Cache")
+		os.makedirs(answer + "/Cache/Abc")
+		os.makedirs(answer + "/Cache/Sim")
+		os.makedirs(answer + "/Cache/Stash")
+		os.makedirs(answer + "/Cache/Redshift")
 		
 		hipname = answer.split("/").pop()
 		
