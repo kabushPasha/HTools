@@ -25,6 +25,7 @@
     <memberTool name="lz_add_vis_controll"/>
     <memberTool name="add deform"/>
     <memberTool name="replace obj/ to ../"/>
+    <memberTool name="Test JSON"/>
   </toolshelf>
 
   <tool name="box slice" label="box slice" icon="MISC_generic">
@@ -4234,5 +4235,36 @@ for n in hou.selectedNodes():
     <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
     r = n.node("resample")
     r.parm("length").set(0.005)]]></script>
+  </tool>
+
+  <tool name="Test JSON" label="Test JSON" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import json
+#rules = json.load(open('D:/data.txt'))
+"""
+rules = {
+    'origin': '#hello.capitalize#, #location#!',
+    'hello': ['hello', 'greetings', 'howdy', 'hey'],
+    'location': ['world', 'solar system', 'galaxy', 'universe']
+}
+
+with open('D:/data.txt', 'w') as outfile:
+    json.dump(rules, outfile)
+    
+rules2 = json.load(open('D:/data.txt'))
+print rules2.keys()
+"""
+
+config = dict()
+config = json.load(open('D:/data.txt'))
+config['sourceFolder'] = 'S:'
+config['projects'] = ['Dog','Test','Boy']
+config['lastProject'] = ['Dog']
+
+with open('D:/data.txt', 'w') as outfile:
+    json.dump(config, outfile)
+
+    
+
+    ]]></script>
   </tool>
 </shelfDocument>

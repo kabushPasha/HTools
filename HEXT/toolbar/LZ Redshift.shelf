@@ -18,6 +18,7 @@
     <memberTool name="substance material"/>
     <memberTool name="Add Object Spare Parameters"/>
     <memberTool name="Import RS_Proxies"/>
+    <memberTool name="Add RS Prefix"/>
   </toolshelf>
 
   <tool name="rs_cam_from_view" label="Rs camera from view" icon="hicon:/SVGIcons.index?OBJ_camera.svg">
@@ -139,7 +140,7 @@ if rs is None:
     rs.parm('RS_renderAOVsToMPlay').set(1)
     rs.parm('RS_outputEnable').set(0)
     
-    rs.parm('RS_outputFileNamePrefix').set('$HC/$HIPNAME/render/$OS.frame_$F.bgeo.sc')
+    rs.parm('RS_outputFileNamePrefix').set('$JOB/Render/$OS/frame.$F.bgeo.sc')
     rs.parm('RS_iprOverrideCameraRes').set(0)
     rs.parm('RS_iprUpdateMeshDeform').set(0)
     rs.parm('RS_lights_exclude').set('PROXY_LIGHT*')
@@ -151,7 +152,7 @@ if rs is None:
     rs.parm("RS_renderCamera").set("/obj/RS_Cam")
     rs.parm("RS_lights_candidate").set("RS_*")
     rs.parm("RS_objects_candidate").set("RS_*")
-    
+    rs.parm("RS_addDefaultLight").set(0)
     
     
     
