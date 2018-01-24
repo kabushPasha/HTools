@@ -1,0 +1,11 @@
+Assets/
+.svn/
+Previs/
+*.mel
+FrameRangers.txt
+
+*/Houdini/
+*/Layout/
+*/Anim/
+*/Nuke/
+*/Cache/
