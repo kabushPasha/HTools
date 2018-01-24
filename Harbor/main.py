@@ -15,8 +15,8 @@ class Example(QWidget):
         self.shotsBox = QVBoxLayout()
 
         # DATA
-        self.projectsFolder = "D:\Pasha\Test"
-        #self.projectsFolder = "S:"
+        #self.projectsFolder = "D:\Pasha\Test"
+        self.projectsFolder = "S:"
         self.sourceFolder = ""
         self.shotDict = dict()
 
@@ -119,6 +119,7 @@ class Example(QWidget):
         self.ProjectComboBox = QComboBox();
         dirs = glob(self.projectsFolder + "/*/")
         for dir in dirs:
+            print(dir)
             dirName = dir.split("\\")[-2]
             self.ProjectComboBox.addItem(dirName, dir)
         self.ProjectComboBox.currentIndexChanged.connect(self.projectChanged)
@@ -225,10 +226,11 @@ class Example(QWidget):
         self.show()
 
     def test(self):
-        (text, truth) = QInputDialog.getText(self, "Get text", "User name", QLineEdit.Normal, "NoName")
-        if truth:
+        #(text, truth) = QInputDialog.getText(self, "Get text", "User name", QLineEdit.Normal, "NoName")
+        #if truth:
             # The user has accepted the edit, he/she has clicked OK
-            print(text)
+        #    print(text)
+        print(self.sourceFolder)
 
     def clearLayout(self, layout):
         if layout is not None:
