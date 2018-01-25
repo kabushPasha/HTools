@@ -1,1 +1,1 @@
-{"projectsFolder": "D:\\Pasha\\Test", "projects": {"Ramona": "D:\\Pasha\\Test\\Ramona", "RobotRacoonRage": "D:\\Pasha\\Test\\RobotRacoonRage", "Hasdrubal": "D:\\Pasha\\Test\\Hasdrubal", "Empty": "D:\\Pasha\\Test\\Empty"}, "icon_size": "40", "currProject": "Ramona"}
+{"projectsFolder": "S:", "projects": {"SA": "S:\\SA", "TEST": "S:\\TEST"}, "icon_size": "40", "currProject": "SA"}
