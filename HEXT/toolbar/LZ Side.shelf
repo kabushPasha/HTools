@@ -26,6 +26,7 @@
     <memberTool name="add deform"/>
     <memberTool name="replace obj/ to ../"/>
     <memberTool name="Test JSON"/>
+    <memberTool name="Send To Substance"/>
   </toolshelf>
 
   <tool name="box slice" label="box slice" icon="MISC_generic">
@@ -4266,5 +4267,15 @@ with open('D:/data.txt', 'w') as outfile:
     
 
     ]]></script>
+  </tool>
+
+  <tool name="Send To Substance" label="Send To Substance" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import subprocess
+painter = "C:\Program Files\Allegorithmic\Substance Painter\Substance Painter.exe"
+obj = "C:/Users/Pavel/Documents/MEGA/Projects/TESTs/01_HairSim/Cache/Temp/temp.obj"
+out = hou.expandString("$JOB/Cache/Substance/")
+
+
+subprocess.Popen([painter,"--mesh",obj,"--export-path",out])]]></script>
   </tool>
 </shelfDocument>
