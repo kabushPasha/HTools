@@ -1,12 +1,11 @@
 {
-    "projectsFolder": "D:\\Pasha\\Test",
+    "projectsFolder": "S:",
     "projects": {
-        "EmptyAssets": "D:\\Pasha\\Test\\EmptyAssets",
-        "Ramona": "D:\\Pasha\\Test\\Ramona",
-        "Hasdrubal": "D:\\Pasha\\Test\\Hasdrubal"
+        "SA": "S:\\SA",
+        "TEST": "S:\\TEST"
     },
     "icon_size": "40",
-    "currProject": "Hasdrubal",
-    "MayaVersion": "17",
-    "MayaInstallDir": "D:\\INSTALLED\\Maya"
+    "currProject": "SA",
+    "MayaVersion": "18",
+    "MayaInstallDir": "C:\\Program Files\\Autodesk"
 }

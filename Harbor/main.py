@@ -81,7 +81,7 @@ class Example(QWidget):
             command = []
             command += [self.MayaInstallDir + "\\Maya20" +self.MayaVersion + "\\bin\\maya.exe"]
             command += ["-command"]
-            command += ['loadPlugin "AbcExport";loadPlugin "AbcImport";file -f -open \"'+ file +'\";']
+            command += ['loadPlugin "AbcExport";loadPlugin "AbcImport";file -f -open \"'+ file.replace("\\","/") +'\";']
             command += ["-proj"]
             command += [os.path.dirname(os.path.dirname(file))]
             print(command)
