@@ -43,6 +43,9 @@ class Example(QWidget):
         self.projects = self.settings['projects']
         self.MayaVersion = self.settings['MayaVersion']
         self.MayaInstallDir = self.settings['MayaInstallDir']
+        self.MplayFormats = self.settings['MplayFormats']
+
+        self.StatusDict = self.settings['StatusDict']
 
         for key in self.projects.keys():
             self.projects[key].replace("\\\\","\\")
@@ -50,9 +53,41 @@ class Example(QWidget):
         self.size = int(self.settings['icon_size'])
         self.iconScale = 0.95
 
-    def on_context_menu(self, point,button,dir,ext,buttonLabel):
+    def on_context_menu(self, point,button,dir,ext,buttonLabel,shotName):
         if buttonLabel == "Render":
             print("render is here")
+            self.popMenu = QMenu(self)
+
+            folders = glob(dir + "/*/")
+            for folder in folders:
+                folderName = folder.split("\\").pop(-2)
+                subfolders = glob(folder + "*/")
+                # if it has no subfodlers add this thing as an action
+                if subfolders == []:
+                    openFolder = QAction(folderName, self)
+                    openFolder.setData(folder)
+                    self.popMenu.addAction(openFolder)
+                # else create an action for every pass
+                else:
+                    folderMenu = self.popMenu.addMenu(folderName)
+
+                    for subfolder in subfolders:
+                        subFolderName = subfolder.split("\\").pop(-2)
+                        print(subFolderName)
+                        openFolder = QAction(subFolderName, self)
+                        openFolder.setData(["file",subfolder])
+                        folderMenu.addAction(openFolder)
+
+            self.popMenu.addSeparator()
+            # create change status actions
+            for status in self.StatusDict.keys():
+                setFinishedStatus = QAction(status, self)
+                setFinishedStatus.setData(["status",shotName,status,buttonLabel])
+                self.popMenu.addAction(setFinishedStatus)
+
+            self.popMenu.triggered[QAction].connect(self.processRenderMenu)
+            self.popMenu.exec_(button.mapToGlobal(point))
+
         else:
             self.popMenu = QMenu(self)
             # Find all files that match the extension
@@ -63,38 +98,82 @@ class Example(QWidget):
                 for e in ext:
                     files += glob(dir + "\*." + e)
 
+            # create open file actions
             for file in files:
                 fileName =  file.split("\\").pop(-1)
                 fileAction = QAction(fileName, self)
-                fileAction.setData([file,buttonLabel])
+                fileAction.setData([file,buttonLabel,"file"])
                 self.popMenu.addAction(fileAction)
+
+            self.popMenu.addSeparator()
+            # create change status actions
+            for status in self.StatusDict.keys():
+                setFinishedStatus = QAction(status, self)
+                setFinishedStatus.setData([status, buttonLabel,"status",shotName])
+                self.popMenu.addAction(setFinishedStatus)
+
+
+
             self.popMenu.triggered[QAction].connect(self.processContextMenu)
             self.popMenu.exec_(button.mapToGlobal(point))
+
+    # Open sequences in Mplay
+    def processRenderMenu(self,q):
+        type = q.data()[0]
+        if type == "file":
+            folder = q.data()[1]
+            hinst = os.environ['HINST']
+
+            command = []
+            command += [hinst + "/bin/mplay.exe"]
+            for format in self.MplayFormats:
+                command += [folder + "*." + format]
+
+            subprocess.Popen(command)
+        elif type == "status":
+            status = q.data()[2]
+            shotName = q.data()[1]
+            button = q.data()[3]
+
+            self.shotsInfo[shotName]['shotProgress'][button] = status;
+            self.saveShotsInfo()
+            self.updateShotsBox()
 
     def processContextMenu(self,q):
         file = q.data()[0]
         button = q.data()[1]
+        action = q.data()[2]
 
-        #kinda bad but we'll see if we can wrap it in any other way
-        if button == "Layout":
-            print("Openning Maya Scene: " + file)
-            command = []
-            command += [self.MayaInstallDir + "\\Maya20" +self.MayaVersion + "\\bin\\maya.exe"]
-            command += ["-command"]
-            command += ['loadPlugin "AbcExport";loadPlugin "AbcImport";file -f -open \"'+ file.replace("\\","/") +'\";']
-            command += ["-proj"]
-            command += [os.path.dirname(os.path.dirname(file))]
-            print(command)
+        if action == "file":
+            #kinda bad but we'll see if we can wrap it in any other way
+            if button == "Layout":
+                print("Openning Maya Scene: " + file)
+                command = []
+                command += [self.MayaInstallDir + "\\Maya20" +self.MayaVersion + "\\bin\\maya.exe"]
+                command += ["-command"]
+                command += ['loadPlugin "AbcExport";loadPlugin "AbcImport";file -f -open \"'+ file.replace("\\","/") +'\";']
+                command += ["-proj"]
+                command += [os.path.dirname(os.path.dirname(file))]
+                print(command)
 
-            subprocess.call(command,shell=True)
-        elif button == "Houdini":
-            print("Opening Houdini Scene: " + file)
-            subprocess.call([file],shell=True)
-        elif button == "Render":
-            print("Opening Sequence in mplay")
-        elif button == "Nuke":
-            print("Opening Nuke Project: " + file)
-            subprocess.call([file], shell=True)
+                subprocess.Popen(command,shell=True)
+            elif button == "Houdini":
+                print("Opening Houdini Scene: " + file)
+                subprocess.Popen([file],shell=True)
+            elif button == "Render":
+                print("Opening Sequence in mplay")
+            elif button == "Nuke":
+                print("Opening Nuke Project: " + file)
+                subprocess.Popen([file], shell=True)
+        elif action == "status":
+            status = file;
+            shotName = q.data()[3]
+
+            self.shotsInfo[shotName]['shotProgress'][button] = status;
+            self.saveShotsInfo()
+            self.updateShotsBox()
+
+
 
     def addShotButtons(self,dir):
         shotBox = QHBoxLayout()
@@ -102,13 +181,54 @@ class Example(QWidget):
         self.shotDict[dirName] = dir;
         # We need to check if our string matches the s000 pattern
         if len(dirName)==4 and dirName[1].isdigit():
+            # update last available shot in this project(used for adding new shots)
             shotNum = int(dirName.split("s").pop())//10
             self.lastShot = max(self.lastShot,shotNum)
 
+            # Process Shots info
+            #print(self.shotsInfo)
+            frameRange = [0,240]
+            shotLabel = "untitled"
+            shotProgress = {}
+            for step in self.structure.keys():
+                shotProgress[step] = "";
+            #  check there is info about current shot,if not save shots info
+            if dirName in self.shotsInfo.keys():
+                shotInfo = self.shotsInfo[dirName]
+                shotLabel = shotInfo['Label']
+                frameRange = shotInfo['FrameRange']
+                shotProgress = shotInfo['shotProgress']
+            else:
+                shotInfo = {}
+                shotInfo['Label'] = shotLabel
+                shotInfo['FrameRange'] = frameRange
+                shotInfo['shotProgress'] = shotProgress
+                self.shotsInfo[dirName] = shotInfo
+                self.saveShotsInfo()
+
             # Directory Button
-            dirButton = QPushButton(dirName)
+            frameRangeText = str(frameRange[0]) + "-" + str(frameRange[1]) + " ("  + str(frameRange[1] - frameRange[0]) + ")"
+            frameRangeText = frameRangeText
+
+            vbox = QVBoxLayout()
+
+            dirButton = QPushButton(" " + dirName +": " + shotLabel)
+            dirButton.setStyleSheet("Text-align:left;")
             dirButton.clicked.connect(lambda state, _dir=dir: self.safeOpen(_dir))
-            shotBox.addWidget(dirButton)
+            # Set shot status to finished if all the steps are finished
+
+            if all(value == "finished" for value in shotProgress.values()):
+                dirButton.setStyleSheet("Text-align:left;background-color:rgb(" + self.StatusDict["finished"] + ")");
+
+            vbox.addWidget(dirButton)
+
+            frameRangeWidget = QLabel(frameRangeText)
+            frameRangeWidget.setStyleSheet("font: 6pt")
+            vbox.addWidget(frameRangeWidget)
+
+            shotBox.addLayout(vbox)
+
+
 
             # Create Preview Icon
             previewImgPath = dir + "preview.jpg"
@@ -133,10 +253,16 @@ class Example(QWidget):
                 button.setIcon(QIcon(QPixmap('icons/' + buttonLabel + '.png')))
                 button.setIconSize(QtCore.QSize(self.size ** self.iconScale, self.size * self.iconScale));
 
+                status = shotProgress[buttonLabel]
+                if status != "":
+                    color = self.StatusDict[status]
+                    print (color)
+                    button.setStyleSheet("background-color:rgb(" + color + ")");
+
                 # Context Menus
                 button.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
                 ext =  self.structure[buttonLabel]
-                button.customContextMenuRequested.connect(lambda point,button=button,_dir=dir + buttonLabel,_ext = ext,_buttonLabel = buttonLabel:self.on_context_menu(point,button,_dir,_ext,_buttonLabel))
+                button.customContextMenuRequested.connect(lambda point,button=button,_dir=dir + buttonLabel,_ext = ext,_buttonLabel = buttonLabel,_dirName = dirName:self.on_context_menu(point,button,_dir,_ext,_buttonLabel,_dirName))
 
                 # add button to current shot
                 shotBox.addWidget(button)
@@ -166,6 +292,12 @@ class Example(QWidget):
         update.setFixedSize(self.size * 2 , self.size )
         update.clicked.connect(self.updateShotsBox)
         self.topBar.addWidget(update)
+
+        # move to bottom right
+        moveToBR = QPushButton(">")
+        moveToBR.setFixedSize(self.size, self.size)
+        moveToBR.clicked.connect(self.moveToBottomRight)
+        self.topBar.addWidget(moveToBR)
 
         self.vbox.addLayout(self.topBar)
 
@@ -211,6 +343,7 @@ class Example(QWidget):
             dirs = glob(self.sourceFolder + "\\s*\\")
             for dir in dirs:
                 self.addShotButtons(dir)
+        self.moveToBottomRight()
 
     def addProjects(self):
         # Add Projects t oselectable projects
@@ -348,6 +481,16 @@ class Example(QWidget):
                 self.makedirs(self.sourceFolder + "/" + dir)
             shutil.copy2("seafile-ignore.txt",self.sourceFolder + "/")
 
+    def createStatusBox(self):
+        self.statusBox = QHBoxLayout()
+
+        # Status bar
+        self.statusBar = QStatusBar()
+        self.statusBox.addWidget(self.statusBar)
+
+        self.vbox.addLayout(self.statusBox)
+
+    # INIT UI
     def initUI(self):
         self.createTopBar()
         self.createRootBar()
@@ -359,6 +502,7 @@ class Example(QWidget):
         self.vbox.addStretch()
 
         self.createBotBar()
+        self.createStatusBox()
 
         # add test button
         test = QPushButton("test")
@@ -367,13 +511,27 @@ class Example(QWidget):
 
         self.setLayout(self.vbox)
 
-        self.setGeometry(300, 300, 300, 150)
+        self.setGeometry(600, 600, 300, 150)
+
         self.setWindowTitle('Canoe:Harbor')
         self.show()
 
+        self.moveToBottomRight()
+
     def test(self):
         print ("source folder")
+        self.statusBar.showMessage("INFO: " + str(self.sourceFolder))
         #print(self.sourceFolder)
+
+
+    def moveToBottomRight(self):
+        ag = QDesktopWidget().availableGeometry()
+        sg = QDesktopWidget().screenGeometry()
+
+        widget = self.geometry()
+        x = ag.width() - widget.width() - 30
+        y = 2 * ag.height() - sg.height() - widget.height() - 20
+        self.move(x, y)
 
     def safeOpen(self,dir):
         if self.currProject is not "":
@@ -396,6 +554,7 @@ class Example(QWidget):
             self.shotsInfo = json.load(open(shotInfoPath))
         else:
             print("No Shots Info")
+            self.shotsInfo = {}
         #print(self.shotsInfo)
 
     def saveSettings(self):
@@ -409,6 +568,11 @@ class Example(QWidget):
         # write to file
         with open(self.inifile, 'w') as outfile:
             json.dump(self.settings, outfile, indent=4)
+
+    def saveShotsInfo(self):
+        shotInfoPath = self.sourceFolder + "\\shots.info"
+        with open(shotInfoPath, 'w') as outfile:
+            json.dump(self.shotsInfo, outfile, indent=4)
 
     def clearLayout(self, layout):
         if layout is not None:
