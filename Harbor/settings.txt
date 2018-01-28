@@ -22,5 +22,17 @@
         "jpeg",
         "tif",
         "png"
-    ]
+    ],
+    "Utils": {
+        "Server": "explorer D:\\share",
+        "Share": "explorer D:\\share\\Music",
+        "Utils": "explorer S:\\Utils",
+        "UpdUts": [
+            "C:\\Program Files\\TortoiseSVN\\bin\\svn.exe",
+            "update",
+            "S:\\Utils"
+        ],
+        "Env": "rundll32 sysdm.cpl,EditEnvironmentVariables",
+        "Reg": "regedit"
+    }
 }

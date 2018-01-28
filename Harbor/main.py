@@ -44,8 +44,10 @@ class Example(QWidget):
         self.MayaVersion = self.settings['MayaVersion']
         self.MayaInstallDir = self.settings['MayaInstallDir']
         self.MplayFormats = self.settings['MplayFormats']
-
         self.StatusDict = self.settings['StatusDict']
+
+        self.Utils = self.settings['Utils']
+
 
         for key in self.projects.keys():
             self.projects[key].replace("\\\\","\\")
@@ -55,7 +57,6 @@ class Example(QWidget):
 
     def on_context_menu(self, point,button,dir,ext,buttonLabel,shotName):
         if buttonLabel == "Render":
-            print("render is here")
             self.popMenu = QMenu(self)
 
             folders = glob(dir + "/*/")
@@ -73,7 +74,6 @@ class Example(QWidget):
 
                     for subfolder in subfolders:
                         subFolderName = subfolder.split("\\").pop(-2)
-                        print(subFolderName)
                         openFolder = QAction(subFolderName, self)
                         openFolder.setData(["file",subfolder])
                         folderMenu.addAction(openFolder)
@@ -147,23 +147,22 @@ class Example(QWidget):
         if action == "file":
             #kinda bad but we'll see if we can wrap it in any other way
             if button == "Layout":
-                print("Openning Maya Scene: " + file)
+                self.statusBar.showMessage("Openning Maya Scene: " + file)
                 command = []
                 command += [self.MayaInstallDir + "\\Maya20" +self.MayaVersion + "\\bin\\maya.exe"]
                 command += ["-command"]
                 command += ['loadPlugin "AbcExport";loadPlugin "AbcImport";file -f -open \"'+ file.replace("\\","/") +'\";']
                 command += ["-proj"]
                 command += [os.path.dirname(os.path.dirname(file))]
-                print(command)
 
                 subprocess.Popen(command,shell=True)
             elif button == "Houdini":
-                print("Opening Houdini Scene: " + file)
+                self.statusBar.showMessage("Opening Houdini Scene: " + file)
                 subprocess.Popen([file],shell=True)
             elif button == "Render":
-                print("Opening Sequence in mplay")
+                self.statusBar.showMessage("Opening Sequence in mplay")
             elif button == "Nuke":
-                print("Opening Nuke Project: " + file)
+                self.statusBar.showMessage("Opening Nuke Project: " + file)
                 subprocess.Popen([file], shell=True)
         elif action == "status":
             status = file;
@@ -186,7 +185,6 @@ class Example(QWidget):
             self.lastShot = max(self.lastShot,shotNum)
 
             # Process Shots info
-            #print(self.shotsInfo)
             frameRange = [0,240]
             shotLabel = "untitled"
             shotProgress = {}
@@ -256,7 +254,6 @@ class Example(QWidget):
                 status = shotProgress[buttonLabel]
                 if status != "":
                     color = self.StatusDict[status]
-                    print (color)
                     button.setStyleSheet("background-color:rgb(" + color + ")");
 
                 # Context Menus
@@ -319,7 +316,6 @@ class Example(QWidget):
         for key in self.projects.keys():
              self.ProjectComboBox.addItem(key, self.projects[key])
 
-        print(self.currProject)
         if tempCurrProject is not "":
             self.currProject = tempCurrProject
             #self.ProjectComboBox.setCurrentText(self.currProject)
@@ -411,7 +407,6 @@ class Example(QWidget):
 
     def mayaVersionChanged(self):
         self.MayaVersion = self.MayaVersionComboBox.currentData()
-        print(self.MayaVersion)
         self.saveSettings()
 
     def createAssetsBar(self):
@@ -481,17 +476,49 @@ class Example(QWidget):
                 self.makedirs(self.sourceFolder + "/" + dir)
             shutil.copy2("seafile-ignore.txt",self.sourceFolder + "/")
 
-    def createStatusBox(self):
-        self.statusBox = QHBoxLayout()
+    def createUtilsBar(self):
+        self.UtilsBar = QHBoxLayout()
 
-        # Status bar
-        self.statusBar = QStatusBar()
-        self.statusBox.addWidget(self.statusBar)
+        for key in self.Utils.keys():
+            button = QPushButton(key)
+            if type(self.Utils[key]) == list:
+                button.clicked.connect(lambda state,_key = key: subprocess.Popen(self.Utils[_key]))
+            else:
+                button.clicked.connect(lambda state, _key=key: os.system(self.Utils[_key]))
+            button.setFixedSize(self.size, self.size)
+            self.UtilsBar.addWidget(button)
 
-        self.vbox.addLayout(self.statusBox)
+        # Edit Shots Info
+        editShotInfo = QPushButton("editShotInfo")
+        editShotInfo.clicked.connect(lambda:subprocess.Popen(["C:\\Program Files (x86)\\Notepad++\\notepad++.exe",self.sourceFolder + '\shots.info']))
+        editShotInfo.setFixedSize(self.size, self.size)
+        self.UtilsBar.addWidget(editShotInfo)
+
+        # Update Project
+        updateCommand = [ "C:\\Program Files\\TortoiseSVN\\bin\\svn.exe",
+                    "update",
+                    self.sourceFolder]
+        updateProject = QPushButton("UpdateProject")
+        updateProject.clicked.connect(lambda:subprocess.Popen(updateCommand))
+        updateProject.setFixedSize(self.size, self.size)
+        self.UtilsBar.addWidget(updateProject)
+
+        # Commit Project
+        commitCommand = [ "TortoiseProc.exe",
+                    "/command:commit",
+                    self.sourceFolder]
+        commitProject = QPushButton("CommitProject")
+        commitProject.clicked.connect(lambda:subprocess.Popen(commitCommand))
+        commitProject.setFixedSize(self.size, self.size)
+        self.UtilsBar.addWidget(commitProject)
+
+        self.vbox.addLayout(self.UtilsBar)
 
     # INIT UI
     def initUI(self):
+        # Status bar
+        self.statusBar = QStatusBar()
+
         self.createTopBar()
         self.createRootBar()
         self.createAssetsBar()
@@ -502,27 +529,24 @@ class Example(QWidget):
         self.vbox.addStretch()
 
         self.createBotBar()
-        self.createStatusBox()
+        self.createUtilsBar()
 
         # add test button
         test = QPushButton("test")
         test.clicked.connect(self.test)
-        self.vbox.addWidget(test)
+        #self.vbox.addWidget(test)
+
+        # Add status bar
+        #self.vbox.addWidget(self.statusBar)
 
         self.setLayout(self.vbox)
-
         self.setGeometry(600, 600, 300, 150)
-
         self.setWindowTitle('Canoe:Harbor')
         self.show()
-
         self.moveToBottomRight()
 
     def test(self):
-        print ("source folder")
         self.statusBar.showMessage("INFO: " + str(self.sourceFolder))
-        #print(self.sourceFolder)
-
 
     def moveToBottomRight(self):
         ag = QDesktopWidget().availableGeometry()
@@ -541,21 +565,20 @@ class Example(QWidget):
             if os.path.isdir(dir):
                 subprocess.Popen('explorer "' + dir)
             else:
-                print("WARNING: directory does not exist")
+                self.statusBar.showMessage("WARNING: directory does not exist")
         else:
-            print("WARNING: project not set,cant open folder")
+            self.statusBar.showMessage("WARNING: project not set,cant open folder")
 
     def updateShotsInfo(self):
-        print("updated shots info")
+        self.statusBar.showMessage("updated shots info")
         # Create Preview Icon
         shotInfoPath = self.sourceFolder + "\\shots.info"
         shotInfoFile = Path(shotInfoPath)
         if shotInfoFile.exists():
             self.shotsInfo = json.load(open(shotInfoPath))
         else:
-            print("No Shots Info")
+            self.statusBar.showMessage("No Shots Info")
             self.shotsInfo = {}
-        #print(self.shotsInfo)
 
     def saveSettings(self):
         self.settings["projectsFolder"] = self.projectsFolder
@@ -592,7 +615,7 @@ class Example(QWidget):
                 if e.errno != errno.EEXIST:
                     raise
                 else:
-                    print("WARNING: " + dir + " already_exists!")
+                    self.statusBar.showMessage("WARNING: " + dir + " already_exists!")
 
 if __name__ == '__main__':
 
