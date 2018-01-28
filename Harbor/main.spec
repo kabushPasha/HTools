@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['main.py'],
-             pathex=['C:\\Users\\Pavel\\PycharmProjects\\Harbor'],
+             pathex=['D:\\Projects\\GIT\\HTools\\HTools\\Harbor'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -26,4 +26,4 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=False )
+          console=False , icon='icon.ico')
