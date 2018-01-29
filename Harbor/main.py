@@ -30,6 +30,7 @@ class Example(QWidget):
 
         # DATA
         self.inifile = 'settings.txt'
+        self.sourceFolder = ""
         self.initSettings()
         self.shotDict = dict()
         self.shotsInfo = dict()
@@ -495,18 +496,17 @@ class Example(QWidget):
         self.UtilsBar.addWidget(editShotInfo)
 
         # Update Project
-        updateCommand = [ "C:\\Program Files\\TortoiseSVN\\bin\\svn.exe",
-                    "update",
-                    self.sourceFolder]
+        svn = "C:\\Program Files\\TortoiseSVN\\bin\\svn.exe"
         updateProject = QPushButton("UpdateProject")
-        updateProject.clicked.connect(lambda:subprocess.Popen(updateCommand))
+        updateProject.clicked.connect(lambda :subprocess.Popen([svn,"update",self.sourceFolder]))
+        #updateProject.clicked.connect(lambda _dir=self.sourceFolder:print([svn,"update",self.sourceFolder]))
         updateProject.setFixedSize(self.size, self.size)
         self.UtilsBar.addWidget(updateProject)
 
         # Commit Project
         commitCommand = [ "TortoiseProc.exe",
                     "/command:commit",
-                    self.sourceFolder]
+                    "/path:" + self.sourceFolder]
         commitProject = QPushButton("CommitProject")
         commitProject.clicked.connect(lambda:subprocess.Popen(commitCommand))
         commitProject.setFixedSize(self.size, self.size)
