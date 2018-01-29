@@ -67,7 +67,7 @@ class Example(QWidget):
                 # if it has no subfodlers add this thing as an action
                 if subfolders == []:
                     openFolder = QAction(folderName, self)
-                    openFolder.setData(folder)
+                    openFolder.setData(["file",folder])
                     self.popMenu.addAction(openFolder)
                 # else create an action for every pass
                 else:
@@ -268,6 +268,13 @@ class Example(QWidget):
             # add shot to shot box
             self.shotsBox.addLayout(shotBox)
 
+    def AddIcon(self,button,icon):
+        # Process Icon
+        button.setText("")
+        button.setFixedSize(self.size, self.size)
+        button.setIcon(QIcon(QPixmap('icons/' + self.settings['Theme'] + '/' + icon + '.png')))
+        button.setIconSize(QtCore.QSize(self.size ** self.iconScale, self.size * self.iconScale));
+
     def createTopBar(self):
         #Create top bar
         self.topBar = QHBoxLayout()
@@ -275,26 +282,26 @@ class Example(QWidget):
 
         # add projects button
         addProj = QPushButton("+")
-        addProj.setFixedSize(self.size  , self.size )
         addProj.clicked.connect(self.addProjects)
+        self.AddIcon(addProj,"AddProj")
         self.topBar.addWidget(addProj)
 
         # remove Project Button
         removeProj = QPushButton("-")
-        removeProj.setFixedSize(self.size, self.size)
         removeProj.clicked.connect(self.removeProject)
+        self.AddIcon(removeProj, "RemProj")
         self.topBar.addWidget(removeProj)
 
         # update button
         update = QPushButton("Update")
-        update.setFixedSize(self.size * 2 , self.size )
         update.clicked.connect(self.updateShotsBox)
+        self.AddIcon(update, "Update")
         self.topBar.addWidget(update)
 
         # move to bottom right
         moveToBR = QPushButton(">")
-        moveToBR.setFixedSize(self.size, self.size)
         moveToBR.clicked.connect(self.moveToBottomRight)
+        self.AddIcon(moveToBR, "Dock")
         self.topBar.addWidget(moveToBR)
 
         self.vbox.addLayout(self.topBar)
@@ -379,21 +386,6 @@ class Example(QWidget):
     def createRootBar(self):
         self.rootBar = QHBoxLayout()
 
-        # open proj button
-        openProj = QPushButton("Open")
-        openProj.clicked.connect(lambda:self.safeOpen(""))
-        self.rootBar.addWidget(openProj)
-
-        # open previs button
-        previs = QPushButton("Previs")
-        previs.clicked.connect(lambda: self.safeOpen('\Previs'))
-        self.rootBar.addWidget(previs)
-
-        # open render
-        render = QPushButton("Render")
-        render.clicked.connect(lambda: self.safeOpen('\Render'))
-        self.rootBar.addWidget(render)
-
         # pick Maya Version
         self.MayaVersionComboBox = QComboBox();
         self.MayaVersionComboBox.addItem("Maya2018","18")
@@ -402,7 +394,29 @@ class Example(QWidget):
         if index >= 0:
             self.MayaVersionComboBox.setCurrentIndex(index)
         self.MayaVersionComboBox.currentIndexChanged.connect(self.mayaVersionChanged)
+
+        # open proj button
+        openProj = QPushButton("Open")
+        openProj.clicked.connect(lambda:self.safeOpen(""))
+        self.AddIcon(openProj, "Open")
+
+
+        # open previs button
+        previs = QPushButton("Previs")
+        previs.clicked.connect(lambda: self.safeOpen('\Previs'))
+        self.AddIcon(previs, "Previs")
+
+
+        # open render
+        render = QPushButton("Render")
+        render.clicked.connect(lambda: self.safeOpen('\Render'))
+        self.AddIcon(render, "Render")
+
+        #self.rootBar.addStretch()
         self.rootBar.addWidget(self.MayaVersionComboBox)
+        self.rootBar.addWidget(openProj)
+        self.rootBar.addWidget(previs)
+        self.rootBar.addWidget(render)
 
         self.vbox.addLayout(self.rootBar)
 
@@ -413,20 +427,33 @@ class Example(QWidget):
     def createAssetsBar(self):
         self.assetsBar = QHBoxLayout()
         char = QPushButton("Char")
+        self.AddIcon(char, "Char")
 
         char.clicked.connect(lambda:self.safeOpen('\Assets\Char'))
         env = QPushButton("Env")
+        self.AddIcon(env, "Env")
         env.clicked.connect(lambda: self.safeOpen('\Assets\Env'))
 
         newchar = QPushButton("CreateChar")
+        self.AddIcon(newchar, "CreateChar")
         newchar.clicked.connect(lambda :self.createChar("Char"))
         newenv = QPushButton("CreateEnv")
+        self.AddIcon(newenv, "CreateEnv")
         newenv.clicked.connect(lambda :self.createChar("Env"))
 
-        self.assetsBar.addWidget(char)
-        self.assetsBar.addWidget(env)
-        self.assetsBar.addWidget(newchar)
-        self.assetsBar.addWidget(newenv)
+        #self.assetsBar.addWidget(char)
+        #self.assetsBar.addWidget(env)
+        #self.assetsBar.addWidget(newchar)
+        #self.assetsBar.addWidget(newenv)
+
+        self.rootBar.addWidget(char)
+        self.rootBar.addWidget(env)
+        self.rootBar.addWidget(newchar)
+        self.rootBar.addWidget(newenv)
+
+        #self.assetsBar.addStretch()
+        #self.assetsBar.addWidget(self.MayaVersionComboBox)
+
         self.vbox.addLayout(self.assetsBar)
 
     def createChar(self,type):

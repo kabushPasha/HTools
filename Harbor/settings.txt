@@ -1,16 +1,13 @@
 {
-    "projectsFolder": "D:\\Pasha\\Test",
+    "projectsFolder": "S:\\",
     "projects": {
-        "Empty": "D:\\Pasha\\Test\\Empty",
-        "RobotRacoonRage": "D:\\Pasha\\Test\\RobotRacoonRage",
-        "Ramona": "D:\\Pasha\\Test\\Ramona",
-        "HasdrubalAssets": "D:\\Pasha\\Test\\HasdrubalAssets",
-        "Hasdrubal": "D:\\Pasha\\Test\\Hasdrubal"
+        "TEST": "S:\\TEST",
+        "SA": "S:\\SA"
     },
-    "icon_size": "50",
-    "currProject": "Hasdrubal",
-    "MayaVersion": "17",
-    "MayaInstallDir": "D:\\INSTALLED\\Maya",
+    "icon_size": "40",
+    "currProject": "SA",
+    "MayaVersion": "18",
+    "MayaInstallDir": "C:\\Program Files\\Autodesk",
     "StatusDict": {
         "finished": "120, 230, 120",
         "inProgress": "255, 236, 170"
@@ -24,8 +21,8 @@
         "png"
     ],
     "Utils": {
-        "Server": "explorer D:\\share",
-        "Share": "explorer D:\\share\\Music",
+        "Server": "explorer \\\\RENDERFARM\\Server",
+        "Share": "explorer \\\\RENDERFARM\\Server\\TEMP",
         "Utils": "explorer S:\\Utils",
         "UpdUts": [
             "C:\\Program Files\\TortoiseSVN\\bin\\svn.exe",
@@ -34,5 +31,6 @@
         ],
         "Env": "rundll32 sysdm.cpl,EditEnvironmentVariables",
         "Reg": "regedit"
-    }
+    },
+    "Theme": "Default"
 }
