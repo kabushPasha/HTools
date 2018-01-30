@@ -274,6 +274,7 @@ class Example(QWidget):
         button.setFixedSize(self.size, self.size)
         button.setIcon(QIcon(QPixmap('icons/' + self.settings['Theme'] + '/' + icon + '.png')))
         button.setIconSize(QtCore.QSize(self.size ** self.iconScale, self.size * self.iconScale));
+        button.setToolTip(icon)
 
     def createTopBar(self):
         #Create top bar
@@ -513,13 +514,16 @@ class Example(QWidget):
                 button.clicked.connect(lambda state,_key = key: subprocess.Popen(self.Utils[_key]))
             else:
                 button.clicked.connect(lambda state, _key=key: os.system(self.Utils[_key]))
+            self.AddIcon(button,key)
+
             button.setFixedSize(self.size, self.size)
             self.UtilsBar.addWidget(button)
 
         # Edit Shots Info
-        editShotInfo = QPushButton("editShotInfo")
+        editShotInfo = QPushButton("EditShotInfo")
         editShotInfo.clicked.connect(lambda:subprocess.Popen(["C:\\Program Files (x86)\\Notepad++\\notepad++.exe",self.sourceFolder + '\shots.info']))
         editShotInfo.setFixedSize(self.size, self.size)
+        self.AddIcon(editShotInfo, "EditShotInfo")
         self.UtilsBar.addWidget(editShotInfo)
 
         # Update Project
@@ -528,6 +532,7 @@ class Example(QWidget):
         updateProject.clicked.connect(lambda :subprocess.Popen([svn,"update",self.sourceFolder]))
         #updateProject.clicked.connect(lambda _dir=self.sourceFolder:print([svn,"update",self.sourceFolder]))
         updateProject.setFixedSize(self.size, self.size)
+        self.AddIcon(updateProject,"UpdateProject")
         self.UtilsBar.addWidget(updateProject)
 
         # Commit Project
@@ -538,7 +543,7 @@ class Example(QWidget):
         commitProject.clicked.connect(lambda:subprocess.Popen(commitCommand))
         commitProject.setFixedSize(self.size, self.size)
         self.UtilsBar.addWidget(commitProject)
-
+        self.AddIcon(commitProject, "CommitProject")
         self.vbox.addLayout(self.UtilsBar)
 
     # INIT UI

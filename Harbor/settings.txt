@@ -29,7 +29,7 @@
             "update",
             "S:\\Utils"
         ],
-        "Env": "rundll32 sysdm.cpl,EditEnvironmentVariables",
+        "EnvVar": "rundll32 sysdm.cpl,EditEnvironmentVariables",
         "Reg": "regedit"
     },
     "Theme": "Default"
