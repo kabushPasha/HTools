@@ -202,8 +202,10 @@ newnode.moveToGoodPosition()
 newnode.parm('RSL_volumeScale').set(1)
 newnode.setDisplayFlag(False)
 
-newnode.parm('env_map').set('$HASS/HDRI/panorama_map.hdr')
+newnode.parm('env_map').set('$HMEGA/Assets/HDRI//panorama_map.hdr')
 newnode.parm('ogl_enablelight').set(0)
+
+newnode.setName('RS_DomeLight')
 
 #env = newnode.createOutputNode('envlight','PROXY_LIGHT_'+newnode.name())
 #env.setDisplayFlag(False)
