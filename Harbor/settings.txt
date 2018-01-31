@@ -5,7 +5,7 @@
         "SA": "S:\\SA"
     },
     "icon_size": "40",
-    "currProject": "SA",
+    "currProject": "TEST",
     "MayaVersion": "18",
     "MayaInstallDir": "C:\\Program Files\\Autodesk",
     "StatusDict": {

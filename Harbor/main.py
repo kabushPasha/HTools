@@ -401,12 +401,10 @@ class Example(QWidget):
         openProj.clicked.connect(lambda:self.safeOpen(""))
         self.AddIcon(openProj, "Open")
 
-
         # open previs button
         previs = QPushButton("Previs")
         previs.clicked.connect(lambda: self.safeOpen('\Previs'))
         self.AddIcon(previs, "Previs")
-
 
         # open render
         render = QPushButton("Render")
@@ -536,11 +534,8 @@ class Example(QWidget):
         self.UtilsBar.addWidget(updateProject)
 
         # Commit Project
-        commitCommand = [ "TortoiseProc.exe",
-                    "/command:commit",
-                    "/path:" + self.sourceFolder]
         commitProject = QPushButton("CommitProject")
-        commitProject.clicked.connect(lambda:subprocess.Popen(commitCommand))
+        commitProject.clicked.connect(lambda :subprocess.Popen([ "TortoiseProc.exe","/command:commit","/path:" + self.sourceFolder]))
         commitProject.setFixedSize(self.size, self.size)
         self.UtilsBar.addWidget(commitProject)
         self.AddIcon(commitProject, "CommitProject")
