@@ -1,1 +1,1 @@
-start "Harbor" pythonw "main.py"
+start "Harbor" Python\pythonw.exe "main.py"

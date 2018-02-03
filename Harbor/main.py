@@ -569,6 +569,12 @@ class Example(QWidget):
         self.setLayout(self.vbox)
         self.setGeometry(600, 600, 300, 150)
         self.setWindowTitle('Canoe:Harbor')
+
+        self.setWindowIcon(QIcon('icon.ico'))
+        import ctypes
+        myappid = u'mycompany.myproduct.subproduct.version'  # arbitrary string
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
         self.show()
         self.moveToBottomRight()
 

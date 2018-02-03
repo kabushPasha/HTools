@@ -5,7 +5,7 @@
         "SA": "S:\\SA"
     },
     "icon_size": "40",
-    "currProject": "TEST",
+    "currProject": "SA",
     "MayaVersion": "18",
     "MayaInstallDir": "C:\\Program Files\\Autodesk",
     "StatusDict": {
@@ -30,7 +30,8 @@
             "S:\\Utils"
         ],
         "EnvVar": "rundll32 sysdm.cpl,EditEnvironmentVariables",
-        "Reg": "regedit"
+        "Reg": "regedit",
+		"WIKI": "start \"\" \\\\RENDERFARM\\Server\\WIKI.url"
     },
     "Theme": "Default"
 }

@@ -6,24 +6,24 @@
  a single file. -->
 
   <toolshelf name="LZ Main" label="LZ Main">
-    <memberTool name="Create Project"/>
     <memberTool name="save and increment"/>
-    <memberTool name="set project"/>
+    <memberTool name="Update JOB"/>
     <memberTool name="OpenJOB"/>
+    <memberTool name="LZ QuickVex PyPanel"/>
+    <memberTool name="Edit LZ Util"/>
+    <memberTool name="Particle Display Type"/>
     <memberTool name="LZ Create Visualisers"/>
     <memberTool name="Render View"/>
     <memberTool name="ropnet3"/>
     <memberTool name="lz Flipbook"/>
     <memberTool name="BackGroundImage"/>
-    <memberTool name="tool_2"/>
-    <memberTool name="start server"/>
-    <memberTool name="LZ QuickVex PyPanel"/>
-    <memberTool name="New Flooating Panel"/>
     <memberTool name="Reload Textures"/>
     <memberTool name="update snippets from clipboard"/>
+    <memberTool name="start server"/>
     <memberTool name="Install Otl Lib"/>
     <memberTool name="fileCache finder"/>
-    <memberTool name="Particle Display Type"/>
+    <memberTool name="New Flooating Panel"/>
+    <memberTool name="tool_2"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -936,13 +936,6 @@ for ans in answer:
 ''']]></script>
   </tool>
 
-  <tool name="set project" label="Set Project" icon="hicon:/SVGIcons.index?BUTTONS_down.svg">
-    <helpText><![CDATA["""Set project based on current hip location and append project setting to startup scripts"""]]></helpText>
-    <script scriptType="python"><![CDATA[hou.appendSessionModuleSource("import lzutil\nlzutil.updateJobFromHipLocation()")
-import lzutil
-lzutil.updateJobNameFromHipLocation()]]></script>
-  </tool>
-
   <tool name="fileCache finder" label="FileCache finder" icon="hicon:/SVGIcons.index?SOP_filecache.svg">
     <script scriptType="python"><![CDATA[d = hou.ui.curDesktop()
 
@@ -986,5 +979,37 @@ if kwargs['ctrlclick']:
     lzutil.openFolderFromEnv("$HIP")
 else:
     lzutil.openFolderFromEnv("$JOB")]]></script>
+  </tool>
+
+  <tool name="Edit LZ Util" label="Edit LZ Util" icon="hicon:/SVGIcons.index?BUTTONS_copy.svg">
+    <helpText><![CDATA["""open lzutil.py in notepad
+ctrl+click: open lzQuickVEX"""]]></helpText>
+    <script scriptType="python"><![CDATA[import subprocess
+ctrlclick = kwargs["ctrlclick"]
+
+npp = "C:\\Program Files (x86)\\Notepad++\\notepad++.exe"
+
+lzutils = hou.expandString('$HEXT') + "\\scripts\\python\\lzutil.py"
+lzquickvex = hou.expandString('$HEXT') + "\\lz_quick_vex.txt"
+file = lzquickvex if ctrlclick else lzutils
+
+command = [npp,file]
+subprocess.Popen(command)]]></script>
+  </tool>
+
+  <tool name="Update JOB" label="Update JOB" icon="hicon:/SVGIcons.index?BUTTONS_down.svg">
+    <helpText><![CDATA["""Set project based on current hip location and append project setting to startup scripts"""]]></helpText>
+    <script scriptType="python"><![CDATA[import lzutil
+ctrlclick = kwargs["ctrlclick"]
+if ctrlclick:
+    #hou.appendSessionModuleSource("import lzutil\nlzutil.updateJobFromHipLocation()")
+    lzutil.updateJobFromHipLocation()
+    lzutil.updateJobNameFromHipLocation()
+else:
+    print ("")
+    print("JOBNAME: " + hou.expandString('$JOBNAME'))
+    print("JOB:     " + hou.expandString('$JOB'))
+    print("HIP:     " + hou.expandString('$HIP'))
+    ]]></script>
   </tool>
 </shelfDocument>

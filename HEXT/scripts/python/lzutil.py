@@ -68,7 +68,8 @@ def viewNode():
 	return toolutils.sceneViewer().currentNode()
 
 def openFolderFromEnv(env):
-	dir = hou.expandString(env).replace('/','\\')
+	import os
+	dir = os.path.abspath(hou.expandString(env).replace('/','\\'))
 	subprocess.Popen('explorer "' + dir  + '"')
 
 def setProject():
@@ -97,20 +98,26 @@ def setProject():
 		#print answer
 		hou.hscript('setenv JOB ='+ answer)    
 		
-		hou.hipFile.save(answer + "/hip/" + hipname +".000" +".hip")   
+		hou.hipFile.save(answer + "/hip/" + hipname +".000" +".hip")  
+		
+		print("Updated JOBNAME to: " + hipname)
+		print("Updated JOB to: " + answer)
+		
 
 def updateJobFromHipLocation():
 	import os
-	hip = hou.expandString("$HIP")
-	JOB = os.path.dirname(hip)
-	hou.hscript('setenv JOB ='+ JOB)
+	hip = hou.hipFile.path()
+	JOB = os.path.abspath(os.path.dirname(os.path.dirname(hip))).replace("\\","/")
+	hou.hscript('setenv JOB ='+ JOB)	
+	print("Updated JOB to: " + JOB)
 	
 def updateJobNameFromHipLocation():
 	import os
 	hip = hou.expandString("$HIP")
 	JOB = os.path.dirname(hip)
 	jobname = JOB.split("/").pop()
-	hou.hscript('setenv JOBNAME ='+ jobname)		
+	hou.hscript('setenv JOBNAME ='+ jobname)	
+	print("Updated JOBNAME to: " + jobname)
 	
 			
 def copyToClipboard(str):
