@@ -482,9 +482,12 @@ class Example(QWidget):
 
         self.vbox.addLayout(self.botBar)
 
-    def addShot(self):
+    def addShot(self,shotNum = ""):
         if self.currProject is not "":
-            newShotName = 's{0:02d}0'.format(self.lastShot+1)
+            if shotNum == False:
+                newShotName = 's{0:02d}0'.format(self.lastShot+1)
+            else:
+                newShotName = shotNum
             # Create Fodler Structure
             self.makedirs(self.sourceFolder + "/" + newShotName)
             self.makedirs(self.sourceFolder + "/" + newShotName + "/Houdini")
@@ -493,12 +496,11 @@ class Example(QWidget):
             self.makedirs(self.sourceFolder + "/" + newShotName + "/Layout")
             self.makedirs(self.sourceFolder + "/" + newShotName + "/Nuke")
 
-            addShot = QPushButton("+Add Shot")
             self.addShotButtons(self.sourceFolder + "\\"+ newShotName +"\\")
 
     def createBase(self):
         if self.currProject is not "":
-            defaultFolders = ["Previs","Render","Assets","Assets/Char","Assets/Env"]
+            defaultFolders = ["Previs","Previs/Storyboard","Render","Assets","Assets/Char","Assets/Env"]
             for dir in defaultFolders:
                 self.makedirs(self.sourceFolder + "/" + dir)
             shutil.copy2("seafile-ignore.txt",self.sourceFolder + "/")
@@ -561,7 +563,7 @@ class Example(QWidget):
         # add test button
         test = QPushButton("test")
         test.clicked.connect(self.test)
-        #self.vbox.addWidget(test)
+        self.vbox.addWidget(test)
 
         # Add status bar
         #self.vbox.addWidget(self.statusBar)
@@ -579,7 +581,8 @@ class Example(QWidget):
         self.moveToBottomRight()
 
     def test(self):
-        self.statusBar.showMessage("INFO: " + str(self.sourceFolder))
+        self.shotInfoFromStoryboard()
+        #self.statusBar.showMessage("INFO: " + str(self.sourceFolder))
 
     def moveToBottomRight(self):
         ag = QDesktopWidget().availableGeometry()
@@ -612,6 +615,33 @@ class Example(QWidget):
         else:
             self.statusBar.showMessage("No Shots Info")
             self.shotsInfo = {}
+
+    def shotInfoFromStoryboard(self):
+        print("Created ShotInfo From Storyboard")
+        storyboardFolder = self.sourceFolder + "/Previs/Storyboard/s*.jpg"
+        files = glob(storyboardFolder)
+        for file in files:
+            filename = os.path.basename(file).split(".")[0]
+            shotNum = filename[0:4]
+            shotName = filename[5:]
+
+            # Create Shots
+            self.addShot(shotNum)
+
+            # Process Shots info
+            frameRange = [0,240]
+            shotProgress = {}
+            shotInfo = {}
+            shotInfo['Label'] = shotName
+            shotInfo['FrameRange'] = frameRange
+            shotInfo['shotProgress'] = shotProgress
+            self.shotsInfo[shotNum] = shotInfo
+            self.saveShotsInfo()
+
+            #print(self.sourceFolder + "/" + shotNum + "/preview.jpg" )
+            shutil.copy2(file, self.sourceFolder + "/" + shotNum + "/preview.jpg" )
+
+
 
     def saveSettings(self):
         self.settings["projectsFolder"] = self.projectsFolder
