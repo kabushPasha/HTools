@@ -165,4 +165,10 @@ def installOtlLibsUI():
 def explorer(dir):
 	subprocess.Popen('explorer "' + dir.replace('/','\\')  + '"')
 
-	
+def FixPtgFolders(node):
+    ptg = node.parmTemplateGroup()
+    folders = ptg.entries()
+    for folder in folders:
+        folder.setFolderType(hou.folderType.Simple)
+        ptg.replace(folder.name(),folder)
+    node.setParmTemplateGroup(ptg)  
