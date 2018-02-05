@@ -535,17 +535,34 @@ float saturate(float v)
 	return clamp(v,0,1);
 }	
 
-
 // set remapping
 vector4 set(vector P;float x)
 {
 	return set(P.x,P.y,P.z,x);	
 }
 
-
-	
-	
-
+// unpacking matrix
+vector mx(matrix matx){
+	return set(matx.xx, matx.xy, matx.xz);
+}
+vector my(matrix matx){
+	return set(matx.yx, matx.yy, matx.yz);
+}
+vector mz(matrix matx){
+	return set(matx.zx, matx.zy, matx.zz);
+}		
+vector mx(vector4 orient){
+	matrix matx = qconvert(orient);
+	return set(matx.xx, matx.xy, matx.xz);
+}
+vector my(vector4 orient){
+	matrix matx = qconvert(orient);
+	return set(matx.yx, matx.yy, matx.yz);
+}
+vector mz(vector4 orient){
+	matrix matx = qconvert(orient);
+	return set(matx.zx, matx.zy, matx.zz);
+}	
 	
 	
 	
