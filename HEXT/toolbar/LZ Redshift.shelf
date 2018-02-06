@@ -17,6 +17,7 @@
     <memberTool name="Rs displacement"/>
     <memberTool name="substance material"/>
     <memberTool name="Add Object Spare Parameters"/>
+    <memberTool name="aces"/>
     <memberTool name="Import RS_Proxies"/>
     <memberTool name="Add RS Prefix"/>
   </toolshelf>
@@ -317,5 +318,18 @@ for proxy in proxies:
     <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
     if not n.name().startswith("RS_"):
         n.setName("RS_" + n.name())]]></script>
+  </tool>
+
+  <tool name="aces" label="ACES" icon="PLASMA_App">
+    <helpText><![CDATA[""" Press Ctrl+U to swap lut and fix gamma
+Works only in renderViewWindow"""]]></helpText>
+    <script scriptType="python"><![CDATA[if hou.getenv("g")=="1":
+    hou.hscript('colorsettings -g 2.2 -c')
+    hou.putenv("g","2.2")
+else:
+    hou.hscript('colorsettings -g 1 -c')
+    hou.putenv("g","1")
+    
+hou.hscript('colorsettings -l "D:/Projects/GIT/HTools/HTools/HEXT/Assets/LUTS/Rec.709_for_ACEScg_Houdini.lut" -c')]]></script>
   </tool>
 </shelfDocument>
