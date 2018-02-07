@@ -330,6 +330,7 @@ else:
     hou.hscript('colorsettings -g 1 -c')
     hou.putenv("g","1")
     
-hou.hscript('colorsettings -l "D:/Projects/GIT/HTools/HTools/HEXT/Assets/LUTS/Rec.709_for_ACEScg_Houdini.lut" -c')]]></script>
+mega = hou.expandString('$HEXT').replace('\\','/')
+hou.hscript('colorsettings -l "'+ mega +'/Assets/LUTS/Rec.709_for_ACEScg_Houdini.lut" -c')]]></script>
   </tool>
 </shelfDocument>
