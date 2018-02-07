@@ -378,56 +378,47 @@ else:
 import toolutils
 import os
 
-dir = hou.expandString("$HMEGA/Renders/Screenshots/$HIPNAME")    
+# Set directory for screenshots
+unexpandedDir = "$JOB/Flipbook/BG_Snapshots"
+dir = hou.expandString(unexpandedDir)  + '/'
+
+# Ask User For a name
 if not os.path.exists(dir):
     os.makedirs(dir)
-dir += "/"
-
 files = os.listdir(dir)
+increment = 1
 if len(files) > 0:
-    increment = int(files[len(files)-1].split("_")[0]) + 1
-else:
-    increment = 1
+    increment += int(files[len(files)-1].split("_")[0])    
+user_input = hou.ui.readInput("SnapshotName",buttons=('Snapshot','Cancel'),initial_contents=str(increment).zfill(3)+" " )
 
-name = str(increment).zfill(3)+"_screenshot.pic"
 
-sv = toolutils.sceneViewer()
-fbs =  sv.flipbookSettings().stash()
-fbs.output(dir + name)
-fbs.frameRange(hou.Vector2(hou.frame(),hou.frame()))
-fbs.beautyPassOnly(True)
-
-#fbs.useResolution(True)
-#fbs.resolution((200,200))
-fbs.outputZoom(25)
-
-sv.flipbook(None,fbs)    
-
-#create new network image
-editor = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
-path =  hou.expandString(dir + name)
-
-if len(hou.selectedNodes())>0:      
-    node = hou.selectedNodes()[0]
-    position = node.position() 
-    offset = hou.Vector2(0,2)
-    position = position + offset    
-else:
+if user_input[0] == 0:
+    name = str(user_input[1])
+    name = "_".join(name.split()) + ".png"
+    
+    # Capture a flipbook
+    sv = toolutils.sceneViewer()
+    fbs =  sv.flipbookSettings().stash()
+    fbs.output(dir + name)
+    fbs.frameRange(hou.Vector2(hou.frame(),hou.frame()))
+    fbs.beautyPassOnly(True)
+    fbs.outputZoom(25)
+    sv.flipbook(None,fbs)    
+        
+    #create new network image
+    editor = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    path =  unexpandedDir + "/" + name
+    
     position = hou.Vector2(editor.visibleBounds().center() + hou.Vector2(0,0));
-     
-
-w = 2
-h = 2
-w = editor.visibleBounds().size().x()* 0.45
-h = w
-
-
-image = hou.NetworkImage()
-image.setPath(path)
-image.setRect(hou.BoundingRect(position[0]-w, position[1]-h, position[0]+w, position[1]+h))
-images = editor.backgroundImages()
-images = images + tuple([image])    
-editor.setBackgroundImages(images)
+    w = editor.visibleBounds().size().x()* 0.45
+    h = w
+    
+    image = hou.NetworkImage()
+    image.setPath(path)
+    image.setRect(hou.BoundingRect(position[0]-w, position[1]-h, position[0]+w, position[1]+h))
+    images = editor.backgroundImages()
+    images = images + tuple([image])    
+    editor.setBackgroundImages(images)
 
 
 
