@@ -376,7 +376,8 @@ else:
   <tool name="BackGroundImage" label="BackGroundImage" icon="hicon:/SVGIcons.index?MISC_tutorials.svg">
     <script scriptType="python"><![CDATA[# save sreenshot
 import toolutils
-import os
+import os,subprocess
+import lzutil
 
 # Set directory for screenshots
 unexpandedDir = "$JOB/Flipbook/BG_Snapshots"
@@ -403,11 +404,15 @@ if user_input[0] == 0:
     fbs.frameRange(hou.Vector2(hou.frame(),hou.frame()))
     fbs.beautyPassOnly(True)
     fbs.outputZoom(25)
-    sv.flipbook(None,fbs)    
+    fbs.outputToMPlay(1)
+    sv.flipbook(None,fbs)  
+    
+    
         
     #create new network image
     editor = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
     path =  unexpandedDir + "/" + name
+    lzutil.copyToClipboard(path)
     
     position = hou.Vector2(editor.visibleBounds().center() + hou.Vector2(0,0));
     w = editor.visibleBounds().size().x()* 0.45
