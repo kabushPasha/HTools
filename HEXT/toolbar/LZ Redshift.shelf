@@ -316,8 +316,8 @@ for proxy in proxies:
 
   <tool name="Add RS Prefix" label="Add RS Prefix" icon="PLASMA_App">
     <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
-    if not n.name().startswith("RS_"):
-        n.setName("RS_" + n.name())
+    if not n.name().startswith("RS_"):        
+        n.setName("RS_" + n.name(),1)
     else:
         n.setName(n.name()[3:])]]></script>
   </tool>
