@@ -28,7 +28,7 @@ newnode = objecttoolutils.genericCameraLightTool(kwargs, 'cam', 'cam1',False)
 hou.hscript('Redshift_cameraSpareParameters')
 
 newnode.setDisplayFlag(False)
-newnode.setName("RS_Cam")
+newnode.setName("RS_Cam",1)
 
 newnode.parm("resx").set(1920)
 newnode.parm("resy").set(1080)]]></script>
@@ -263,13 +263,15 @@ for n in hou.selectedNodes():
     n.parm("RS_objprop_rstess_enable").set(1)
     n.parm("RS_objprop_displace_enable").set(1)
     mat = hou.node(n.parm('shop_materialpath').eval())
+    """
     if mat.type().name() == 'redshift_vopnet':
         disp = mat.createNode('Displacement')
         disp.setDetailHighFlag(True)
         out = mat.node('redshift_material1')        
         out.setInput(1,disp)
         
-        disp.setPosition(out.position() + hou.Vector2(-2,2.5))]]></script>
+        disp.setPosition(out.position() + hou.Vector2(-2,2.5))
+    """]]></script>
   </tool>
 
   <tool name="Import RS_Proxies" label="Import RS_Proxies" icon="PLASMA_App">
