@@ -89,7 +89,9 @@
 	"04 Modelling Vex":{
 		"01. Simple Spiral":{"code": "@P.y = chf('h')*f@u;\n@P.x = ch('r')*sin(f@u*chf('f')*6.18);\n@P.z = ch('r')*cos(f@u*chf('f')*6.18);"},
 		"02. Get Curve u":{"code":"f@u = float(@ptnum)/(@numpt-1);"},
-		"03. Maketransform":{"code":"matrix t = maketransform(0,0,chv('translate'),chv('rotate'),chv('scale'));\n@P*=t;"}
+		"03. Get Curve u from vtx":{"code":"f@u = float(vertexprimindex(0,pointvertex(0,@ptnum)))/(primvertexcount(0,@primnum)-1);"},
+		"04. Maketransform":{"code":"matrix t = maketransform(0,0,chv('translate'),chv('rotate'),chv('scale'));\n@P*=t;"}
+		
 	},	
 	
 
@@ -116,8 +118,9 @@
 		"10. Set Pscale":{
 			"code" : "f@pscale = chf('pscale');"},
 		"11. Pscale Ramp":{
-			"code" : "f@pscale = chf('pscale')*chramp('scaleRamp',rand(i@id));"}
-		
+			"code" : "f@pscale = chf('pscale')*chramp('scaleRamp',rand(i@id));"},
+		"12. Pscale PowLaw":{
+			"code" : "f@pscale = fit01(pow(rand(@ptnum),chi('pow')),chf('min'),chf('max'));"}				
 	},		
 				
 	"06 Model":{
@@ -143,7 +146,8 @@
 		"01. removepoint": {"code":"removepoint(0,@ptnum);"},
 		"02. removeprim": {"code":"removeprim(0,@primnum,1);"},
 		"03. volumesample": {"code":"float density = volumesample(1,0,@P);"},
-		"04. fit": {"code":" = fit(,chp('fit').x,chp('fit').y,chp('fit').z,chp('fit').w);"}
+		"04. volumegradient": {"code":"vector grad = volumegradient(1,0,@P);"},
+		"05. fit": {"code":" = fit(,chp('fit').x,chp('fit').y,chp('fit').z,chp('fit').w);"}
 		
 	},		
 

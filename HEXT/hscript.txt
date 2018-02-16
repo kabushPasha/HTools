@@ -1,0 +1,27 @@
+#opinputpath shotcuts
+string i1() return opinputpath("../..",0);
+string i2() return opinputpath("../..",1);
+string i3() return opinputpath("../..",2);
+string i4() return opinputpath("../..",3);
+
+
+# max bboxsize
+maxbb() 
+	return max(bbx(),max(bby(),bbz()))
+# uniform sampleing divisions
+usd(divs) 
+	return maxbb()/divs;
+
+	
+#bbox size x
+bbx()
+	return bbox(opinputpath(".",0),D_XSIZE);
+#bbox size y
+bby()
+	return bbox(opinputpath(".",0),D_YSIZE);
+#bbox size z
+bbz()
+	return bbox(opinputpath(".",0),D_ZSIZE);
+
+	
+	

@@ -979,15 +979,25 @@ else:
 
   <tool name="Edit LZ Util" label="Edit LZ Util" icon="hicon:/SVGIcons.index?BUTTONS_copy.svg">
     <helpText><![CDATA["""open lzutil.py in notepad
-ctrl+click: open lzQuickVEX"""]]></helpText>
+ctrl+click: open lzQuickVEX
+alt+click: hscript"""]]></helpText>
     <script scriptType="python"><![CDATA[import subprocess
 ctrlclick = kwargs["ctrlclick"]
+shiftclick = kwargs["shiftclick"]
+altclick = kwargs["altclick"]
 
 npp = "C:\\Program Files (x86)\\Notepad++\\notepad++.exe"
 
 lzutils = hou.expandString('$HEXT') + "\\scripts\\python\\lzutil.py"
 lzquickvex = hou.expandString('$HEXT') + "\\lz_quick_vex.txt"
-file = lzquickvex if ctrlclick else lzutils
+hscript = hou.expandString('$HEXT') + "\\hscript.txt"
+
+file = lzutils
+if ctrlclick:
+    file = lzquickvex
+elif altclick:
+    file = hscript
+
 
 command = [npp,file]
 subprocess.Popen(command)]]></script>
