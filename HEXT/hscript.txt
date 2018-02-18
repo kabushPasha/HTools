@@ -19,14 +19,15 @@ usd(divs)
 
 	
 #bbox size x
-bbx()
-	return bbox(opinputpath(".",0),D_XSIZE);
-#bbox size y
-bby()
-	return bbox(opinputpath(".",0),D_YSIZE);
-#bbox size z
-bbz()
-	return bbox(opinputpath(".",0),D_ZSIZE);
+bbx() return bbox(opinputpath(".",0),D_XSIZE);
+bby() return bbox(opinputpath(".",0),D_YSIZE);
+bbz() return bbox(opinputpath(".",0),D_ZSIZE);
+
+cx() return centroid(i1(),D_X);
+cy() return centroid(i1(),D_Y);
+cz() return centroid(i1(),D_Z);
+	
+	
 
 	
 	
