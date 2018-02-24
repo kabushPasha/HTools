@@ -24,6 +24,7 @@
     <memberTool name="fileCache finder"/>
     <memberTool name="New Flooating Panel"/>
     <memberTool name="tool_2"/>
+    <memberTool name="NodeParms"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -815,14 +816,14 @@ clipboard.setText(string)
 import ctypes
 user32 = ctypes.windll.user32
 sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
-dy = [0.4,0.95];
-dx = [0.5,0.8];    
+dy = [0.1,0.95];
+dx = [0.05,0.35];    
 
 pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
 size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
 
-pos = (3387, 103)
-size = (727, 1254)
+#pos = (3387, 103)
+#size = (727, 1254)
 
 panel = d.createFloatingPanel(hou.paneTabType.PythonPanel,pos,size)
 pypanel = panel.paneTabs()[0]
@@ -1017,5 +1018,28 @@ else:
     print("JOB:     " + hou.expandString('$JOB'))
     print("HIP:     " + hou.expandString('$HIP'))
     ]]></script>
+  </tool>
+
+  <tool name="NodeParms" label="NodeParms" icon="hicon:/SVGIcons.index?BUTTONS_jump_to_line.svg">
+    <script scriptType="python"><![CDATA[def createParmWindow(n):
+    # create Size and Center
+    dy = [0.1,0.95];
+    dx = [0.05,0.35];
+    import ctypes
+    user32 = ctypes.windll.user32
+    sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
+    pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
+    size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
+    
+    d = hou.ui.curDesktop()
+    
+    panel = d.createFloatingPanel(hou.paneTabType.Parm,pos,size)
+    tab = panel.paneTabs()[0]
+    tab.setCurrentNode(n)
+    tab.linkGroup = hou.paneLinkType.Pinned
+    
+    
+for n in hou.selectedNodes():
+    createParmWindow(n);]]></script>
   </tool>
 </shelfDocument>
