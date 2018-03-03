@@ -172,3 +172,11 @@ def FixPtgFolders(node):
         folder.setFolderType(hou.folderType.Simple)
         ptg.replace(folder.name(),folder)
     node.setParmTemplateGroup(ptg)  
+	
+	
+# Execute script from a shelf
+def execTool(shelf,toolName,locals = {}):
+	rs = hou.shelves.shelves()[shelf]
+	for tool in rs.tools():	
+		if tool.name() == toolName:
+			exec(tool.script(),{},locals)
