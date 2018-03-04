@@ -4,10 +4,15 @@ string i2() return opinputpath(".",1);
 string i3() return opinputpath(".",2);
 string i4() return opinputpath(".",3);
 
-string p1() return opinputpath("../..",0);
-string p2() return opinputpath("../..",1);
-string p3() return opinputpath("../..",2);
-string p4() return opinputpath("../..",3);
+string pp1() return opinputpath("../..",0);
+string pp2() return opinputpath("../..",1);
+string pp3() return opinputpath("../..",2);
+string pp4() return opinputpath("../..",3);
+
+string p2() return opinputpath("..",1);
+string p3() return opinputpath("..",2);
+string p1() return opinputpath("..",0);
+string p4() return opinputpath("..",3);
 
 
 # max bboxsize

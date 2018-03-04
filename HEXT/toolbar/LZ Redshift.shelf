@@ -79,7 +79,8 @@ newnode.parm('RSL_intensityMultiplier').set(1)
 newnode.parm('RSL_volumeScale').set(1)
 
 
-newnode.setDisplayFlag(False)]]></script>
+newnode.setDisplayFlag(False)
+newnode.setName('RS_DirectionalLight',True)]]></script>
   </tool>
 
   <tool name="Rs Light Sun" label="Rs Light Sun" icon="RS_lightSun_icon">
