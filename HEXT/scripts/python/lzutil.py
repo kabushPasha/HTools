@@ -180,3 +180,30 @@ def execTool(shelf,toolName,locals = {}):
 	for tool in rs.tools():	
 		if tool.name() == toolName:
 			exec(tool.script(),{},locals)
+			
+			
+# Construction plane Functions			
+# set origin of a contruction plane
+def cpSetOrigin(new_origin,construction_plane = []):
+	if construction_plane == []:
+		construction_plane = toolutils.sceneViewer().constructionPlane()
+	translation = hou.hmath.buildTranslate(hou.Vector3(new_origin) - cpOrigin(construction_plane))
+	construction_plane.setTransform(construction_plane.transform() * translation)
+# set_normal
+def cpSetNormal(normal_vector,construction_plane = []):
+	if construction_plane == []:
+		construction_plane = toolutils.sceneViewer().constructionPlane()
+	existing_rotation = hou.Matrix4(construction_plane.transform().extractRotationMatrix3())
+	rotation = existing_rotation * cpNormal(construction_plane).matrixToRotateTo(normal_vector)
+	translation = hou.hmath.buildTranslate(cpOrigin(construction_plane))
+	construction_plane.setTransform(rotation * translation)    
+# contruction plane N and origin
+def cpNormal(construction_plane = []):
+	if construction_plane == []:
+		construction_plane = toolutils.sceneViewer().constructionPlane()
+	return hou.Vector3(0, 0, 1) * construction_plane.transform().inverted().transposed()
+# Set Origin
+def cpOrigin(construction_plane = []):
+	if construction_plane == []:
+		construction_plane = toolutils.sceneViewer().constructionPlane()
+	return hou.Vector3(0, 0, 0) * construction_plane.transform()  
