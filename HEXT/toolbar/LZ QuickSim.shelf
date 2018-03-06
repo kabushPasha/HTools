@@ -7,6 +7,7 @@
 
   <toolshelf name="LZ QuickSim" label="LZ QuickSim">
     <memberTool name="LZ quick Bullet"/>
+    <memberTool name="LZ quick cables"/>
   </toolshelf>
 
   <tool name="LZ quick Bullet" label="LZ quick Bullet" icon="hicon:/SVGIcons.index?DOP_bulletsolver.svg">
@@ -246,6 +247,539 @@ if ($argc >= 5 && "$arg4" != "") then
 endif
 if ($argc >= 6 && "$arg6" != "") then
     set input = $_obj_RS_geo1_assemble
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+
+  <tool name="LZ quick cables" label="LZ quick cables" icon="hicon:/SVGIcons.index?VOP_addsteerforce.svg">
+    <toolMenuContext name="network">
+      <contextOpType>Sop/grid</contextOpType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputitem = None
+inputindex = -1
+inputitem = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if kwargs.has_key("outputnodename") and kwargs.has_key("inputindex"):
+        outputitem = pane_node.item(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if kwargs.has_key("inputnodename") and kwargs.has_key("outputindex"):
+        inputitem = pane_node.item(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if kwargs.has_key("autoplace"):
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+        if inputitem is None:
+            inputitem = pane.currentNode()
+            outputindex = 0
+    if kwargs.has_key("nodepositionx") and             kwargs.has_key("nodepositiony"):
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+
+    if not autoplace and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputitem is None:
+            pos = pane.selectPosition(inputitem, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputitem, outputindex,
+                                      outputitem, inputindex)
+
+    if pos is not None:
+        if kwargs.has_key("node_bbox"):
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if not child_type.has_key('attribwrangle'):
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_geo1_IN (Sop/grid)
+set _obj_geo1_IN = `run("opadd -e -n -v grid IN")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 1.3066577201263705` $_obj_geo1_IN
+opparm -V 16.5.268 $_obj_geo1_IN surftype ( cols ) t ( 0 3.3000000715255737 0 ) rows ( 2 ) cols ( 12 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_IN
+opexprlanguage -s hscript $_obj_geo1_IN
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_IN
+opset -p on $_obj_geo1_IN
+opcf $arg1
+
+# Node $_obj_geo1_set_restlength (Sop/attribwrangle)
+set _obj_geo1_set_restlength = `run("opadd -e -n -v attribwrangle set_restlength")`
+oplocate -x `$arg2 + -0.0029999965336173773` -y `$arg3 + -3.9367422668887588` $_obj_geo1_set_restlength
+opspareds '    group {         name    "folder1"         label   "Code"          parm {             name    "group"             baseparm             label   "Group"             export  none             bindselector points "Modify Points"                 "Select the points to affect and press Enter to complete."                 0 1 0xffffffff 0 grouptype 0         }         parm {             name    "grouptype"             baseparm             label   "Group Type"             export  none         }         parm {             name    "class"             baseparm             label   "Run Over"             export  none         }         parm {             name    "vex_numcount"             baseparm             label   "Number Count"             export  none         }         parm {             name    "vex_threadjobsize"             baseparm             label   "Thread Job Size"             export  none         }         parm {             name    "snippet"             baseparm             label   "VEXpression"             export  all         }         parm {             name    "exportlist"             baseparm             label   "Attributes to Create"             export  none         }         parm {             name    "vex_strict"             baseparm             label   "Enforce Prototypes"             export  none         }     }      group {         name    "folder1_1"         label   "Bindings"          parm {             name    "autobind"             baseparm             label   "Autobind by Name"             export  none         }         multiparm {             name    "bindings"             label    "Number of Bindings"             baseparm             default 0             parmtag { "autoscope" "0000000000000000" }             parmtag { "multistartoffset" "1" }              parm {                 name    "bindname#"                 baseparm                 label   "Attribute Name"                 export  none             }             parm {                 name    "bindparm#"                 baseparm                 label   "VEX Parameter"                 export  none             }         }          parm {             name    "groupautobind"             baseparm             label   "Autobind Groups by Name"             export  none         }         multiparm {             name    "groupbindings"             label    "Group Bindings"             baseparm             default 0             parmtag { "autoscope" "0000000000000000" }             parmtag { "multistartoffset" "1" }              parm {                 name    "bindgroupname#"                 baseparm                 label   "Group Name"                 export  none             }             parm {                 name    "bindgroupparm#"                 baseparm                 label   "VEX Parameter"                 export  none             }         }          parm {             name    "vex_cwdpath"             baseparm             label   "Evaluation Node Path"             export  none         }         parm {             name    "vex_outputmask"             baseparm             label   "Export Parameters"             export  none         }         parm {             name    "vex_updatenmls"             baseparm             label   "Update Normals If Displaced"             export  none         }         parm {             name    "vex_matchattrib"             baseparm             label   "Attribute to Match"             export  none         }         parm {             name    "vex_inplace"             baseparm             label   "Compute Results In Place"             export  none         }         parm {             name    "vex_selectiongroup"             baseparm             label   "Output Selection Group"             export  none         }     }      parm {         name    "restlength"         label   "Restlength"         type    float         default { "0" }         range   { 0 1 }     } ' $_obj_geo1_set_restlength
+opparm $_obj_geo1_set_restlength  bindings ( 0 ) groupbindings ( 0 )
+opparm $_obj_geo1_set_restlength class ( primitive ) snippet ( '//f@restlength*=(1+3*abs(sin($T*0.01)));\nf@restlength*=chf("restlength");' ) restlength ( 1.1000000014901161 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_set_restlength
+opexprlanguage -s hscript $_obj_geo1_set_restlength
+opuserdata -n '___Version___' -v '' $_obj_geo1_set_restlength
+opset -p on $_obj_geo1_set_restlength
+opcf $arg1
+
+# Node $_obj_geo1_OUT (Sop/null)
+set _obj_geo1_OUT = `run("opadd -e -n -v null OUT")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -8.8323429976693841` $_obj_geo1_OUT
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_OUT
+opexprlanguage -s hscript $_obj_geo1_OUT
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_OUT
+opset -p on $_obj_geo1_OUT
+opcf $arg1
+
+# Node $_obj_geo1_polypath2 (Sop/polypath)
+set _obj_geo1_polypath2 = `run("opadd -e -n -v polypath polypath2")`
+oplocate -x `$arg2 + -1.4588000230491169` -y `$arg3 + -5.8319718088637362` $_obj_geo1_polypath2
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_polypath2
+opexprlanguage -s hscript $_obj_geo1_polypath2
+opuserdata -n '___Version___' -v '' $_obj_geo1_polypath2
+opset -p on $_obj_geo1_polypath2
+opcf $arg1
+
+# Node $_obj_geo1_sim_cables (Sop/dopnet)
+set _obj_geo1_sim_cables = `run("opadd -e -n -v dopnet sim_cables")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -4.9113011262721411` $_obj_geo1_sim_cables
+opparm $_obj_geo1_sim_cables  numobj ( 1 )
+chblockbegin
+chadd -t 0 0 $_obj_geo1_sim_cables timestep
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch("timescale")/(ch("substep")*$FPS)' $_obj_geo1_sim_cables/timestep
+chadd -t 0 0 $_obj_geo1_sim_cables timeoffset
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '(ch("startframe")-1)/$FPS' $_obj_geo1_sim_cables/timeoffset
+chblockend
+opparm -V 16.5.268 $_obj_geo1_sim_cables objname1 ( p* )
+opset -d on -r on -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables
+opexprlanguage -s hscript $_obj_geo1_sim_cables
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_sim_cables
+opcf $_obj_geo1_sim_cables
+
+# Node $_obj_geo1_sim_cables_popsolver1 (Dop/popsolver::2.0)
+set _obj_geo1_sim_cables_popsolver1 = `run("opadd -e -n -v popsolver::2.0 popsolver1")`
+oplocate -x `$arg2 + 0.38738699999999998` -y `$arg3 + -0.96078799999999998` $_obj_geo1_sim_cables_popsolver1
+chblockbegin
+chadd -t 0 0 $_obj_geo1_sim_cables_popsolver1 substeps
+chkey -t 0 -v 1 -m 0 -a 0 -A 0 -T a  -F 'ch("minimumsubsteps")' $_obj_geo1_sim_cables_popsolver1/substeps
+chblockend
+opparm $_obj_geo1_sim_cables_popsolver1 minimumsubsteps ( 5 ) substeps ( substeps )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables_popsolver1
+opexprlanguage -s hscript $_obj_geo1_sim_cables_popsolver1
+opuserdata -n '___Version___' -v '' $_obj_geo1_sim_cables_popsolver1
+opuserdata -n '___toolcount___' -v '1' $_obj_geo1_sim_cables_popsolver1
+opuserdata -n '___toolid___' -v 'dynamics_poplocation' $_obj_geo1_sim_cables_popsolver1
+
+# Node $_obj_geo1_sim_cables_popsource1 (Dop/popsource::2.0)
+set _obj_geo1_sim_cables_popsource1 = `run("opadd -e -n -v popsource::2.0 popsource1")`
+oplocate -x `$arg2 + 1.6268900020034613` -y `$arg3 + 6.3924799984130862` $_obj_geo1_sim_cables_popsource1
+chblockbegin
+chadd -t 0 0 $_obj_geo1_sim_cables_popsource1 impulseactiveate
+chkey -t 0 -v 1 -m 0 -a 0 -A 0 -T a  -F '$F==1' $_obj_geo1_sim_cables_popsource1/impulseactiveate
+chblockend
+opparm $_obj_geo1_sim_cables_popsource1 showguide ( off ) emittype ( allgeo ) usecontextgeo ( first ) impulseactiveate ( impulseactiveate )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables_popsource1
+opexprlanguage -s hscript $_obj_geo1_sim_cables_popsource1
+opuserdata -n '___Version___' -v '' $_obj_geo1_sim_cables_popsource1
+opuserdata -n '___toolcount___' -v '2' $_obj_geo1_sim_cables_popsource1
+opuserdata -n '___toolid___' -v 'dynamics_popsource' $_obj_geo1_sim_cables_popsource1
+
+# Node $_obj_geo1_sim_cables_popgrains1 (Dop/popgrains)
+set _obj_geo1_sim_cables_popgrains1 = `run("opadd -e -n -v popgrains popgrains1")`
+oplocate -x `$arg2 + 1.6330199999999999` -y `$arg3 + 0.082064300000000007` $_obj_geo1_sim_cables_popgrains1
+opparm $_obj_geo1_sim_cables_popgrains1 iterations ( 50 ) folder0 ( 1 1 1 ) constraintweight ( 1 ) constraintstiffness ( 10000 ) opencl ( on )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables_popgrains1
+opexprlanguage -s hscript $_obj_geo1_sim_cables_popgrains1
+opuserdata -n '___Version___' -v '' $_obj_geo1_sim_cables_popgrains1
+opuserdata -n '___toolcount___' -v '2' $_obj_geo1_sim_cables_popgrains1
+opuserdata -n '___toolid___' -v 'dynamics_popgrains' $_obj_geo1_sim_cables_popgrains1
+
+# Node $_obj_geo1_sim_cables_groundplane1 (Dop/groundplane)
+set _obj_geo1_sim_cables_groundplane1 = `run("opadd -e -n -v groundplane groundplane1")`
+oplocate -x `$arg2 + -1.7699100000000001` -y `$arg3 + -0.92327400000000004` $_obj_geo1_sim_cables_groundplane1
+opset -d off -r off -h off -f off -y off -t on -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables_groundplane1
+opexprlanguage -s hscript $_obj_geo1_sim_cables_groundplane1
+opuserdata -n '___Version___' -v '' $_obj_geo1_sim_cables_groundplane1
+opuserdata -n '___toolcount___' -v '1' $_obj_geo1_sim_cables_groundplane1
+opuserdata -n '___toolid___' -v 'dop_groundplane' $_obj_geo1_sim_cables_groundplane1
+
+# Node $_obj_geo1_sim_cables_popsprite1 (Dop/popsprite)
+set _obj_geo1_sim_cables_popsprite1 = `run("opadd -e -n -v popsprite popsprite1")`
+oplocate -x `$arg2 + 1.6364699985370788` -y `$arg3 + 4.1134949986114506` $_obj_geo1_sim_cables_popsprite1
+opparm $_obj_geo1_sim_cables_popsprite1  alpharamp ( 2 )
+opparm $_obj_geo1_sim_cables_popsprite1 spritemap ( '$HFS/houdini/pic/sphere_matte.pic' ) alpharamp2pos ( 1 ) alpharamp2value ( 1 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables_popsprite1
+opexprlanguage -s hscript $_obj_geo1_sim_cables_popsprite1
+opuserdata -n '___Version___' -v '' $_obj_geo1_sim_cables_popsprite1
+opuserdata -n '___toolcount___' -v '2' $_obj_geo1_sim_cables_popsprite1
+opuserdata -n '___toolid___' -v 'dynamics_popsprite' $_obj_geo1_sim_cables_popsprite1
+
+# Node $_obj_geo1_sim_cables_popcolor1 (Dop/popcolor)
+set _obj_geo1_sim_cables_popcolor1 = `run("opadd -e -n -v popcolor popcolor1")`
+oplocate -x `$arg2 + 1.6364699985370788` -y `$arg3 + 3.3014149986114503` $_obj_geo1_sim_cables_popcolor1
+opparm $_obj_geo1_sim_cables_popcolor1  ramp ( 3 ) blendramp ( 2 ) alpharamp ( 2 )
+opparm $_obj_geo1_sim_cables_popcolor1 colortype ( ramp ) uselocalconstant ( on ) ramp ( 3 ) localramp ( '// Age\nramp = rand(@id);' ) ramp1c ( 0.46966665983200073 0.24828335642814636 0.11066670715808868 ) ramp2pos ( 0.92101740837097168 ) ramp2c ( 0.94700002670288086 0.75516051054000854 0.30931127071380615 ) blendramp2pos ( 1 ) blendramp2value ( 1 ) alpharamp2pos ( 1 ) alpharamp2value ( 1 ) ramp3pos ( 1 ) ramp3c ( 1 1 1 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables_popcolor1
+opexprlanguage -s hscript $_obj_geo1_sim_cables_popcolor1
+opuserdata -n '___Version___' -v '' $_obj_geo1_sim_cables_popcolor1
+opuserdata -n '___toolcount___' -v '2' $_obj_geo1_sim_cables_popcolor1
+opuserdata -n '___toolid___' -v 'dynamics_popcolor' $_obj_geo1_sim_cables_popcolor1
+
+# Node $_obj_geo1_sim_cables_follow_0_mass (Dop/popwrangle)
+set _obj_geo1_sim_cables_follow_0_mass = `run("opadd -e -n -v popwrangle follow_0_mass")`
+oplocate -x `$arg2 + 1.6334700020034614` -y `$arg3 + 5.307979998413086` $_obj_geo1_sim_cables_follow_0_mass
+opparm $_obj_geo1_sim_cables_follow_0_mass  bindings ( 0 ) bindfield_num ( 0 ) groupbindings ( 0 )
+opparm $_obj_geo1_sim_cables_follow_0_mass usegroup ( on ) snippet ( 'if(@mass==0)\n{\n@P = point(0, \'P\', @ptnum);\n@v = point(0, \'v\', @ptnum);\n}\n\n\n' ) bindinputmenu1 ( first )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables_follow_0_mass
+opexprlanguage -s hscript $_obj_geo1_sim_cables_follow_0_mass
+opuserdata -n '___Version___' -v '' $_obj_geo1_sim_cables_follow_0_mass
+
+# Node $_obj_geo1_sim_cables_get_restlength (Dop/geometrywrangle)
+set _obj_geo1_sim_cables_get_restlength = `run("opadd -e -n -v geometrywrangle get_restlength")`
+oplocate -x `$arg2 + 1.6334699985370786` -y `$arg3 + 2.2846249986114504` $_obj_geo1_sim_cables_get_restlength
+opparm $_obj_geo1_sim_cables_get_restlength  bindings ( 0 ) bindfield_num ( 0 ) groupbindings ( 0 )
+opparm $_obj_geo1_sim_cables_get_restlength bindclass ( primitive ) snippet ( 'f@restlength = f@opinput1_restlength;\nf@restlength = prim(0,"restlength",@primnum);' ) bindinputmenu1 ( first ) bindinputmenu2 ( first )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b on $_obj_geo1_sim_cables_get_restlength
+opexprlanguage -s hscript $_obj_geo1_sim_cables_get_restlength
+opuserdata -n '___Version___' -v '' $_obj_geo1_sim_cables_get_restlength
+
+# Node $_obj_geo1_sim_cables_popdrag1 (Dop/popdrag)
+set _obj_geo1_sim_cables_popdrag1 = `run("opadd -e -n -v popdrag popdrag1")`
+oplocate -x `$arg2 + 1.6364699950706962` -y `$arg3 + 1.0873549961835747` $_obj_geo1_sim_cables_popdrag1
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables_popdrag1
+opexprlanguage -s hscript $_obj_geo1_sim_cables_popdrag1
+opuserdata -n '___Version___' -v '' $_obj_geo1_sim_cables_popdrag1
+opuserdata -n '___toolcount___' -v '2' $_obj_geo1_sim_cables_popdrag1
+opuserdata -n '___toolid___' -v 'dynamics_popdrag' $_obj_geo1_sim_cables_popdrag1
+opcf ..
+opcf $_obj_geo1_sim_cables
+
+# Node $_obj_geo1_sim_cables_output (Dop/output)
+set _obj_geo1_sim_cables_output = `run("opadd -e -n -v output output")`
+oplocate -x `$arg2 + 0.38968700000000001` -y `$arg3 + -3.6791499999999999` $_obj_geo1_sim_cables_output
+chblockbegin
+chadd -t 0 0 $_obj_geo1_sim_cables_output f1
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '$FSTART' $_obj_geo1_sim_cables_output/f1
+chadd -t 0 0 $_obj_geo1_sim_cables_output f2
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '$FEND' $_obj_geo1_sim_cables_output/f2
+chblockend
+opparm $_obj_geo1_sim_cables_output
+opset -d on -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables_output
+opexprlanguage -s hscript $_obj_geo1_sim_cables_output
+opuserdata -n '___Version___' -v '' $_obj_geo1_sim_cables_output
+
+# Node $_obj_geo1_sim_cables_popobject1 (Dop/popobject)
+set _obj_geo1_sim_cables_popobject1 = `run("opadd -e -n -v popobject popobject1")`
+oplocate -x `$arg2 + -1.3216399999999999` -y `$arg3 + 0.083614300000000003` $_obj_geo1_sim_cables_popobject1
+chblockbegin
+chadd -t 0 0 $_obj_geo1_sim_cables_popobject1 createframe
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch(opcreator(".")+"/startframe")' $_obj_geo1_sim_cables_popobject1/createframe
+chblockend
+opparm $_obj_geo1_sim_cables_popobject1
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables_popobject1
+opexprlanguage -s hscript $_obj_geo1_sim_cables_popobject1
+opuserdata -n '___Version___' -v '' $_obj_geo1_sim_cables_popobject1
+opuserdata -n '___toolcount___' -v '2' $_obj_geo1_sim_cables_popobject1
+opuserdata -n '___toolid___' -v 'dynamics_poplocation' $_obj_geo1_sim_cables_popobject1
+
+# Node $_obj_geo1_sim_cables_gravity1 (Dop/gravity)
+set _obj_geo1_sim_cables_gravity1 = `run("opadd -e -n -v gravity gravity1")`
+oplocate -x `$arg2 + 0.38968700000000001` -y `$arg3 + -2.77915` $_obj_geo1_sim_cables_gravity1
+chblockbegin
+chadd -t 0 0 $_obj_geo1_sim_cables_gravity1 activation
+chkey -t 0 -v 1 -m 0 -a 0 -A 0 -T a  -F 'constant()' $_obj_geo1_sim_cables_gravity1/activation
+chblockend
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables_gravity1
+opexprlanguage -s hscript $_obj_geo1_sim_cables_gravity1
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_sim_cables_gravity1
+opuserdata -n '___toolcount___' -v '2' $_obj_geo1_sim_cables_gravity1
+opuserdata -n '___toolid___' -v 'gravity_groundplane' $_obj_geo1_sim_cables_gravity1
+
+# Node $_obj_geo1_sim_cables_merge1 (Dop/merge)
+set _obj_geo1_sim_cables_merge1 = `run("opadd -e -n -v merge merge1")`
+oplocate -x `$arg2 + 0.38968700000000001` -y `$arg3 + -2.02915` $_obj_geo1_sim_cables_merge1
+chblockbegin
+chadd -t 0 0 $_obj_geo1_sim_cables_merge1 activation
+chkey -t 0 -v 1 -m 0 -a 0 -A 0 -T a  -F 'constant()' $_obj_geo1_sim_cables_merge1/activation
+chblockend
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables_merge1
+opexprlanguage -s hscript $_obj_geo1_sim_cables_merge1
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_sim_cables_merge1
+opuserdata -n '___toolcount___' -v '2' $_obj_geo1_sim_cables_merge1
+opuserdata -n '___toolid___' -v 'gravity_groundplane' $_obj_geo1_sim_cables_merge1
+
+# Node $_obj_geo1_sim_cables_staticobject1 (Dop/staticobject)
+set _obj_geo1_sim_cables_staticobject1 = `run("opadd -e -n -v staticobject staticobject1")`
+oplocate -x `$arg2 + -3.76478` -y `$arg3 + -0.92482399999999998` $_obj_geo1_sim_cables_staticobject1
+chblockbegin
+chadd -t 0 0 $_obj_geo1_sim_cables_staticobject1 createframe
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch(opcreator(".")+"/startframe")' $_obj_geo1_sim_cables_staticobject1/createframe
+chadd -t 0 0 $_obj_geo1_sim_cables_staticobject1 bullet_shrink_amount
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch("bullet_collision_margin")' $_obj_geo1_sim_cables_staticobject1/bullet_shrink_amount
+chblockend
+opparm -V 4 $_obj_geo1_sim_cables_staticobject1 soppath ( '`opinputpath("..",1)`' ) display ( off ) std_switcher_0_2_1 ( 1 1 ) showguide ( on ) mode ( volume ) div ( 2 2 2 ) uniformdiv ( 100 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sim_cables_staticobject1
+opexprlanguage -s hscript $_obj_geo1_sim_cables_staticobject1
+opuserdata -n '___Version___' -v '4' $_obj_geo1_sim_cables_staticobject1
+opuserdata -n '___toolcount___' -v '16' $_obj_geo1_sim_cables_staticobject1
+opuserdata -n '___toolid___' -v 'dop_staticobject' $_obj_geo1_sim_cables_staticobject1
+oporder -e output popobject1 popsolver1 popsource1 popgrains1 gravity1 merge1 groundplane1 popsprite1 popcolor1 follow_0_mass staticobject1 get_restlength popdrag1 
+opcf ..
+opset -p on $_obj_geo1_sim_cables
+opcf $arg1
+
+# Node $_obj_geo1_VDB (Sop/null)
+set _obj_geo1_VDB = `run("opadd -e -n -v null VDB")`
+oplocate -x `$arg2 + -1.4588000230491167` -y `$arg3 + -3.1359374739154777` $_obj_geo1_VDB
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_VDB
+opexprlanguage -s hscript $_obj_geo1_VDB
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_VDB
+opset -p on $_obj_geo1_VDB
+opcf $arg1
+
+# Node $_obj_geo1_polywire1 (Sop/polywire)
+set _obj_geo1_polywire1 = `run("opadd -e -n -v polywire polywire1")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -8.0660559227501469` $_obj_geo1_polywire1
+chblockbegin
+chadd -t 0 0 $_obj_geo1_polywire1 radius
+chkey -t 0 -v 0.10000000000000001 -m 0 -a 0 -A 0 -T a  -F @pscale*0.75 $_obj_geo1_polywire1/radius
+chadd -t 0 0 $_obj_geo1_polywire1 segscale1
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '1.0 / $NSEG' $_obj_geo1_polywire1/segscale1
+chadd -t 0 0 $_obj_geo1_polywire1 segscale2
+chkey -t 0 -v 1 -m 0 -a 0 -A 0 -T a  -F '1.0 - 1.0 / $NSEG' $_obj_geo1_polywire1/segscale2
+chblockend
+opparm -V 16.5.268 $_obj_geo1_polywire1 radius ( radius ) div ( 6 ) segs ( 0 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_polywire1
+opexprlanguage -s hscript $_obj_geo1_polywire1
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_polywire1
+opset -p on $_obj_geo1_polywire1
+opcf $arg1
+
+# Node $_obj_geo1_sourceprim (Sop/attribwrangle)
+set _obj_geo1_sourceprim = `run("opadd -e -n -v attribwrangle sourceprim")`
+oplocate -x `$arg2 + -0.0029999965336173773` -y `$arg3 + -0.9174788907938467` $_obj_geo1_sourceprim
+opparm $_obj_geo1_sourceprim  bindings ( 0 ) groupbindings ( 0 )
+opparm $_obj_geo1_sourceprim snippet ( 'i@sourceprim = @primnum;' )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_sourceprim
+opexprlanguage -s hscript $_obj_geo1_sourceprim
+opuserdata -n '___Version___' -v '' $_obj_geo1_sourceprim
+opset -p on $_obj_geo1_sourceprim
+opcf $arg1
+
+# Node $_obj_geo1_smooth (Sop/resample)
+set _obj_geo1_smooth = `run("opadd -e -n -v resample smooth")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -7.2313712321049923` $_obj_geo1_smooth
+opparm -V 16.5.268 $_obj_geo1_smooth edge ( on ) dolength ( off ) dosegs ( on ) segs ( 3 ) treatpolysas ( subd )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_smooth
+opexprlanguage -s hscript $_obj_geo1_smooth
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_smooth
+opset -p on $_obj_geo1_smooth
+opcf $arg1
+
+# Node $_obj_geo1_Lines (Sop/null)
+set _obj_geo1_Lines = `run("opadd -e -n -v null Lines")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_geo1_Lines
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_Lines
+opexprlanguage -s hscript $_obj_geo1_Lines
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_Lines
+opset -p on $_obj_geo1_Lines
+opcf $arg1
+
+# Node $_obj_geo1_restore_curves (Sop/add)
+set _obj_geo1_restore_curves = `run("opadd -e -n -v add restore_curves")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -6.4956354844483304` $_obj_geo1_restore_curves
+opparm $_obj_geo1_restore_curves  points ( 1 ) prims ( 1 )
+opparm -V 16.5.268 $_obj_geo1_restore_curves stdswitcher ( 1 1 1 ) keep ( on ) switcher ( 1 1 ) add ( attribute ) attrname ( sourceprim )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_restore_curves
+opexprlanguage -s hscript $_obj_geo1_restore_curves
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_restore_curves
+opset -p on $_obj_geo1_restore_curves
+opcf $arg1
+
+# Node $_obj_geo1_convertline (Sop/convertline)
+set _obj_geo1_convertline = `run("opadd -e -n -v convertline convertline")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -2.3981698945163874` $_obj_geo1_convertline
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_convertline
+opexprlanguage -s hscript $_obj_geo1_convertline
+opuserdata -n '___Version___' -v '' $_obj_geo1_convertline
+opset -p on $_obj_geo1_convertline
+opcf $arg1
+
+# Node $_obj_geo1_resample (Sop/resample)
+set _obj_geo1_resample = `run("opadd -e -n -v resample resample")`
+oplocate -x `$arg2 + 0` -y `$arg3 + -1.6815050296515235` $_obj_geo1_resample
+opparm -V 16.5.268 $_obj_geo1_resample length ( 0.050000000000000003 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_resample
+opexprlanguage -s hscript $_obj_geo1_resample
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_resample
+opset -p on $_obj_geo1_resample
+opcf $arg1
+
+# Node $_obj_geo1_clean (Sop/attribdelete)
+set _obj_geo1_clean = `run("opadd -e -n -v attribdelete clean")`
+oplocate -x `$arg2 + -0.0034499950706958771` -y `$arg3 + -5.8319718088637362` $_obj_geo1_clean
+opparm $_obj_geo1_clean ptdel ( '* ^pscale ^sourceprim' ) vtxdel ( * ) primdel ( '* ^restlength ^strain' ) dtldel ( * )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_clean
+opexprlanguage -s hscript $_obj_geo1_clean
+opuserdata -n '___Version___' -v '' $_obj_geo1_clean
+opset -p on $_obj_geo1_clean
+opcf $arg1
+
+# Node $_obj_geo1_vdb (Sop/vdbfrompolygons)
+set _obj_geo1_vdb = `run("opadd -e -n -v vdbfrompolygons vdb")`
+oplocate -x `$arg2 + -1.460050051659346` -y `$arg3 + -3.9341922797188449` $_obj_geo1_vdb
+opparm $_obj_geo1_vdb  numattrib ( 0 )
+opparm -V 16.5.268 $_obj_geo1_vdb voxelsize ( 0.02 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_vdb
+opexprlanguage -s hscript $_obj_geo1_vdb
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_vdb
+opset -p on $_obj_geo1_vdb
+opcf $arg1
+
+# Node $_obj_geo1_init_attribs (Sop/attribwrangle)
+set _obj_geo1_init_attribs = `run("opadd -e -n -v attribwrangle init_attribs")`
+oplocate -x `$arg2 + -0.0029999965336173773` -y `$arg3 + -3.1319374620839557` $_obj_geo1_init_attribs
+opspareds '    group {         name    "folder1"         label   "Code"          parm {             name    "group"             baseparm             label   "Group"             export  none             bindselector points "Modify Points"                 "Select the points to affect and press Enter to complete."                 0 1 0xffffffff 0 grouptype 0         }         parm {             name    "grouptype"             baseparm             label   "Group Type"             export  none         }         parm {             name    "class"             baseparm             label   "Run Over"             export  none         }         parm {             name    "vex_numcount"             baseparm             label   "Number Count"             export  none         }         parm {             name    "vex_threadjobsize"             baseparm             label   "Thread Job Size"             export  none         }         parm {             name    "snippet"             baseparm             label   "VEXpression"             export  all         }         parm {             name    "exportlist"             baseparm             label   "Attributes to Create"             export  none         }         parm {             name    "vex_strict"             baseparm             label   "Enforce Prototypes"             export  none         }     }      group {         name    "folder1_1"         label   "Bindings"          parm {             name    "autobind"             baseparm             label   "Autobind by Name"             export  none         }         multiparm {             name    "bindings"             label    "Number of Bindings"             baseparm             default 0             parmtag { "autoscope" "0000000000000000" }             parmtag { "multistartoffset" "1" }              parm {                 name    "bindname#"                 baseparm                 label   "Attribute Name"                 export  none             }             parm {                 name    "bindparm#"                 baseparm                 label   "VEX Parameter"                 export  none             }         }          parm {             name    "groupautobind"             baseparm             label   "Autobind Groups by Name"             export  none         }         multiparm {             name    "groupbindings"             label    "Group Bindings"             baseparm             default 0             parmtag { "autoscope" "0000000000000000" }             parmtag { "multistartoffset" "1" }              parm {                 name    "bindgroupname#"                 baseparm                 label   "Group Name"                 export  none             }             parm {                 name    "bindgroupparm#"                 baseparm                 label   "VEX Parameter"                 export  none             }         }          parm {             name    "vex_cwdpath"             baseparm             label   "Evaluation Node Path"             export  none         }         parm {             name    "vex_outputmask"             baseparm             label   "Export Parameters"             export  none         }         parm {             name    "vex_updatenmls"             baseparm             label   "Update Normals If Displaced"             export  none         }         parm {             name    "vex_matchattrib"             baseparm             label   "Attribute to Match"             export  none         }         parm {             name    "vex_inplace"             baseparm             label   "Compute Results In Place"             export  none         }         parm {             name    "vex_selectiongroup"             baseparm             label   "Output Selection Group"             export  none         }     }      parm {         name    "pscale"         label   "Pscale"         type    float         default { "0" }         range   { 0 1 }     }     parm {         name    "fix_ends"         label   "Fix Ends"         type    toggle         default { "0" }         range   { 0 10 }     } ' $_obj_geo1_init_attribs
+opparm $_obj_geo1_init_attribs  bindings ( 0 ) groupbindings ( 0 )
+chblockbegin
+chadd -t 0 0 $_obj_geo1_init_attribs pscale
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch("../resample/length")*0.5' $_obj_geo1_init_attribs/pscale
+chblockend
+opparm $_obj_geo1_init_attribs snippet ( 'f@mass = 1;\nif(len(pointprims(0,@ptnum))==1 && chi("fix_ends"))\n    f@mass = 0;\n    \nf@pscale = chf("pscale");' ) pscale ( pscale ) fix_ends ( on )
+opcolor -c 0.97600001096725464 0.77999997138977051 0.2630000114440918 $_obj_geo1_init_attribs
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_geo1_init_attribs
+opexprlanguage -s hscript $_obj_geo1_init_attribs
+opuserdata -n '___Version___' -v '' $_obj_geo1_init_attribs
+opset -p on $_obj_geo1_init_attribs
+
+opcf $arg1
+opcf $arg1
+opwire -n $_obj_geo1_init_attribs -0 $_obj_geo1_set_restlength
+opcf $arg1
+opwire -n $_obj_geo1_polywire1 -0 $_obj_geo1_OUT
+opcf $arg1
+opwire -n $_obj_geo1_sim_cables -0 $_obj_geo1_polypath2
+opcf $arg1
+opwire -n $_obj_geo1_set_restlength -0 $_obj_geo1_sim_cables
+opwire -n $_obj_geo1_vdb -1 $_obj_geo1_sim_cables
+opcf $_obj_geo1_sim_cables
+opwire -n $_obj_geo1_sim_cables_gravity1 -0 $_obj_geo1_sim_cables_output
+opwire -n $_obj_geo1_sim_cables_popobject1 -0 $_obj_geo1_sim_cables_popsolver1
+opwire -n $_obj_geo1_sim_cables_popgrains1 -2 $_obj_geo1_sim_cables_popsolver1
+opwire -n $_obj_geo1_sim_cables_popdrag1 -0 $_obj_geo1_sim_cables_popgrains1
+opwire -n $_obj_geo1_sim_cables_merge1 -0 $_obj_geo1_sim_cables_gravity1
+opwire -n $_obj_geo1_sim_cables_staticobject1 -0 $_obj_geo1_sim_cables_merge1
+opwire -n $_obj_geo1_sim_cables_groundplane1 -1 $_obj_geo1_sim_cables_merge1
+opwire -n $_obj_geo1_sim_cables_popsolver1 -2 $_obj_geo1_sim_cables_merge1
+opwire -n $_obj_geo1_sim_cables_follow_0_mass -0 $_obj_geo1_sim_cables_popsprite1
+opwire -n $_obj_geo1_sim_cables_popsprite1 -0 $_obj_geo1_sim_cables_popcolor1
+opwire -n $_obj_geo1_sim_cables_popsource1 -0 $_obj_geo1_sim_cables_follow_0_mass
+opwire -n $_obj_geo1_sim_cables_popcolor1 -0 $_obj_geo1_sim_cables_get_restlength
+opwire -n $_obj_geo1_sim_cables_get_restlength -0 $_obj_geo1_sim_cables_popdrag1
+opcf ..
+opcf $arg1
+opcf $arg1
+opwire -n $_obj_geo1_smooth -0 $_obj_geo1_polywire1
+opcf $arg1
+opwire -n $_obj_geo1_Lines -0 $_obj_geo1_sourceprim
+opcf $arg1
+opwire -n $_obj_geo1_restore_curves -0 $_obj_geo1_smooth
+opcf $arg1
+opwire -n $_obj_geo1_IN -0 $_obj_geo1_Lines
+opcf $arg1
+opwire -n $_obj_geo1_clean -0 $_obj_geo1_restore_curves
+opcf $arg1
+opwire -n $_obj_geo1_resample -0 $_obj_geo1_convertline
+opcf $arg1
+opwire -n $_obj_geo1_sourceprim -0 $_obj_geo1_resample
+opcf $arg1
+opwire -n $_obj_geo1_sim_cables -0 $_obj_geo1_clean
+opcf $arg1
+opwire -n $_obj_geo1_VDB -0 $_obj_geo1_vdb
+opcf $arg1
+opwire -n $_obj_geo1_convertline -0 $_obj_geo1_init_attribs
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_geo1_OUT
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_geo1_Lines
     if ($arg8) then
         opwire -n -i $arg6 -0 $input
     else
