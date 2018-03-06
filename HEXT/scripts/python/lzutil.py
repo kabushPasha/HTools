@@ -187,16 +187,30 @@ def execTool(shelf,toolName,locals = {}):
 def cpSetOrigin(new_origin,construction_plane = []):
 	if construction_plane == []:
 		construction_plane = toolutils.sceneViewer().constructionPlane()
+	# revert center offset
+	t = hou.hmath.buildTranslate(hou.Vector3([-2,-2,0]))
+	construction_plane.setTransform(t.inverted()*construction_plane.transform())
+	# process
 	translation = hou.hmath.buildTranslate(hou.Vector3(new_origin) - cpOrigin(construction_plane))
 	construction_plane.setTransform(construction_plane.transform() * translation)
+	# apply center offset
+	construction_plane.setTransform(t*construction_plane.transform())
 # set_normal
 def cpSetNormal(normal_vector,construction_plane = []):
 	if construction_plane == []:
 		construction_plane = toolutils.sceneViewer().constructionPlane()
+	# revert center offset
+	t = hou.hmath.buildTranslate(hou.Vector3([-2,-2,0]))
+	construction_plane.setTransform(t.inverted()*construction_plane.transform())
+	# process
 	existing_rotation = hou.Matrix4(construction_plane.transform().extractRotationMatrix3())
 	rotation = existing_rotation * cpNormal(construction_plane).matrixToRotateTo(normal_vector)
 	translation = hou.hmath.buildTranslate(cpOrigin(construction_plane))
-	construction_plane.setTransform(rotation * translation)    
+	construction_plane.setTransform(rotation * translation) 
+	# apply center offset
+	construction_plane.setTransform(t*construction_plane.transform())
+
+	
 # contruction plane N and origin
 def cpNormal(construction_plane = []):
 	if construction_plane == []:
