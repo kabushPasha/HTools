@@ -17,7 +17,7 @@ string p4() return opinputpath("..",3);
 
 # max bboxsize
 maxbb() 
-	return max(bbx(),max(bby(),bbz()))
+	return max(bbx(),max(bby(),bbz()));
 # uniform sampleing divisions
 usd(divs) 
 	return maxbb()/divs;

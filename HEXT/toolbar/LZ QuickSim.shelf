@@ -8,6 +8,7 @@
   <toolshelf name="LZ QuickSim" label="LZ QuickSim">
     <memberTool name="LZ quick Bullet"/>
     <memberTool name="LZ quick cables"/>
+    <memberTool name="LZ QuickDrop"/>
   </toolshelf>
 
   <tool name="LZ quick Bullet" label="LZ quick Bullet" icon="hicon:/SVGIcons.index?DOP_bulletsolver.svg">
@@ -780,6 +781,457 @@ if ($argc >= 5 && "$arg4" != "") then
 endif
 if ($argc >= 6 && "$arg6" != "") then
     set input = $_obj_geo1_Lines
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+
+  <tool name="LZ QuickDrop" label="LZ QuickDrop" icon="hicon:/SVGIcons.index?DOP_gravity.svg">
+    <toolMenuContext name="network">
+      <contextOpType>Sop/box</contextOpType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputitem = None
+inputindex = -1
+inputitem = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if kwargs.has_key("outputnodename") and kwargs.has_key("inputindex"):
+        outputitem = pane_node.item(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if kwargs.has_key("inputnodename") and kwargs.has_key("outputindex"):
+        inputitem = pane_node.item(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if kwargs.has_key("autoplace"):
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+        if inputitem is None:
+            inputitem = pane.currentNode()
+            outputindex = 0
+    if kwargs.has_key("nodepositionx") and             kwargs.has_key("nodepositiony"):
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+
+    if not autoplace and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputitem is None:
+            pos = pane.selectPosition(inputitem, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputitem, outputindex,
+                                      outputitem, inputindex)
+
+    if pos is not None:
+        if kwargs.has_key("node_bbox"):
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if not child_type.has_key('scatter::2.0'):
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_geo1_box28 (Sop/box)
+set _obj_geo1_box28 = `run("opadd -e -n -v box box28")`
+oplocate -x `$arg2 + 1.6268177747575741` -y `$arg3 + 2.1990585962116569` $_obj_geo1_box28
+opparm -V 16.5.268 $_obj_geo1_box28 size ( 0.29999998956918716 0.050000000000000003 1 ) scale ( 0.4999999925494194 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_box28
+opexprlanguage -s hscript $_obj_geo1_box28
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_box28
+opset -p on $_obj_geo1_box28
+opcf $arg1
+
+# Node $_obj_geo1_In_static (Sop/null)
+set _obj_geo1_In_static = `run("opadd -e -n -v null In_static")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_geo1_In_static
+opcolor -c 0.47499999403953552 0.81199997663497925 0.20399999618530273 $_obj_geo1_In_static
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_geo1_In_static
+opexprlanguage -s hscript $_obj_geo1_In_static
+opset -p on $_obj_geo1_In_static
+opcf $arg1
+
+# Node $_obj_geo1_vdbfrompolygons1 (Sop/vdbfrompolygons)
+set _obj_geo1_vdbfrompolygons1 = `run("opadd -e -n -v vdbfrompolygons vdbfrompolygons1")`
+oplocate -x `$arg2 + 2.9985094442595632` -y `$arg3 + 1.4982999989569166` $_obj_geo1_vdbfrompolygons1
+opparm $_obj_geo1_vdbfrompolygons1  numattrib ( 0 )
+chblockbegin
+chadd -t 0 0 $_obj_geo1_vdbfrompolygons1 voxelsize
+chkey -t 0 -v 0.10000000000000001 -m 0 -a 0 -A 0 -T a  -F 'usd(50)' $_obj_geo1_vdbfrompolygons1/voxelsize
+chblockend
+opparm -V 16.5.268 $_obj_geo1_vdbfrompolygons1 voxelsize ( voxelsize ) builddistance ( off ) buildfog ( on )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_vdbfrompolygons1
+opexprlanguage -s hscript $_obj_geo1_vdbfrompolygons1
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_vdbfrompolygons1
+opset -p on $_obj_geo1_vdbfrompolygons1
+opcf $arg1
+
+# Node $_obj_geo1_box27 (Sop/box)
+set _obj_geo1_box27 = `run("opadd -e -n -v box box27")`
+oplocate -x `$arg2 + 2.9997594728697927` -y `$arg3 + 2.1990585962116569` $_obj_geo1_box27
+opparm -V 16.5.268 $_obj_geo1_box27 size ( 1.5749485492706299 3.2746896743774414 1.6630067825317383 ) t ( -3.9724329710006714 2.7126922607421875 -3.2809052467346191 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_box27
+opexprlanguage -s hscript $_obj_geo1_box27
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_box27
+opset -p on $_obj_geo1_box27
+opcf $arg1
+
+# Node $_obj_geo1_copytopoints5 (Sop/copytopoints)
+set _obj_geo1_copytopoints5 = `run("opadd -e -n -v copytopoints copytopoints5")`
+oplocate -x `$arg2 + 2.334264719081363` -y `$arg3 + -0.8443788475564844` $_obj_geo1_copytopoints5
+opparm -V 16.5.268 $_obj_geo1_copytopoints5 pack ( on )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_copytopoints5
+opexprlanguage -s hscript $_obj_geo1_copytopoints5
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_copytopoints5
+opset -p on $_obj_geo1_copytopoints5
+opcf $arg1
+
+# Node $_obj_geo1_quick_bullet3 (Sop/dopnet)
+set _obj_geo1_quick_bullet3 = `run("opadd -e -n -v dopnet quick_bullet3")`
+oplocate -x `$arg2 + 2.3342647070650666` -y `$arg3 + -3.3238541750422073` $_obj_geo1_quick_bullet3
+opparm $_obj_geo1_quick_bullet3  numobj ( 1 )
+chblockbegin
+chadd -t 0 0 $_obj_geo1_quick_bullet3 timestep
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch("timescale")/(ch("substep")*$FPS)' $_obj_geo1_quick_bullet3/timestep
+chadd -t 0 0 $_obj_geo1_quick_bullet3 timeoffset
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '(ch("startframe")-1)/$FPS' $_obj_geo1_quick_bullet3/timeoffset
+chblockend
+opparm -V 16.5.268 $_obj_geo1_quick_bullet3 stdswitcher ( 1 1 1 ) objname1 ( r* )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_quick_bullet3
+opexprlanguage -s hscript $_obj_geo1_quick_bullet3
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_quick_bullet3
+opcf $_obj_geo1_quick_bullet3
+
+# Node $_obj_geo1_quick_bullet3_groundplane1 (Dop/groundplane)
+set _obj_geo1_quick_bullet3_groundplane1 = `run("opadd -e -n -v groundplane groundplane1")`
+oplocate -x `$arg2 + 7.8357200000000002` -y `$arg3 + -23.2592` $_obj_geo1_quick_bullet3_groundplane1
+opset -d off -r off -h off -f off -y off -t on -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_quick_bullet3_groundplane1
+opexprlanguage -s hscript $_obj_geo1_quick_bullet3_groundplane1
+opuserdata -n '___Version___' -v '' $_obj_geo1_quick_bullet3_groundplane1
+opuserdata -n '___toolcount___' -v '1' $_obj_geo1_quick_bullet3_groundplane1
+opuserdata -n '___toolid___' -v 'dop_groundplane' $_obj_geo1_quick_bullet3_groundplane1
+
+# Node $_obj_geo1_quick_bullet3_rigidbodysolver1 (Dop/rigidbodysolver)
+set _obj_geo1_quick_bullet3_rigidbodysolver1 = `run("opadd -e -n -v rigidbodysolver rigidbodysolver1")`
+oplocate -x `$arg2 + 10.6752` -y `$arg3 + -22.323699999999999` $_obj_geo1_quick_bullet3_rigidbodysolver1
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_quick_bullet3_rigidbodysolver1
+opexprlanguage -s hscript $_obj_geo1_quick_bullet3_rigidbodysolver1
+opuserdata -n '___Version___' -v '2' $_obj_geo1_quick_bullet3_rigidbodysolver1
+opuserdata -n '___toolcount___' -v '7' $_obj_geo1_quick_bullet3_rigidbodysolver1
+opuserdata -n '___toolid___' -v 'dop_rbdglueobject' $_obj_geo1_quick_bullet3_rigidbodysolver1
+
+# Node $_obj_geo1_quick_bullet3_rbdpackedobject1 (Dop/rbdpackedobject)
+set _obj_geo1_quick_bullet3_rbdpackedobject1 = `run("opadd -e -n -v rbdpackedobject rbdpackedobject1")`
+oplocate -x `$arg2 + 9.151010628571429` -y `$arg3 + -19.06310182857143` $_obj_geo1_quick_bullet3_rbdpackedobject1
+chblockbegin
+chadd -t 0 0 $_obj_geo1_quick_bullet3_rbdpackedobject1 createframe
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch(opcreator(".")+"/startframe")' $_obj_geo1_quick_bullet3_rbdpackedobject1/createframe
+chadd -t 0 0 $_obj_geo1_quick_bullet3_rbdpackedobject1 bullet_shrink_amount
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch("bullet_collision_margin")' $_obj_geo1_quick_bullet3_rbdpackedobject1/bullet_shrink_amount
+chblockend
+opparm -V 4 $_obj_geo1_quick_bullet3_rbdpackedobject1 geosource ( first )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_quick_bullet3_rbdpackedobject1
+opexprlanguage -s hscript $_obj_geo1_quick_bullet3_rbdpackedobject1
+opuserdata -n '___Version___' -v '4' $_obj_geo1_quick_bullet3_rbdpackedobject1
+opuserdata -n '___toolcount___' -v '3' $_obj_geo1_quick_bullet3_rbdpackedobject1
+opuserdata -n '___toolid___' -v 'dop_rbdpackedobject' $_obj_geo1_quick_bullet3_rbdpackedobject1
+
+# Node $_obj_geo1_quick_bullet3_static (Dop/rbdpackedobject)
+set _obj_geo1_quick_bullet3_static = `run("opadd -e -n -v rbdpackedobject static")`
+oplocate -x `$arg2 + 11.992640628571429` -y `$arg3 + -19.06310182857143` $_obj_geo1_quick_bullet3_static
+chblockbegin
+chadd -t 0 0 $_obj_geo1_quick_bullet3_static createframe
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch(opcreator(".")+"/startframe")' $_obj_geo1_quick_bullet3_static/createframe
+chadd -t 0 0 $_obj_geo1_quick_bullet3_static bullet_shrink_amount
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch("bullet_collision_margin")' $_obj_geo1_quick_bullet3_static/bullet_shrink_amount
+chblockend
+opparm -V 4 $_obj_geo1_quick_bullet3_static initialstate ( static ) geosource ( second ) display ( off ) initial_state ( 1 1 1 ) showguide ( on )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_quick_bullet3_static
+opexprlanguage -s hscript $_obj_geo1_quick_bullet3_static
+opuserdata -n '___Version___' -v '4' $_obj_geo1_quick_bullet3_static
+opuserdata -n '___toolcount___' -v '3' $_obj_geo1_quick_bullet3_static
+opuserdata -n '___toolid___' -v 'dop_rbdpackedobject' $_obj_geo1_quick_bullet3_static
+opcf ..
+opcf $_obj_geo1_quick_bullet3
+
+# Node $_obj_geo1_quick_bullet3_output (Dop/output)
+set _obj_geo1_quick_bullet3_output = `run("opadd -e -n -v output output")`
+oplocate -x `$arg2 + 10.678699999999999` -y `$arg3 + -25.178599999999999` $_obj_geo1_quick_bullet3_output
+chblockbegin
+chadd -t 0 0 $_obj_geo1_quick_bullet3_output f1
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '$FSTART' $_obj_geo1_quick_bullet3_output/f1
+chadd -t 0 0 $_obj_geo1_quick_bullet3_output f2
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '$FEND' $_obj_geo1_quick_bullet3_output/f2
+chblockend
+opparm $_obj_geo1_quick_bullet3_output
+opset -d on -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_quick_bullet3_output
+opexprlanguage -s hscript $_obj_geo1_quick_bullet3_output
+opuserdata -n '___Version___' -v '' $_obj_geo1_quick_bullet3_output
+
+# Node $_obj_geo1_quick_bullet3_gravity1 (Dop/gravity)
+set _obj_geo1_quick_bullet3_gravity1 = `run("opadd -e -n -v gravity gravity1")`
+oplocate -x `$arg2 + 10.678699999999999` -y `$arg3 + -23.2607` $_obj_geo1_quick_bullet3_gravity1
+chblockbegin
+chadd -t 0 0 $_obj_geo1_quick_bullet3_gravity1 activation
+chkey -t 0 -v 1 -m 0 -a 0 -A 0 -T a  -F 'constant()' $_obj_geo1_quick_bullet3_gravity1/activation
+chblockend
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_quick_bullet3_gravity1
+opexprlanguage -s hscript $_obj_geo1_quick_bullet3_gravity1
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_quick_bullet3_gravity1
+
+# Node $_obj_geo1_quick_bullet3_merge1 (Dop/merge)
+set _obj_geo1_quick_bullet3_merge1 = `run("opadd -e -n -v merge merge1")`
+oplocate -x `$arg2 + 10.6775` -y `$arg3 + -24.278700000000001` $_obj_geo1_quick_bullet3_merge1
+chblockbegin
+chadd -t 0 0 $_obj_geo1_quick_bullet3_merge1 activation
+chkey -t 0 -v 1 -m 0 -a 0 -A 0 -T a  -F 'constant()' $_obj_geo1_quick_bullet3_merge1/activation
+chblockend
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_quick_bullet3_merge1
+opexprlanguage -s hscript $_obj_geo1_quick_bullet3_merge1
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_quick_bullet3_merge1
+
+# Node $_obj_geo1_quick_bullet3_merge2 (Dop/merge)
+set _obj_geo1_quick_bullet3_merge2 = `run("opadd -e -n -v merge merge2")`
+oplocate -x `$arg2 + 10.431360628571429` -y `$arg3 + -19.947501828571429` $_obj_geo1_quick_bullet3_merge2
+chblockbegin
+chadd -t 0 0 $_obj_geo1_quick_bullet3_merge2 activation
+chkey -t 0 -v 1 -m 0 -a 0 -A 0 -T a  -F 'constant()' $_obj_geo1_quick_bullet3_merge2/activation
+chblockend
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_quick_bullet3_merge2
+opexprlanguage -s hscript $_obj_geo1_quick_bullet3_merge2
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_quick_bullet3_merge2
+
+# Node $_obj_geo1_quick_bullet3_staticobject1 (Dop/staticobject)
+set _obj_geo1_quick_bullet3_staticobject1 = `run("opadd -e -n -v staticobject staticobject1")`
+oplocate -x `$arg2 + 6.2112499999999997` -y `$arg3 + -23.2607` $_obj_geo1_quick_bullet3_staticobject1
+chblockbegin
+chadd -t 0 0 $_obj_geo1_quick_bullet3_staticobject1 createframe
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch(opcreator(".")+"/startframe")' $_obj_geo1_quick_bullet3_staticobject1/createframe
+chadd -t 0 0 $_obj_geo1_quick_bullet3_staticobject1 bullet_shrink_amount
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F 'ch("bullet_collision_margin")' $_obj_geo1_quick_bullet3_staticobject1/bullet_shrink_amount
+chblockend
+opparm -V 4 $_obj_geo1_quick_bullet3_staticobject1 soppath ( '`opinputpath("..",2)`' ) display ( off ) std_switcher_0_2_1 ( 1 1 ) rbd_solver ( 1 1 1 ) mode ( volume ) div ( 2 2 2 ) invert ( on ) showguide2 ( on )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_quick_bullet3_staticobject1
+opexprlanguage -s hscript $_obj_geo1_quick_bullet3_staticobject1
+opuserdata -n '___Version___' -v '4' $_obj_geo1_quick_bullet3_staticobject1
+opuserdata -n '___toolcount___' -v '16' $_obj_geo1_quick_bullet3_staticobject1
+opuserdata -n '___toolid___' -v 'dop_staticobject' $_obj_geo1_quick_bullet3_staticobject1
+oporder -e output gravity1 groundplane1 merge1 rigidbodysolver1 rbdpackedobject1 merge2 static staticobject1 
+opcf ..
+opset -p on $_obj_geo1_quick_bullet3
+opcf $arg1
+
+# Node $_obj_geo1_OUT1 (Sop/null)
+set _obj_geo1_OUT1 = `run("opadd -e -n -v null OUT1")`
+oplocate -x `$arg2 + 2.3342647070650666` -y `$arg3 + -6.032873399661284` $_obj_geo1_OUT1
+opcolor -c 0.58399999141693115 0.77600002288818359 1 $_obj_geo1_OUT1
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_geo1_OUT1
+opexprlanguage -s hscript $_obj_geo1_OUT1
+opset -p on $_obj_geo1_OUT1
+opcf $arg1
+
+# Node $_obj_geo1_merge32 (Sop/merge)
+set _obj_geo1_merge32 = `run("opadd -e -n -v merge merge32")`
+oplocate -x `$arg2 + 2.3331147070650666` -y `$arg3 + -1.6720691642621759` $_obj_geo1_merge32
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_merge32
+opexprlanguage -s hscript $_obj_geo1_merge32
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_merge32
+opset -p on $_obj_geo1_merge32
+opcf $arg1
+
+# Node $_obj_geo1_IN1 (Sop/null)
+set _obj_geo1_IN1 = `run("opadd -e -n -v null IN1")`
+oplocate -x `$arg2 + 1.6268177747575732` -y `$arg3 + 0` $_obj_geo1_IN1
+opcolor -c 0.47499999403953552 0.81199997663497925 0.20399999618530273 $_obj_geo1_IN1
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F off -c on -e on -b off $_obj_geo1_IN1
+opexprlanguage -s hscript $_obj_geo1_IN1
+opset -p on $_obj_geo1_IN1
+opcf $arg1
+
+# Node $_obj_geo1_assemble5 (Sop/assemble)
+set _obj_geo1_assemble5 = `run("opadd -e -n -v assemble assemble5")`
+oplocate -x `$arg2 + 2.3342647070650666` -y `$arg3 + -2.4733691642621736` $_obj_geo1_assemble5
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_assemble5
+opexprlanguage -s hscript $_obj_geo1_assemble5
+opuserdata -n '___Version___' -v '1' $_obj_geo1_assemble5
+opuserdata -n '___toolcount___' -v '5' $_obj_geo1_assemble5
+opuserdata -n '___toolid___' -v 'dop_rbdfracturedobject' $_obj_geo1_assemble5
+opset -p on $_obj_geo1_assemble5
+opcf $arg1
+
+# Node $_obj_geo1_attribdelete2 (Sop/attribdelete)
+set _obj_geo1_attribdelete2 = `run("opadd -e -n -v attribdelete attribdelete2")`
+oplocate -x `$arg2 + 2.3308147119943707` -y `$arg3 + -4.1414557244014887` $_obj_geo1_attribdelete2
+opparm $_obj_geo1_attribdelete2 ptdel ( * ) vtxdel ( * ) primdel ( * ) dtldel ( * )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_attribdelete2
+opexprlanguage -s hscript $_obj_geo1_attribdelete2
+opuserdata -n '___Version___' -v '' $_obj_geo1_attribdelete2
+opset -p on $_obj_geo1_attribdelete2
+opcf $arg1
+
+# Node $_obj_geo1_unpack1 (Sop/unpack)
+set _obj_geo1_unpack1 = `run("opadd -e -n -v unpack unpack1")`
+oplocate -x `$arg2 + 2.3342647210349052` -y `$arg3 + -4.8861083524565316` $_obj_geo1_unpack1
+opset -d on -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_unpack1
+opexprlanguage -s hscript $_obj_geo1_unpack1
+opset -p on $_obj_geo1_unpack1
+opcf $arg1
+
+# Node $_obj_geo1_assemble6 (Sop/assemble)
+set _obj_geo1_assemble6 = `run("opadd -e -n -v assemble assemble6")`
+oplocate -x `$arg2 + 4.4408920985006262e-16` -y `$arg3 + -2.4733691642621736` $_obj_geo1_assemble6
+opparm -V 1 $_obj_geo1_assemble6 pack_geo ( on )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_assemble6
+opexprlanguage -s hscript $_obj_geo1_assemble6
+opuserdata -n '___Version___' -v '1' $_obj_geo1_assemble6
+opuserdata -n '___toolcount___' -v '5' $_obj_geo1_assemble6
+opuserdata -n '___toolid___' -v 'dop_rbdfracturedobject' $_obj_geo1_assemble6
+opset -p on $_obj_geo1_assemble6
+opcf $arg1
+
+# Node $_obj_geo1_attribrandomize4 (Sop/attribrandomize)
+set _obj_geo1_attribrandomize4 = `run("opadd -e -n -v attribrandomize attribrandomize4")`
+oplocate -x `$arg2 + 2.9963094491888671` -y `$arg3 + 0.0049999989569187164` $_obj_geo1_attribrandomize4
+opparm $_obj_geo1_attribrandomize4  ramp ( 3 ) values ( 4 )
+opparm $_obj_geo1_attribrandomize4 name ( orient ) distribution ( uniformorient ) dimensions ( 4 ) seed ( 330 ) ramp2pos ( 0.5 ) ramp2value ( 0.5 ) ramp3pos ( 1 ) ramp3value ( 1 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_attribrandomize4
+opexprlanguage -s hscript $_obj_geo1_attribrandomize4
+opuserdata -n '___Version___' -v '' $_obj_geo1_attribrandomize4
+opset -p on $_obj_geo1_attribrandomize4
+opcf $arg1
+
+# Node $_obj_geo1_scatter4 (Sop/scatter::2.0)
+set _obj_geo1_scatter4 = `run("opadd -e -n -v scatter::2.0 scatter4")`
+oplocate -x `$arg2 + 2.999759444259563` -y `$arg3 + 0.78739999895691426` $_obj_geo1_scatter4
+opparm -V 16.5.268 $_obj_geo1_scatter4 npts ( 500 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_scatter4
+opexprlanguage -s hscript $_obj_geo1_scatter4
+opuserdata -n '___Version___' -v '16.5.268' $_obj_geo1_scatter4
+opset -p on $_obj_geo1_scatter4
+
+opcf $arg1
+opcf $arg1
+opcf $arg1
+opwire -n $_obj_geo1_box27 -0 $_obj_geo1_vdbfrompolygons1
+opcf $arg1
+opcf $arg1
+opwire -n $_obj_geo1_IN1 -0 $_obj_geo1_copytopoints5
+opwire -n $_obj_geo1_attribrandomize4 -1 $_obj_geo1_copytopoints5
+opcf $arg1
+opwire -n $_obj_geo1_assemble5 -0 $_obj_geo1_quick_bullet3
+opwire -n $_obj_geo1_assemble6 -1 $_obj_geo1_quick_bullet3
+opcf $_obj_geo1_quick_bullet3
+opwire -n $_obj_geo1_quick_bullet3_merge1 -0 $_obj_geo1_quick_bullet3_output
+opwire -n $_obj_geo1_quick_bullet3_rigidbodysolver1 -0 $_obj_geo1_quick_bullet3_gravity1
+opwire -n $_obj_geo1_quick_bullet3_staticobject1 -0 $_obj_geo1_quick_bullet3_merge1
+opwire -n $_obj_geo1_quick_bullet3_groundplane1 -1 $_obj_geo1_quick_bullet3_merge1
+opwire -n $_obj_geo1_quick_bullet3_gravity1 -2 $_obj_geo1_quick_bullet3_merge1
+opwire -n $_obj_geo1_quick_bullet3_merge2 -0 $_obj_geo1_quick_bullet3_rigidbodysolver1
+opwire -n $_obj_geo1_quick_bullet3_rbdpackedobject1 -0 $_obj_geo1_quick_bullet3_merge2
+opwire -n $_obj_geo1_quick_bullet3_static -1 $_obj_geo1_quick_bullet3_merge2
+opcf ..
+opcf $arg1
+opwire -n $_obj_geo1_unpack1 -0 $_obj_geo1_OUT1
+opcf $arg1
+opwire -n $_obj_geo1_copytopoints5 -0 $_obj_geo1_merge32
+opcf $arg1
+opwire -n $_obj_geo1_box28 -0 $_obj_geo1_IN1
+opcf $arg1
+opwire -n $_obj_geo1_merge32 -0 $_obj_geo1_assemble5
+opcf $arg1
+opwire -n $_obj_geo1_quick_bullet3 -0 $_obj_geo1_attribdelete2
+opcf $arg1
+opwire -n $_obj_geo1_attribdelete2 -0 $_obj_geo1_unpack1
+opcf $arg1
+opwire -n $_obj_geo1_In_static -0 $_obj_geo1_assemble6
+opcf $arg1
+opwire -n $_obj_geo1_scatter4 -0 $_obj_geo1_attribrandomize4
+opcf $arg1
+opwire -n $_obj_geo1_vdbfrompolygons1 -0 $_obj_geo1_scatter4
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_geo1_OUT1
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_geo1_In_static
     if ($arg8) then
         opwire -n -i $arg6 -0 $input
     else
