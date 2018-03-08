@@ -9,6 +9,7 @@
     <memberTool name="LZ quick Bullet"/>
     <memberTool name="LZ quick cables"/>
     <memberTool name="LZ QuickDrop"/>
+    <memberTool name="LZ GrowPiecesStick"/>
     <memberTool name="LZ GrowPieces"/>
   </toolshelf>
 
@@ -1245,7 +1246,7 @@ hou.hscript(h_preamble + h_extra_args + h_cmd)
 ]]></script>
   </tool>
 
-  <tool name="LZ GrowPieces" label="LZ GrowPieces" icon="hicon:/SVGIcons.index?IMAGE_fit_to_window.svg">
+  <tool name="LZ GrowPiecesStick" label="LZ GrowPiecesStick" icon="hicon:/SVGIcons.index?IMAGE_adaptpixelrange.svg">
     <toolMenuContext name="network">
       <contextOpType>Sop/null</contextOpType>
     </toolMenuContext>
