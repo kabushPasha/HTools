@@ -180,6 +180,20 @@ def execTool(shelf,toolName,locals = {}):
 	for tool in rs.tools():	
 		if tool.name() == toolName:
 			exec(tool.script(),{},locals)
+
+# Update All Bboxes
+def updateBbox(n):
+	g = n.geometry()
+	bb = g.boundingBox()
+	
+	n.parm("sizex").set(bb.sizevec()[0])
+	n.parm("sizey").set(bb.sizevec()[1])
+	n.parm("sizez").set(bb.sizevec()[2])
+	
+	n.parm("tx").set(bb.center()[0])
+	n.parm("ty").set(bb.center()[1])
+	n.parm("tz").set(bb.center()[2])
+
 			
 			
 # Construction plane Functions			

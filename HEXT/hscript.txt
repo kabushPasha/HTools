@@ -28,6 +28,8 @@ bbx() return bbox(opinputpath(".",0),D_XSIZE);
 bby() return bbox(opinputpath(".",0),D_YSIZE);
 bbz() return bbox(opinputpath(".",0),D_ZSIZE);
 
+diam() return (bbx()+bby()+bbz())/3;
+
 cx() return centroid(i1(),D_X);
 cy() return centroid(i1(),D_Y);
 cz() return centroid(i1(),D_Z);
