@@ -179,7 +179,7 @@ def execTool(shelf,toolName,locals = {}):
 	rs = hou.shelves.shelves()[shelf]
 	for tool in rs.tools():	
 		if tool.name() == toolName:
-			exec(tool.script(),{},locals)
+			exec("import hou\n" + tool.script(),{},locals)
 
 # Update All Bboxes
 def updateBbox(n):
