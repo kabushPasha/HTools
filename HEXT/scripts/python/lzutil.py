@@ -235,3 +235,23 @@ def cpOrigin(construction_plane = []):
 	if construction_plane == []:
 		construction_plane = toolutils.sceneViewer().constructionPlane()
 	return hou.Vector3(0, 0, 0) * construction_plane.transform()  
+	
+		
+# Float Ramp To Color Ramp
+# Fix for redshift
+# import lzutil;n = hou.pwd();lzutil.copyFloatRampToColorRamp(n.parm("cramp"),n.parm("ramp"))
+def copyFloatRampToColorRamp(r,cd):
+    ramp = r.evalAsRamp()
+    basis = ramp.basis()
+    keys = ramp.keys()
+    values = ramp.values()    
+   
+    cdValues = []
+    for val in values:
+        cdValues += [[val,val,val]]
+    
+    cdRamp = hou.Ramp(basis,keys,cdValues)
+    cd.set(cdRamp)
+
+
+
