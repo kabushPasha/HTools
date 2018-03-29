@@ -121,6 +121,8 @@ def updateJobNameFromHipLocation():
 	
 			
 def copyToClipboard(str):
+	'''Copies str argument to clipboard
+	'''
 	#import PySide.QtGui as qtg
 	#app = qtg.QApplication.instance()
 	#clipboard = app.clipboard()
@@ -128,7 +130,14 @@ def copyToClipboard(str):
 	from PySide2.QtWidgets  import  QApplication
 	QApplication.clipboard().setText(str)
 	
+def copyToClipboardExpanded(str):
+	''' Expands str and copies it to clipboard
+	'''
+	copyToClipboard(hou.expandString(str))
+	
 def updateSnippetFromClipboard(node):
+	''' Sets the snippet parm on a node from the text n clipboard
+	'''
 	snippet = node.parm('snippet')
 	if snippet is not None:
 		from PySide2.QtWidgets  import  QApplication
@@ -163,6 +172,8 @@ def installOtlLibsUI():
 		hou.appendSessionModuleSource( "import lzutil\nlzutil.installOtlLib('"+lib +"')" )
 
 def explorer(dir):
+	'''Open dir in explorer
+	'''
 	subprocess.Popen('explorer "' + dir.replace('/','\\')  + '"')
 
 def FixPtgFolders(node):
@@ -183,6 +194,9 @@ def execTool(shelf,toolName,locals = {}):
 
 # Update All Bboxes
 def updateBbox(n):
+	''' Set the box center and size from its curren bbox.
+	Use if you need to adjust a box from a bboxed geo used as starting point.
+	'''
 	g = n.geometry()
 	bb = g.boundingBox()
 	
