@@ -1,0 +1,39 @@
+{
+	"Create Geometry":
+	{
+		"addpoint" : {"code":"int pt = addpoint(0,@P);"},
+		"addprim" : {"code":"int prim = addprim(0,'polyline',pt0,pt1);"},
+		"PrimTypes" : {"code":"\\\\'poly','polyline','tet','sphere','circle','tube','metaball','metasquad','AlembicRef','PackedDisk'"},
+		
+		"removepoint " : {"code":"removepoint (0,@ptnum);"},
+		"removeprim  " : {"code":"removeprim  (0,@primnum,1);"}
+	},
+	
+	"3D Space":
+	{
+		"intersect" : {"code":"vector P,uvw;\nint res = intersect(0,@P,v@dir,P,uvw);"},
+		"minpos" : {"code":"vector P = minpos(0,@P);"},
+		
+		"nearpoint" : {"code":"int npt = nearpoint(0,@P);"},
+		"nearpoints" : {"code":"int npts[] = nearpoints(0,@P,chf('maxDist'));"}
+	},	
+		
+	"Connectivity":
+	{
+		"neighbour" : {"code":"int nbr = neighbour(0,@ptnum,neighbourId);"},
+		"neighbourcount" : {"code":"int nnbrs = neighbourcount(0,@ptnum);"},
+		"neighbours" : {"code":"int nbrs = neighbours(0,@ptnum);"},
+		
+		"pointprims" : {"code":"int prims[] = pointprims(0,@ptnum);"},
+		"primpoints" : {"code":"int pts[] = primpoints (0,@primnum);"},
+		"primpoint" : {"code":"int pt = primpoint (0,@ptnum,vtxId);"}
+	},
+	
+	"Geo Info":
+	{
+		"npoints " : {"code":"int npts = npoints(0);"},
+		"nprimitives  " : {"code":"int nprims = nprimitives(0);"}
+	}
+	
+}
+				
