@@ -33,6 +33,51 @@
 	{
 		"npoints " : {"code":"int npts = npoints(0);"},
 		"nprimitives  " : {"code":"int nprims = nprimitives(0);"}
+	},
+	
+	"Read Attribs":
+	{
+		"detail" : {"code":" = detail(0,'AttName');"},
+		"point" : {"code":" = point (0,'AttName',i@ptnum);"},
+		"prim" : {"code":" = prim  (0,'AttName',i@primnum);"},
+		
+		
+		"setdetailattrib" : {"code":"setdetailattrib(0,'AttName',val);"},
+		"setpointattrib" : {"code":"setpointattrib(0,'AttName',i@ptnum,val);"},
+		"setprimattrib " : {"code":"setprimattrib (0,'AttName',i@primnum,val);"}
+	},	
+	
+	"Check Attribs":
+	{
+		"hasdetailattrib" : {"code":"int hasAtt = hasdetailattrib(0,'AttName');"},
+		"haspointattrib" : {"code":"int hasAtt = haspointattrib(0,'AttName');"},
+		"hasprimattrib" : {"code":"int hasAtt = hasprimattrib(0,'AttName');"},
+		
+		"findattribval" : {"code":"int pt = findattribval(0,'point','AttName',attValue);"},
+		"findattribvalcount" : {"code":"int npts = findattribvalcount (0,'point','AttName',attValue);"},
+		"nuniqueval" : {"code":"int nuniq = nuniqueval  (0,'point','AttName');"},
+		"uniqueval" : {"code":" = uniqueval(0,'point','AttName',0);"}
+	},
+	
+	"Intrinsics":
+	{
+		"detailintrinsic" : {"code":" = detailintrinsic(0,'IntName');"},	
+		"primintrinsic" : {"code":" = primintrinsic(0,'IntName',@primnum);"},		
+		"setprimintrinsic " : {"code":"setprimintrinsic (0,'IntName',@primnum,val);"}		
+	},
+	
+	"Ids And Names":
+	{
+		"idtopoint" : {"code":"int pt = idtopoint (0,i@id);"},
+		"idtoprim" : {"code":"int prim = idtoprim  (0,i@id);"},
+		"nametopoint" : {"code":"int pt = nametopoint(0,s@name);"},
+		"nametoprim" : {"code":"int prim = nametoprim(0,s@name);"}
+	},
+	
+	"UVs":
+	{
+		"primuv" : {"code":" = primuv (0,'AttName',i@primnum,v@uvw);"},	
+		"uvsample" : {"code":" = uvsample(0,'AttName','uv',v@uvw);"}	
 	}
 	
 }

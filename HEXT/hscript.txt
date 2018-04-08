@@ -1,14 +1,18 @@
 #opinputpath shotcuts
+string i(in) return opinputpath(".",in);
 string i1() return opinputpath(".",0);
 string i2() return opinputpath(".",1);
 string i3() return opinputpath(".",2);
 string i4() return opinputpath(".",3);
 
+string pp(in) return opinputpath("../..",in);
 string pp1() return opinputpath("../..",0);
 string pp2() return opinputpath("../..",1);
 string pp3() return opinputpath("../..",2);
 string pp4() return opinputpath("../..",3);
 
+
+string pi(in) return opinputpath("..",in);
 string p2() return opinputpath("..",1);
 string p3() return opinputpath("..",2);
 string p1() return opinputpath("..",0);
@@ -34,7 +38,11 @@ cx() return centroid(i1(),D_X);
 cy() return centroid(i1(),D_Y);
 cz() return centroid(i1(),D_Z);
 	
-	
 
-	
-	
+#parent bbox and centroid
+pbbx(in) return bbox(pi(in),D_XSIZE);
+pbby(in) return bbox(pi(in),D_YSIZE);
+pbbz(in) return bbox(pi(in),D_ZSIZE);		
+pcx(in) return centroid(pi(in),D_X);
+pcy(in) return centroid(pi(in),D_Y);
+pcz(in) return centroid(pi(in),D_Z);
