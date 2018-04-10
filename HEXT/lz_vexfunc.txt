@@ -15,7 +15,9 @@
 		"minpos" : {"code":"vector P = minpos(0,@P);"},
 		
 		"nearpoint" : {"code":"int npt = nearpoint(0,@P);"},
-		"nearpoints" : {"code":"int npts[] = nearpoints(0,@P,chf('maxDist'));"}
+		"nearpoints" : {"code":"int npts[] = nearpoints(0,@P,chf('maxDist'));"},
+		
+		"xyzdist" : {"code":"int prim;\nvector uv;\nfloat dist = xyzdist(0,@P,prim,uv));"}
 	},	
 		
 	"Connectivity":
@@ -78,7 +80,18 @@
 	{
 		"primuv" : {"code":" = primuv (0,'AttName',i@primnum,v@uvw);"},	
 		"uvsample" : {"code":" = uvsample(0,'AttName','uv',v@uvw);"}	
+	},
+	
+	"BBOX":
+	{
+		"center" : {"code":" vector bbcenter = getbbox_center(0);"},	
+		"max" : {"code":" vector bbmax = getbbox_max (0);"},	
+		"min" : {"code":" vector bbmin = getbbox_min (0);"},	
+		"size" : {"code":" vector bbsize = getbbox_size (0);"},	
+		"relbbox " : {"code":" vector pos = relbbox(0,@P);"}
 	}
+	
+	
 	
 }
 				
