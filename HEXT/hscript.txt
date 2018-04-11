@@ -18,6 +18,8 @@ string p3() return opinputpath("..",2);
 string p1() return opinputpath("..",0);
 string p4() return opinputpath("..",3);
 
+string ii(i1,i2) return  opinputpath(opinputpath(".",i1),i2);
+string pii(i1,i2) return  opinputpath(opinputpath("..",i1),i2);
 
 # max bboxsize
 maxbb() 
@@ -37,6 +39,10 @@ diam() return (bbx()+bby()+bbz())/3;
 cx() return centroid(i1(),D_X);
 cy() return centroid(i1(),D_Y);
 cz() return centroid(i1(),D_Z);
+
+cx2() return centroid(i2(),D_X);
+cy2() return centroid(i2(),D_Y);
+cz2() return centroid(i2(),D_Z);
 	
 
 #parent bbox and centroid
@@ -46,3 +52,5 @@ pbbz(in) return bbox(pi(in),D_ZSIZE);
 pcx(in) return centroid(pi(in),D_X);
 pcy(in) return centroid(pi(in),D_Y);
 pcz(in) return centroid(pi(in),D_Z);
+
+
