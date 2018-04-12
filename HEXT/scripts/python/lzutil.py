@@ -267,5 +267,8 @@ def copyFloatRampToColorRamp(r,cd):
     cdRamp = hou.Ramp(basis,keys,cdValues)
     cd.set(cdRamp)
 
-
+def preset(n,preset_name):
+	op_path = n.path()
+	cmd = 'oppresetload %s "%s"' % (op_path, preset_name)
+	hou.hscript(cmd)
 
