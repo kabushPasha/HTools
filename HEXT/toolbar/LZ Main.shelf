@@ -1045,8 +1045,8 @@ else:
     tab.setCurrentNode(n)
     tab.linkGroup = hou.paneLinkType.Pinned
     
-    
+import lzutil
 for n in hou.selectedNodes():
-    createParmWindow(n);]]></script>
+    lzutil.createParmWindow(n)]]></script>
   </tool>
 </shelfDocument>
