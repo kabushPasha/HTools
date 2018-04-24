@@ -66,6 +66,7 @@ def createCurlNoiseFolderParmTemplate(id):
 	o_parm = hou.FloatParmTemplate('o'+id,'Offset'+id,1,default_value = (0,)) 
 	r_parm = hou.FloatParmTemplate('r'+id,'Rough'+id,1,default_value = (0.5,))   
 	at_parm = hou.FloatParmTemplate('at'+id,'Atten'+id,1,default_value = (0.5,))   
+	ef_parm = hou.FloatParmTemplate('ef'+id,'Effect'+id,1,default_value = (1,))   
 	type_parm = hou.StringParmTemplate('type'+id,'NoiseType'+id,1,default_value = ("p",),\
 	menu_items =("p","o","s","a","x"),\
 	menu_labels =("Perlin","OriginalPerlin","SparseConvultion","Alligator","Simplex"),\
@@ -74,7 +75,7 @@ def createCurlNoiseFolderParmTemplate(id):
 	default_expression=("i2()",)) 
 
 	noise_folder = hou.FolderParmTemplate('noise'+id,'Noise'+id,\
-	parm_templates = (a_parm,f_parm,t_parm,o_parm,r_parm,at_parm,type_parm,sdf_parm),\
+	parm_templates = (a_parm,f_parm,t_parm,o_parm,r_parm,at_parm,type_parm,sdf_parm,ef_parm),\
 	folder_type = hou.folderType.Simple)
 
 	return noise_folder	
@@ -91,7 +92,7 @@ def addCurlNoiseToSnippet(n):
 		noise_id = len(parm.parmTemplates()) + 1
 		noise_folder =  createCurlNoiseFolderParmTemplate(str(noise_id))
 		
-		new_code = "vector4 pos{id} = set(@P * ch('f{id}'),ch('o{id}'));\nvector n{id} = ch('a{id}')*curl(pos{id},chi('t{id}'),ch('r{id}'),ch('at{id}'),chs('type{id}'),chs('sdf{id}'));\nv@vel = n1;".format(id = noise_id)
+		new_code = "vector4 pos{id} = set(@P,ch('o{id}'));\nvector n{id} = ch('a{id}')*curl(pos{id},ch('f{id}'),chi('t{id}'),ch('r{id}'),ch('at{id}'),chs('type{id}'),chs('sdf{id}'),chf('ef{id}'));\nv@vel = n1;".format(id = noise_id)
 		snippetAddCode(n,new_code)   
 		ptg.appendToFolder(parm,noise_folder)    
 		n.setParmTemplateGroup(ptg)		
