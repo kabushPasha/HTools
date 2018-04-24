@@ -311,7 +311,30 @@ vector asvn(vector4 pos;int turb){
 vector asvn(vector4 pos){	
 	vector noise = vop_fbmNoiseFP(pos, 0.5,3,"xnoise");	
 	return noise;}	
+
 	
+	
+	
+// CURL with sdf  /////////////////////////////////
+vector curl(vector4 pos;int turb;float rough;float atten;string type;string path){	
+	float surfaceEffectRadius = 1;
+	float distanceToSurface = 1;
+	float stepSize = 0.0001;
+	string noiseType = type + "noise";
+	// p,o,s,a,x
+	string sdf = "";
+	if(path!=""){sdf = "op:"+path;}
+	
+	vector noise =  vop_curlNoiseVP(pos,{1,1,1},{0,0,0},{0,0,0},noiseType,sdf,turb,0,1,rough,atten,distanceToSurface,surfaceEffectRadius,stepSize);
+	return noise;}
+	
+
+	
+
+	
+	
+	
+////////////////////////////////////////////	
 	
 // CURL NOISE
 vector curlNoiseVV(vector pos;int turb;float rough;float atten;string type){	

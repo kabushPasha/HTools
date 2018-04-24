@@ -99,9 +99,6 @@
 		"Color" :  {"code":"hi"},
 		"Color" :  {"code":"hi"}
 	
-	}
-	
-	
-	
+	}	
 }
 				

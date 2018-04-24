@@ -58,16 +58,8 @@
 		"AA:3D:Flow" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','aafvn')"},				
 		
-		"CURL: 3D: Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','cpn')"},
-		"CURL: 3D: Original Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','con')"},
-		"CURL: 3D: Sparse Convultion" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','csn')"},
-		"CURL: 3D: Alligator" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','can')"},
-		"CURL: 3D: Simplex" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','cxn')"}
+		"CURL" : {
+				"action":"lzutil.addCurlNoiseToSnippet(n)"}
 		},
 	
 

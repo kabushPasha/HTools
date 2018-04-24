@@ -35,8 +35,10 @@ def snippetAddCode(n,code):
 def createNoiseFolderParmTemplate(id):
     a_parm = hou.FloatParmTemplate('a'+id,'a'+id,1,default_value = (1,))
     f_parm = hou.FloatParmTemplate('f'+id,'f'+id,1,default_value = (1,))   
+    t_parm = hou.IntParmTemplate('t'+id,'t'+id,1,default_value = (3,))   
+    r_parm = hou.FloatParmTemplate('r'+id,'r'+id,1,default_value = (0.5,))   
     noise_folder = hou.FolderParmTemplate('noise'+id,'Noise'+id,parm_templates = (a_parm,f_parm),folder_type = hou.folderType.Simple)
-    return noise_folder	
+    return noise_folder
 
 # checks if node is a snippet and if it has a folder with noises, adds a noise and creates spare amp and freq
 def addNoiseScriptAndParmsToSnippet(n,dim = 'float',fun = 'pfn'):
@@ -56,7 +58,47 @@ def addNoiseScriptAndParmsToSnippet(n,dim = 'float',fun = 'pfn'):
 		snippetAddCode(n,new_code)   
 		ptg.appendToFolder(parm,noise_folder)    
 		n.setParmTemplateGroup(ptg)  	
+# Curl Noise(ALL PARAMETERS)
+def createCurlNoiseFolderParmTemplate(id):
+	a_parm = hou.FloatParmTemplate('a'+id,'Amp'+id,1,default_value = (1,))
+	f_parm = hou.FloatParmTemplate('f'+id,'Freq'+id,1,default_value = (1,))   
+	t_parm = hou.IntParmTemplate('t'+id,'Turb'+id,1,default_value = (3,))   
+	o_parm = hou.FloatParmTemplate('o'+id,'Offset'+id,1,default_value = (0,)) 
+	r_parm = hou.FloatParmTemplate('r'+id,'Rough'+id,1,default_value = (0.5,))   
+	at_parm = hou.FloatParmTemplate('at'+id,'Atten'+id,1,default_value = (0.5,))   
+	type_parm = hou.StringParmTemplate('type'+id,'NoiseType'+id,1,default_value = ("p",),\
+	menu_items =("p","o","s","a","x"),\
+	menu_labels =("Perlin","OriginalPerlin","SparseConvultion","Alligator","Simplex"),\
+	join_with_next=True)   
+	sdf_parm = hou.StringParmTemplate('sdf'+id,'SDF'+id,1,default_value = ("",),\
+	default_expression=("i2()",)) 
 
+	noise_folder = hou.FolderParmTemplate('noise'+id,'Noise'+id,\
+	parm_templates = (a_parm,f_parm,t_parm,o_parm,r_parm,at_parm,type_parm,sdf_parm),\
+	folder_type = hou.folderType.Simple)
+
+	return noise_folder	
+	
+def addCurlNoiseToSnippet(n):
+	if n.parm('snippet') is not None:
+		includeAddSafe(n,'lzn')
+		ptg = n.parmTemplateGroup()    
+		parm = ptg.findFolder('Noises')
+		if parm is None:
+			parm = hou.FolderParmTemplate('noises','Noises',folder_type = hou.folderType.Simple)
+			ptg.addParmTemplate(parm)
+			
+		noise_id = len(parm.parmTemplates()) + 1
+		noise_folder =  createCurlNoiseFolderParmTemplate(str(noise_id))
+		
+		new_code = "vector4 pos{id} = set(@P * ch('f{id}'),ch('o{id}'));\nvector n{id} = ch('a{id}')*curl(pos{id},chi('t{id}'),ch('r{id}'),ch('at{id}'),chs('type{id}'),chs('sdf{id}'));\nv@vel = n1;".format(id = noise_id)
+		snippetAddCode(n,new_code)   
+		ptg.appendToFolder(parm,noise_folder)    
+		n.setParmTemplateGroup(ptg)		
+		
+		
+		
+		
 def includeAddSafe(n,lib):
 	snippet = n.parm('snippet')
 	if snippet is not None:
