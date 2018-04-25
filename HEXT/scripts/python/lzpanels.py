@@ -62,7 +62,9 @@ class LZ_vex_interface(QtWidgets.QWidget):
 				lzutil.includeAddSafe(n,lib)
 		# add code
 		if item.has_key('code'):			
-			lzutil.snippetAddCode(n,item['code']) 
+			#lzutil.snippetAddCode(n,item['code']) 			
+			lzutil.copyToClipboard(item['code'])
+			#print item['code']
 		# execute an action
 		if item.has_key('action'):
 			exec(item['action'])
