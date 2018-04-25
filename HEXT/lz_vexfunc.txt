@@ -64,8 +64,8 @@
 	"Intrinsics":
 	{
 		"detailintrinsic" : {"code":" = detailintrinsic(0,'IntName');"},	
-		"primintrinsic" : {"code":" = primintrinsic(0,'IntName',@primnum);"},		
-		"setprimintrinsic " : {"code":"setprimintrinsic (0,'IntName',@primnum,val);"}		
+		"primintrinsic" : {"code":" = primintrinsic(0,'transform',@primnum);"},		
+		"setprimintrinsic " : {"code":"setprimintrinsic (0,'transform',@primnum,t);"}		
 	},
 	
 	"Ids And Names":
