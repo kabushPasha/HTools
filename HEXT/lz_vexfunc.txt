@@ -95,7 +95,8 @@
 	{
 		"volumegradient" : {"code":"vector grad = volumegradient(0,0,@P);"},
 		"volumesample" : {"code":"float density = volumesample(0,0,@P);"},
-		"volumesampleV" : {"code":"vector vel = volumesamplev(0,0,@P);"}	
+		"volumesampleV" : {"code":"vector vel = volumesamplev(0,0,@P);"},	
+		"voxeldiameter" : {"code":"float vxsize = volumevoxeldiameter(0,0);"}	
 	},
 	
 	"Later":
