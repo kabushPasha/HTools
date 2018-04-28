@@ -90,8 +90,13 @@
 		"size" : {"code":" vector bbsize = getbbox_size (0);"},	
 		"relbbox " : {"code":" vector pos = relbbox(0,@P);"}
 	},
-	
-	
+
+	"Volume":
+	{
+		"volumegradient" : {"code":"vector grad = volumegradient(0,0,@P);"},
+		"volumesample" : {"code":"float density = volumesample(0,0,@P);"},
+		"volumesampleV" : {"code":"vector vel = volumesamplev(0,0,@P);"}	
+	},
 	
 	"Later":
 	{
