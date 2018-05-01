@@ -99,6 +99,12 @@
 		"voxeldiameter" : {"code":"float vxsize = volumevoxeldiameter(0,0);"}	
 	},
 	
+	"Roatation":
+	{
+		"quaternion" : {"code":"p@orient = quaternion(t);"},	
+		"qconvert" : {"code":"matrix3 t = qconvert(p@orient);"}
+	},
+	
 	"Later":
 	{
 		"Chop" :  {"code":"hi"},
@@ -106,5 +112,7 @@
 		"Color" :  {"code":"hi"}
 	
 	}	
+	
+	
 }
 				
