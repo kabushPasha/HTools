@@ -10,7 +10,7 @@
 reload(lzpanels)
 
 def onCreateInterface():
-    return lzpanels.LZ_vex_interface('lz_vexfunc',rows = 5)]]></script>
+    return lzpanels.LZ_vex_interface('lz_vexfunc',rows = 4)]]></script>
     <includeInToolbarMenu menu_position="103" create_separator="false"/>
     <help><![CDATA[]]></help>
   </interface>

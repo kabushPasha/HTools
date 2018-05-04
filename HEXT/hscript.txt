@@ -12,7 +12,7 @@ string pp3() return opinputpath("../..",2);
 string pp4() return opinputpath("../..",3);
 
 
-string pi(in) return opinputpath("..",in);
+string p(in) return opinputpath("..",in);
 string p2() return opinputpath("..",1);
 string p3() return opinputpath("..",2);
 string p1() return opinputpath("..",0);
@@ -46,11 +46,11 @@ cz2() return centroid(i2(),D_Z);
 	
 
 #parent bbox and centroid
-pbbx(in) return bbox(pi(in),D_XSIZE);
-pbby(in) return bbox(pi(in),D_YSIZE);
-pbbz(in) return bbox(pi(in),D_ZSIZE);		
-pcx(in) return centroid(pi(in),D_X);
-pcy(in) return centroid(pi(in),D_Y);
-pcz(in) return centroid(pi(in),D_Z);
+pbbx(in) return bbox(p(in),D_XSIZE);
+pbby(in) return bbox(p(in),D_YSIZE);
+pbbz(in) return bbox(p(in),D_ZSIZE);		
+pcx(in) return centroid(p(in),D_X);
+pcy(in) return centroid(p(in),D_Y);
+pcz(in) return centroid(p(in),D_Z);
 
 

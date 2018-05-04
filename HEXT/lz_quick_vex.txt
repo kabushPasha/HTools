@@ -7,10 +7,11 @@
 		"TURB V": {"action":"lzutil.addNoiseToSnippet(n,'turb',1)"},
 		"AA V": {"action":"lzutil.addNoiseToSnippet(n,'aa',1)"},
 		"FLOW V": {"action":"lzutil.addNoiseToSnippet(n,'flow',1)"},
-		"CURL" : {"action":"lzutil.addCurlNoiseToSnippet(n)"},
-
-
-				
+		"CURL" : {"action":"lzutil.addCurlNoiseToSnippet(n)"}
+		},
+	
+	"02 Other Noises":
+		{
 		
 		"Other: 1D: Worley Seed" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wseed')"},		
@@ -53,18 +54,10 @@
 	"05 UTIL Scripts":{
 		"01. Include lzn.h" : {
 				"action":"lzutil.includeAddSafe(n,'lzn')"},	
-		"02. Remove by Tres(points)" :{
+		"02. Remove by Tres" :{
 				"code":"if(rand(@ptnum)<chf('tres')) removepoint(0,@ptnum);"},
 		"03. Read Texture" :{
 				"code":"v@Cd = texture(chs('texture_path'),@uv.x,@uv.y);"},		
-		"05. Move To Points" :{
-				"code":"int pt = nametopoint(1,s@name);\nmatrix3 t = point(1,'t',pt);\nvector pivot = point(1,'pivot',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n@P = point(1,'P',pt);"},		
-		"06. Move To Simmed Pieces":{
-			"code":"int pt = nametopoint(1,s@name);\n@P = point(1,'P',pt);\n\nmatrix3 t = primintrinsic(1,'transform',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n\nvector pivot =  primintrinsic(1,'pivot',pt);\nsetprimintrinsic(0,'pivot',@ptnum,pivot);\nv@v = point(1,'v',pt);"},		
-		"07. Bullet Settings ":{
-			"code" : "i@active = chi('active');\ni@animated = chi('animated');\n\n//f@min_activation_impulse = chf('min_activation_impulse');\n//f@density = chf('density');"},		
-		"08. Bottom Inactive ":{
-			"code" : "if( @P.y<chf('tres')) i@active = 0;"},
 		"09. Sphere Sprite ":{
 			"code" : "v@spritescale = {1,1,1};\ns@spriteshop = '/obj/sim/popnet/popsprite1/shopnet1/spritefog';\np@spriteuv = {0,0,1,1};"},
 		"10. Set Pscale":{
@@ -73,7 +66,20 @@
 			"code" : "f@pscale = chf('pscale')*chramp('scaleRamp',rand(i@id));"},
 		"12. Pscale PowLaw":{
 			"code" : "f@pscale = fit01(pow(rand(@ptnum),chi('pow')),chf('min'),chf('max'));"}				
-	},		
+	},	
+	
+	
+	"09 Bullet":{
+		"05. Move To Points" :{
+				"code":"int pt = nametopoint(1,s@name);\nmatrix3 t = point(1,'t',pt);\nvector pivot = point(1,'pivot',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n@P = point(1,'P',pt);"},		
+		"06. Move To Simmed Pieces":{
+			"code":"int pt = nametopoint(1,s@name);\n@P = point(1,'P',pt);\n\nmatrix3 t = primintrinsic(1,'transform',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n\nvector pivot =  primintrinsic(1,'pivot',pt);\nsetprimintrinsic(0,'pivot',@ptnum,pivot);\nv@v = point(1,'v',pt);"},		
+		"07. Bullet Settings ":{
+			"code" : "i@active = chi('active');\ni@animated = chi('animated');\n\n//f@min_activation_impulse = chf('min_activation_impulse');\n//f@density = chf('density');"},		
+		"08. Bottom Inactive ":{
+			"code" : "if( @P.y<chf('tres')) i@active = 0;"}	
+	},
+	
 				
 	"06 Model":{
 		"00. Null" : {"node":"null"},
@@ -97,8 +103,6 @@
 	"09 FOLDERS":{
 		"01. Open HEXT Folder" : {
 			"action":"lzutil.openFolderFromEnv('$HEXT')"},
-		"02. Open HC Folder" : {
-			"action":"lzutil.openFolderFromEnv('$HC/$HIPNAME')"},
 		"03. Open HMEGA Folder" : {
 			"action":"lzutil.openFolderFromEnv('$HMEGA')"},	
 		"04. Open Documents Folder" : {
@@ -127,8 +131,13 @@
 		"02. Intrinstic xform" :{
 				"code":"matrix3 m = primintrinsic(0,'transform',@ptnum);\nsetprimintrinsic(0,'transform',@ptnum,m);"}
 		
-	}
+	},
+	
+	
+	"Test":{},
+	"Test1":{}
 }
+
 
 
 

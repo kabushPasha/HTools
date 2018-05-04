@@ -825,12 +825,12 @@ size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
 #pos = (3387, 103)
 #size = (727, 1254)
 
-ctrlclick = kwargs["ctrlclick"]
-interface = "LZ_Vex" if not ctrlclick else "vexfunc"
-
 panel = d.createFloatingPanel(hou.paneTabType.PythonPanel,pos,size)
 pypanel = panel.paneTabs()[0]
-pypanel.setActiveInterface(hou.pypanel.interfaceByName(interface))]]></script>
+pypanel.setActiveInterface(hou.pypanel.interfaceByName("LZ_Vex"))
+
+vexfunc = panel.panes()[0].createTab(hou.paneTabType.PythonPanel)
+vexfunc.setActiveInterface(hou.pypanel.interfaceByName("vexfunc"))]]></script>
   </tool>
 
   <tool name="LZ Create Visualisers" label="LZ Create Visualisers" icon="hicon:/SVGIcons.index?NODEFLAGS_display.svg">
