@@ -311,30 +311,6 @@ vector asvn(vector4 pos;int turb){
 vector asvn(vector4 pos){	
 	vector noise = vop_fbmNoiseFP(pos, 0.5,3,"xnoise");	
 	return noise;}	
-
-	
-	
-	
-// CURL with sdf  /////////////////////////////////
-vector curl(vector4 pos;float freq;int turb;float rough;float atten;string type;string path;float surfaceEffectRadius){	
-	//float surfaceEffectRadius = 1;
-	float distanceToSurface = 0;
-	float stepSize = 0.0001;
-	string noiseType = type + "noise";
-	// p,o,s,a,x
-	string sdf = "";
-	if(path!=""){sdf = "op:"+path;}
-	
-	vector noise =  vop_curlNoiseVP(pos,set(freq,freq,freq),{0,0,0},{0,0,0},noiseType,sdf,turb,0,1,rough,atten,distanceToSurface,surfaceEffectRadius,stepSize);
-	return noise;}
-	
-
-	
-
-	
-	
-	
-////////////////////////////////////////////	
 	
 // CURL NOISE
 vector curlNoiseVV(vector pos;int turb;float rough;float atten;string type){	
@@ -496,8 +472,6 @@ vector aafvn(vector4 pos){
 
 
 	
-
-	
 // WORLEY NOISES
 float wseed(vector P)	
 {
@@ -537,6 +511,120 @@ float spheres(vector _pos)
 	return length(pos - {0.5,0.5,0.5});
 }		
 	
+	
+	
+	
+	
+	
+// UBER NOISES
+// CURL with sdf  /////////////////////////////////
+vector curl(vector4 pos;float freq;int turb;float rough;float atten;string type;string path;float surfaceEffectRadius)
+{	
+	//float surfaceEffectRadius = 1;
+	float distanceToSurface = 0;
+	float stepSize = 0.0001;
+	string noiseType = type + "noise";
+	// p,o,s,a,x
+	string sdf = "";
+	if(path!=""){sdf = "op:"+path;}
+	
+	vector noise =  vop_curlNoiseVP(pos,set(freq,freq,freq),{0,0,0},{0,0,0},noiseType,sdf,turb,0,1,rough,atten,distanceToSurface,surfaceEffectRadius,stepSize);
+	return noise;
+	}
+
+// Turbulent
+float turb(vector pos;int turb;float rough;float atten;string type)
+{
+	float noise;
+	if (type=="o")	noise = onoise(pos, turb, rough, atten);
+	if (type=="a")	noise = anoise(pos, turb, rough, atten);
+	if (type=="s")	noise = snoise(pos, turb, rough, atten);
+	if (type=="x")	noise = vop_simplexNoiseVF(pos, turb, 1, rough, atten);
+	if (type=="p")	noise = vop_perlinNoiseVF(pos, turb, 1, rough, atten);
+	if (type=="c")	noise = vop_correctperlinNoiseVF(pos, turb, 1, rough, atten);	
+	return noise;	
+}
+vector turbv(vector pos;int turb;float rough;float atten;string type)
+{
+	vector noise;
+	if (type=="o")	noise = onoise(pos, turb, rough, atten);
+	if (type=="a")	noise = anoise(pos, turb, rough, atten);
+	if (type=="s")	noise = snoise(pos, turb, rough, atten);
+	if (type=="x")	noise = vop_simplexNoiseVV(pos, turb, 1, rough, atten);
+	if (type=="p")	noise = vop_perlinNoiseVV(pos, turb, 1, rough, atten);
+	if (type=="c")	noise = vop_correctperlinNoiseVV(pos, turb, 1, rough, atten);	
+	return noise;
+}
+// Flow
+float flow(vector pos;int turb;float rough;float flow;float flowRate;float selfAdvect)
+{
+	float noise = vop_fbmFlowNoiseFV(pos, rough, turb, flow, flowRate, selfAdvect);
+	return noise;
+}
+float flow(vector4 pos;int turb;float rough;float flow;float flowRate;float selfAdvect)
+{
+	float noise = vop_fbmFlowNoiseFP(pos, rough, turb, flow, flowRate, selfAdvect);
+	return noise;
+}
+vector flowv(vector pos;int turb;float rough;float flow;float flowRate;float selfAdvect)
+{	
+	vector noise = vop_fbmFlowNoiseVV(pos, rough, turb, flow, flowRate, selfAdvect);
+	return noise;	
+}
+vector flowv(vector4 pos;int turb;float rough;float flow;float flowRate;float selfAdvect)
+{	
+	vector noise = vop_fbmFlowNoiseVP(pos, rough, turb, flow, flowRate, selfAdvect);	
+	return noise;
+}
+// Anti Alised
+float aa(vector pos;int turb;float rough;int x)
+{	
+	string type = "noise";
+	if (x!=0)  type = "xnoise";
+	float noise = vop_fbmNoiseFV(pos,rough,turb,type);	
+	return noise;
+}
+float aa(float pos;int turb;float rough;int x)
+{	
+	string type = "noise";
+	if (x!=0)  type = "xnoise";
+	float noise = vop_fbmNoiseFF(pos,rough,turb,type);	
+	return noise;
+}
+float aa(vector4 pos;int turb;float rough;int x)
+{	
+	string type = "noise";
+	if (x!=0)  type = "xnoise";
+	float noise = vop_fbmNoiseFP(pos,rough,turb,type);	
+	return noise;
+}
+vector aav(vector pos;int turb;float rough;int x)
+{	
+	string type = "noise";
+	if (x!=0)  type = "xnoise";
+	vector noise = vop_fbmNoiseVV(pos,rough,turb,type);	
+	return noise;
+}
+vector aav(float pos;int turb;float rough;int x)
+{	
+	string type = "noise";
+	if (x!=0)  type = "xnoise";
+	vector noise = vop_fbmNoiseVF(pos,rough,turb,type);	
+	return noise;
+}
+vector aav(vector4 pos;int turb;float rough;int x)
+{	
+	string type = "noise";
+	if (x!=0)  type = "xnoise";
+	vector noise = vop_fbmNoiseVP(pos,rough,turb,type);	
+	return noise;
+}
+
+
+
+	
+	
+	
 // SATURATE	
 vector saturate(vector _v)
 {
@@ -557,7 +645,6 @@ float saturate(float v)
 {
 	return clamp(v,0,1);
 }	
-
 // set remapping
 vector4 set(vector P;float x)
 {

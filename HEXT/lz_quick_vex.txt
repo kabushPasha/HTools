@@ -1,27 +1,15 @@
 {
-	"01 1D Noises":{
+	"01 Noises":{
 	
-		"Turb: 1D: Original Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','ofn')"},
-		"Turb: 1D: Alligator" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','afn')"},
-		"Turb: 1D: Sparse Convultion" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','sfn')"},
-		"Turb: 1D: Simplex" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','xfn')"},
-		"Turb: 1D: Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','pfn')"},
-		"Turb: 1D: Corrected Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','cfn')"},
+		"TURB": {"action":"lzutil.addNoiseToSnippet(n,'turb',0)"},
+		"AA": {"action":"lzutil.addNoiseToSnippet(n,'aa',0)"},
+		"FLOW": {"action":"lzutil.addNoiseToSnippet(n,'flow',0)"},
+		"TURB V": {"action":"lzutil.addNoiseToSnippet(n,'turb',1)"},
+		"AA V": {"action":"lzutil.addNoiseToSnippet(n,'aa',1)"},
+		"FLOW V": {"action":"lzutil.addNoiseToSnippet(n,'flow',1)"},
+		"CURL" : {"action":"lzutil.addCurlNoiseToSnippet(n)"},
 
-				
-		"AA: 1D: Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','apfn')"},		
-		"AA: 1D: Simplex" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','asfn')"},
 
-		"AA:1D:Flow" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','aaffn')"},	
 				
 		
 		"Other: 1D: Worley Seed" : {
@@ -35,33 +23,6 @@
 		"Other: 1D: Spheres" : {
 				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','spheres')"}		
 		},
-	"02 3D noises":{	
-		"Turb: 3D: Original Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','ovn')"},
-		"Turb: 3D: Alligator" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','avn')"},	
-		"Turb: 3D: Sparse Convultion" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','svn')"},	
-		"Turb: 3D: Simplex" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','xvn')"},
-		"Turb: 3D: Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','pvn')"},
-		"Turb: 3D: Corrected Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','cvn')"},
-				
-				
-		"AA: 3D: Perlin" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','apvn')"},		
-		"AA: 3D: Simplex" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','asvn')"},
-
-		"AA:3D:Flow" : {
-				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'vector','aafvn')"},				
-		
-		"CURL" : {
-				"action":"lzutil.addCurlNoiseToSnippet(n)"}
-		},
-	
 
 	"03 Noise Process":{
 		"01. Vector displace" : {
