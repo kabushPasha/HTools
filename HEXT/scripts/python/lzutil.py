@@ -164,7 +164,7 @@ def addNoiseToSnippet(n,type,v = 1):
 			new_code = "vector4 pos{id} = set(@P,ch('o{id}'));\nvector n{id} = ch('a{id}')*curl(pos{id},ch('f{id}'),chi('t{id}'),ch('r{id}'),ch('at{id}'),chs('type{id}'),chs('sdf{id}'),chf('ef{id}'));\nv@vel = n1;".format(id = noise_id)
 		if type=="turb":
 			noise_folder =  createTurbNoiseFolderParmTemplate(str(noise_id))
-			new_code = "vector n{id} = ch('a{id}')*turbv(v@P,chi('t{id}'),ch('r{id}'),ch('at{id}'),chs('type{id}'));".format(id = noise_id)
+			new_code = "vector n{id} = ch('a{id}')*turbv(v@P*chf('f{id}'),chi('t{id}'),ch('r{id}'),ch('at{id}'),chs('type{id}'));".format(id = noise_id)
 			if v==0:
 				new_code = "float n{id} = ch('a{id}')*turb(v@P*chf('f{id}'),chi('t{id}'),ch('r{id}'),ch('at{id}'),chs('type{id}'));".format(id = noise_id)
 		if type=="flow":
