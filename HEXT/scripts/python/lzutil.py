@@ -83,11 +83,11 @@ def createCurlNoiseFolderParmTemplate(id):
 def createTurbNoiseFolderParmTemplate(id):
 	a_parm = hou.FloatParmTemplate('a'+id,'Amp'+id,1,default_value = (1,))
 	f_parm = hou.FloatParmTemplate('f'+id,'Freq'+id,1,default_value = (1,))   
-	t_parm = hou.IntParmTemplate('t'+id,'Turb'+id,1,default_value = (3,))   
+	t_parm = hou.IntParmTemplate('t'+id,'Turb'+id,1,default_value = (5,))   
 	r_parm = hou.FloatParmTemplate('r'+id,'Rough'+id,1,default_value = (0.5,))   
-	at_parm = hou.FloatParmTemplate('at'+id,'Atten'+id,1,default_value = (0.5,))   
+	at_parm = hou.FloatParmTemplate('at'+id,'Atten'+id,1,default_value = (1.0,))   
   
-	type_parm = hou.StringParmTemplate('type'+id,'NoiseType'+id,1,default_value = ("p",),\
+	type_parm = hou.StringParmTemplate('type'+id,'NoiseType'+id,1,default_value = ("a",),\
 	menu_items =("p","o","s","a","x","c"),\
 	menu_labels =("Perlin","OriginalPerlin","SparseConvultion","Alligator","Simplex","CorrectedPerlin"),\
 	join_with_next=True)   

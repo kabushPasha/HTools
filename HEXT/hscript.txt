@@ -22,28 +22,22 @@ string ii(i1,i2) return  opinputpath(opinputpath(".",i1),i2);
 string pii(i1,i2) return  opinputpath(opinputpath("..",i1),i2);
 
 # max bboxsize
-maxbb() 
-	return max(bbx(),max(bby(),bbz()));
+maxbb(in) return max(bbx(in),max(bby(in),bbz(in)));
+
 # uniform sampleing divisions
-usd(divs) 
-	return maxbb()/divs;
-
+usd(divs) return maxbb(0)/divs;
 	
-#bbox size x
-bbx() return bbox(opinputpath(".",0),D_XSIZE);
-bby() return bbox(opinputpath(".",0),D_YSIZE);
-bbz() return bbox(opinputpath(".",0),D_ZSIZE);
+#BBOX Functions
+bby(in) return bbox(i(in),D_YSIZE);
+bbz(in) return bbox(i(in),D_ZSIZE);
+bbx(in) return bbox(i(in),D_XSIZE);
 
-diam() return (bbx()+bby()+bbz())/3;
+diam(in) return (bbx(in)+bby(in)+bbz(in))/3;
 
-cx() return centroid(i1(),D_X);
-cy() return centroid(i1(),D_Y);
-cz() return centroid(i1(),D_Z);
+cy(in) return centroid(i(in),D_Y);
+cz(in) return centroid(i(in),D_Z);
+cx(in) return centroid(i(in),D_X);
 
-cx2() return centroid(i2(),D_X);
-cy2() return centroid(i2(),D_Y);
-cz2() return centroid(i2(),D_Z);
-	
 
 #parent bbox and centroid
 pbbx(in) return bbox(p(in),D_XSIZE);
