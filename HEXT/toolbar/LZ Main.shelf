@@ -756,8 +756,12 @@ else:
     tab.setCurrentNode(n)
     tab.linkGroup = hou.paneLinkType.Pinned
     
-import lzutil
+import lzutil,toolutils
 for n in hou.selectedNodes():
-    lzutil.createParmWindow(n)]]></script>
+    lzutil.createParmWindow(n)
+    
+if hou.selectedNodes()==():
+    p = toolutils.sceneViewer().currentNode().parent()
+    createParmWindow(p)]]></script>
   </tool>
 </shelfDocument>
