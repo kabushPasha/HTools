@@ -21,6 +21,7 @@
     <memberTool name="fileCache finder"/>
     <memberTool name="New Flooating Panel"/>
     <memberTool name="NodeParms"/>
+    <memberTool name="wrangle"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -682,12 +683,15 @@ settings.particleDisplayType( new_type )]]></script>
     <helpText><![CDATA["""click - JOB
 ctrl+click - HIP
 shift+click - HEXT
+alt - Documents
 """]]></helpText>
     <script scriptType="python"><![CDATA[import lzutil
 if kwargs['ctrlclick']:
     lzutil.openFolderFromEnv("$HIP")
 elif kwargs['shiftclick']:
     lzutil.openFolderFromEnv("$HEXT")
+elif kwargs['altclick']:
+    lzutil.openFolderFromEnv("$HOUDINI_USER_PREF_DIR") 
 else:
     lzutil.openFolderFromEnv("$JOB")]]></script>
   </tool>
@@ -763,5 +767,16 @@ for n in hou.selectedNodes():
 if hou.selectedNodes()==():
     p = toolutils.sceneViewer().currentNode().parent()
     createParmWindow(p)]]></script>
+  </tool>
+
+  <tool name="wrangle" label="Wrangle" icon="hicon:/SVGIcons.index?SOP_attribwrangle.svg">
+    <script scriptType="python"><![CDATA[import toolutils
+n = toolutils.sceneViewer().currentNode()
+#user_input = hou.ui.readInput("Script Name")
+#n.createOutputNode('attribwrangle',user_input[1] if user_input[1]!='' else 'script')
+n.createOutputNode('attribwrangle')
+
+
+]]></script>
   </tool>
 </shelfDocument>

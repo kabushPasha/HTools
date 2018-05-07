@@ -1,0 +1,10 @@
+h.pane.wsheet.tool:wrangle	Wrangle	"Shelf Tool: Wrangle"	 Q
+h.pane.gview.view_radial_menu	"Viewport View Radial Menu"	"Open the view radial menu in the viewport"	
+h.pane.wsheet.opmenu.extract	"Extract Contents"	"Extract the contents of the selected subnet"	 Ctrl+Shift+C
+h.tool:aces	ACES	"Shelf Tool: ACES"	 Ctrl+U
+h.pane.wsheet.flag2_mode	"Set Secondary Flag"	"Hold this key and select a node to toggle the secondary flag value"	
+"h.pane.wsheet.tool:New Flooating Panel"	"New Floating Panel"	"Shelf Tool: New Floating Panel"	 Shift+N
+h.pane.wsheet.layout_all	"Layout All"	"Layout all nodes"	
+h.pane.wsheet.tool:NodeParms	NodeParms	"Shelf Tool: NodeParms"	 N
+h.pane.wsheet.bypass_mode	"Set Bypass Flag"	"Hold this key and select a node to toggle the bypass flag value"	 B
+"h.pane.gview.radial:LZ Main Menu"	"Radial Menu: LZ Main Menu"	"Radial Menu: LZ Main Menu"	 V
