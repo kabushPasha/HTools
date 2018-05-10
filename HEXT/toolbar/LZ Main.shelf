@@ -22,6 +22,7 @@
     <memberTool name="New Flooating Panel"/>
     <memberTool name="NodeParms"/>
     <memberTool name="wrangle"/>
+    <memberTool name="Gallerer"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -40,11 +41,10 @@ pos = (sz[0] + int(sz[0]*dx[0]),int(sz[1]*(1 - dy[1] - dy[0])))
 size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
 
 
-panel = d.createFloatingPanel(hou.paneTabType.SceneViewer,pos,size)
-
-panes = panel.panes()
-tab = panes[0].createTab(hou.paneTabType.IPRViewer)
-
+#panel = d.createFloatingPanel(hou.paneTabType.SceneViewer,pos,size)
+#panes = panel.panes()
+#tab = panes[0].createTab(hou.paneTabType.IPRViewer)
+panel = d.createFloatingPanel(hou.paneTabType.IPRViewer,pos,size)
 
 panel.setName('RenderView')]]></script>
   </tool>
@@ -778,5 +778,14 @@ n.createOutputNode('attribwrangle')
 
 
 ]]></script>
+  </tool>
+
+  <tool name="Gallerer" label="Gallerer" icon="hicon:/SVGIcons.index?SHELF_flower.svg">
+    <script scriptType="python"><![CDATA[import toolutils
+sv = toolutils.sceneViewer()
+n = sv.currentNode().parent()
+gal = n.createNode("LZ_gallerer")
+gal.moveToGoodPosition()
+gal.parm("getScripter").pressButton()]]></script>
   </tool>
 </shelfDocument>
