@@ -23,7 +23,6 @@
     <memberTool name="NodeParms"/>
     <memberTool name="wrangle"/>
     <memberTool name="Gallerer"/>
-    <memberTool name="SaveAndBackup"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -788,11 +787,5 @@ n = sv.currentNode().parent()
 gal = n.createNode("LZ_gallerer")
 gal.moveToGoodPosition()
 gal.parm("getScripter").pressButton()]]></script>
-  </tool>
-
-  <tool name="SaveAndBackup" label="Save And Backup" icon="hicon:/SVGIcons.index?COP2_file.svg">
-    <script scriptType="python"><![CDATA[hou.hipFile.saveAsBackup()
-hou.hipFile.save()
-]]></script>
   </tool>
 </shelfDocument>
