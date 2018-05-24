@@ -784,8 +784,16 @@ n.createOutputNode('attribwrangle')
     <script scriptType="python"><![CDATA[import toolutils
 sv = toolutils.sceneViewer()
 n = sv.currentNode().parent()
-gal = n.createNode("LZ_gallerer")
-gal.moveToGoodPosition()
-gal.parm("getScripter").pressButton()]]></script>
+
+if n.node("LZ_gallerer") is None:    
+    gal = n.createNode("LZ_gallerer","LZ_gallerer")
+    gal.setPosition(hou.Vector2((-20,15)))
+    gal.parm("getScripter").pressButton()
+else:
+    n.node("LZ_gallerer").parm("scripter").pressButton()
+
+
+
+]]></script>
   </tool>
 </shelfDocument>

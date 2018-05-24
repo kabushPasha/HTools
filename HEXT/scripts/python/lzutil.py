@@ -408,21 +408,28 @@ def preset(n,preset_name):
 
 	
 def createParmWindow(n, dy = [0.1,0.95],dx = [0.05,0.35]):
-    # create Size and Center
-    #dy = [0.1,0.95];
-    #dx = [0.05,0.35];
-    import ctypes
-    user32 = ctypes.windll.user32
-    sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
-    pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
-    size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
-    
-    d = hou.ui.curDesktop()
-    
-    panel = d.createFloatingPanel(hou.paneTabType.Parm,pos,size)
-    tab = panel.paneTabs()[0]
-    tab.setCurrentNode(n)
-    tab.linkGroup = hou.paneLinkType.Pinned	
+	# create Size and Center
+	#dy = [0.1,0.95];
+	#dx = [0.05,0.35];
+	
+	pname = n.path().replace('/','_')
+	for fp in hou.ui.floatingPanels():
+		if fp.name() == pname:
+			fp.close()
+	
+	import ctypes
+	user32 = ctypes.windll.user32
+	sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
+	pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
+	size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
+
+	d = hou.ui.curDesktop() 
+
+	panel = d.createFloatingPanel(hou.paneTabType.Parm,pos,size)	
+	tab = panel.paneTabs()[0]
+	tab.setCurrentNode(n)
+	tab.linkGroup = hou.paneLinkType.Pinned
+	panel.setName(pname)
 	
 	
 	
