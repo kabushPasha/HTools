@@ -7,7 +7,6 @@
 
   <toolshelf name="LZ Radial Menu" label="LZ Radial Menu">
     <memberTool name="LZ Add fur"/>
-    <memberTool name="LZ N2S"/>
     <memberTool name="LZ kwargs"/>
     <memberTool name="Perfomance Monitor"/>
     <memberTool name="check shelf tool paths"/>

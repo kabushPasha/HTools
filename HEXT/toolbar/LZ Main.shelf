@@ -11,6 +11,7 @@
     <memberTool name="OpenJOB"/>
     <memberTool name="LZ QuickVex PyPanel"/>
     <memberTool name="Edit LZ Util"/>
+    <memberTool name="Gallerer"/>
     <memberTool name="Particle Display Type"/>
     <memberTool name="Render View"/>
     <memberTool name="lz Flipbook"/>
@@ -22,7 +23,7 @@
     <memberTool name="New Flooating Panel"/>
     <memberTool name="NodeParms"/>
     <memberTool name="wrangle"/>
-    <memberTool name="Gallerer"/>
+    <memberTool name="LZ N2S"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
