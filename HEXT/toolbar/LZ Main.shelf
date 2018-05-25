@@ -786,14 +786,28 @@ n.createOutputNode('attribwrangle')
 sv = toolutils.sceneViewer()
 n = sv.currentNode().parent()
 
-if n.node("LZ_gallerer") is None:    
-    gal = n.createNode("LZ_gallerer","LZ_gallerer")
-    gal.setPosition(hou.Vector2((-20,15)))
-    gal.parm("getScripter").pressButton()
+
+if not kwargs['ctrlclick']:
+    if n.node("LZ_gallerer") is None:    
+        gal = n.createNode("LZ_gallerer","LZ_gallerer")
+        gal.setPosition(hou.Vector2((-20,15)))
+        gal.parm("getScripter").pressButton()
+    else:
+        n.node("LZ_gallerer").parm("scripter").pressButton()
 else:
-    n.node("LZ_gallerer").parm("scripter").pressButton()
-
-
+    # Close Gallerer
+    if n.node("LZ_gallerer") is not None:
+        # Close Floating panel and remove node
+        def clean(n):
+            pname = n.path().replace('/','_')
+            for fp in hou.ui.floatingPanels():
+                if fp.name() == pname:
+                    fp.close() 
+            n.destroy()   
+        
+        n = n.node("LZ_gallerer")
+        clean(n.outputs()[0])  
+        clean(n)
 
 ]]></script>
   </tool>
