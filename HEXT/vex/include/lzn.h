@@ -521,13 +521,13 @@ float spheres(vector _pos)
 vector curl(vector4 pos;float freq;int turb;float rough;float atten;string type;string path;float surfaceEffectRadius)
 {	
 	//float surfaceEffectRadius = 1;
-	float distanceToSurface = 0;
+	float distanceToSurface = 1;
 	float stepSize = 0.0001;
 	string noiseType = type + "noise";
 	// p,o,s,a,x
-	string sdf = "";
+	string sdf = "";	 
 	if(path!=""){sdf = "op:"+path;}
-	
+	// distance to surface might need fixes
 	vector noise =  vop_curlNoiseVP(pos,set(freq,freq,freq),{0,0,0},{0,0,0},noiseType,sdf,turb,0,1,rough,atten,distanceToSurface,surfaceEffectRadius,stepSize);
 	return noise;
 	}

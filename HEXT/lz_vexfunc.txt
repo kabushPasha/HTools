@@ -111,7 +111,20 @@
 		"Color" :  {"code":"hi"},
 		"Color" :  {"code":"hi"}
 	
-	}	
+	},	
+	
+	"PC":
+	{
+		"pcopen" : {"code":"int handle =  pcopen(1,'P',@P,chf('radius'),chi('maxpt'));"},
+		"pcfarthest" :  {"code":"float maxDist =  pcfarthest(handle);"},
+		"pcfilter" :  {"code":"vector P = pcfilter(handle,'P');"},
+		"pcfind" :  {"code":"int pts[] = pcfind(0,'*','P',@P,chf('radius'),chi('maxpt'));"},
+		"pcfind_radius" :  {"code":"int pts[] = pcfind_radius(0,'*','P','pscale',chf('radscale'),@P,chf('radius'),chi('maxpt'));"},
+		"pcimport" :  {"code":"vector P;\npcimport(handle,'P',P);"},
+		"pcimport" :  {"code":"vector P;\npcimport(handle,'P',P);"},
+		"pciterate" :  {"code":"while (pciterate(handle))\n{\nint pt;float d;\npcimport(handle,'point.distance',d);\npcimport(handle,'point.number',pt);\n}"}	
+	
+	}
 	
 	
 }
