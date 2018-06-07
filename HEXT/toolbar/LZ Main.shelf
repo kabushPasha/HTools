@@ -24,7 +24,6 @@
     <memberTool name="NodeParms"/>
     <memberTool name="wrangle"/>
     <memberTool name="LZ N2S"/>
-    <memberTool name="DesignerAHK"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -819,4 +818,5 @@ ahk = hou.expandString("$HEXT/LZAHK.ahk")
 #print ahk
 os.system("start " + ahk)]]></script>
   </tool>
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
 </shelfDocument>
