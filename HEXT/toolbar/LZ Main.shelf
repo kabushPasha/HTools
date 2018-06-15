@@ -782,11 +782,11 @@ if hou.selectedNodes()==():
 n = toolutils.sceneViewer().currentNode()
 #user_input = hou.ui.readInput("Script Name")
 #n.createOutputNode('attribwrangle',user_input[1] if user_input[1]!='' else 'script')
-n.createOutputNode('attribwrangle')
+wr = n.createOutputNode('attribwrangle')
 
-n.setRenderFlag(1)
-n.setDisplayFlag(1)
-n.setCurrent(1)]]></script>
+wr.setRenderFlag(1)
+wr.setDisplayFlag(1)
+wr.setCurrent(1)]]></script>
   </tool>
 
   <tool name="Gallerer" label="Gallerer" icon="hicon:/SVGIcons.index?SHELF_flower.svg">
