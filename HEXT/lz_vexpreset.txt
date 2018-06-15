@@ -1,12 +1,14 @@
 {
 	"Particles":
 	{
-		"ConvertToSpheres" : {"addcode":"int prim = addprim(0,'sphere',@ptnum);\nmatrix3 t = ident()*f@pscale;\nsetprimintrinsic (0,'transform',prim,t);"}	
+		"ConvertToSpheres" : {"addcode":"int prim = addprim(0,'sphere',@ptnum);\nmatrix3 t = ident()*f@pscale;\nsetprimintrinsic (0,'transform',prim,t);"},
+		"PscaleToRadius"	:	{"addcode":"setprimintrinsic(0,'transform',@ptnum,matrix3(ident()*f@pscale));"}
 	},
 
 	"Modelling":
 	{
-		"Stick To Uvs":{"code":"Hi"}
+		"Stick To Uvs":{"addcode":"v@P = primuv (1,'P',i@sourceprim,v@sourceprimuv);"},
+		"Mask By Dir" : {"addcode":"vector dir = normalize(chv('dir'));\nf@mask = chramp('dot_ramp',0.5*dot(v@N,dir)+0.5);\nv@Cd = f@mask;"}
 	}
 
 

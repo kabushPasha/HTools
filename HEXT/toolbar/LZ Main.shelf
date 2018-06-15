@@ -784,8 +784,9 @@ n = toolutils.sceneViewer().currentNode()
 #n.createOutputNode('attribwrangle',user_input[1] if user_input[1]!='' else 'script')
 n.createOutputNode('attribwrangle')
 
-
-]]></script>
+n.setRenderFlag(1)
+n.setDisplayFlag(1)
+n.setCurrent(1)]]></script>
   </tool>
 
   <tool name="Gallerer" label="Gallerer" icon="hicon:/SVGIcons.index?SHELF_flower.svg">
