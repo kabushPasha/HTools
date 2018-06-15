@@ -1,0 +1,14 @@
+{
+	"Particles":
+	{
+		"ConvertToSpheres" : {"addcode":"int prim = addprim(0,'sphere',@ptnum);\nmatrix3 t = ident()*f@pscale;\nsetprimintrinsic (0,'transform',prim,t);"}	
+	},
+
+	"Modelling":
+	{
+		"Stick To Uvs":{"code":"Hi"}
+	}
+
+
+
+}

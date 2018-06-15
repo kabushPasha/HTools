@@ -24,7 +24,7 @@
     <memberTool name="NodeParms"/>
     <memberTool name="wrangle"/>
     <memberTool name="LZ N2S"/>
-	<memberTool name="DesignerAHK"/>
+    <memberTool name="DesignerAHK"/>
     <memberTool name="volume data"/>
   </toolshelf>
 
@@ -594,7 +594,12 @@ pypanel = panel.paneTabs()[0]
 pypanel.setActiveInterface(hou.pypanel.interfaceByName("LZ_Vex"))
 
 vexfunc = panel.panes()[0].createTab(hou.paneTabType.PythonPanel)
-vexfunc.setActiveInterface(hou.pypanel.interfaceByName("vexfunc"))]]></script>
+vexfunc.setActiveInterface(hou.pypanel.interfaceByName("vexfunc"))
+
+vexpreset = panel.panes()[0].createTab(hou.paneTabType.PythonPanel)
+vexpreset.setActiveInterface(hou.pypanel.interfaceByName("LZ_Vexpreset"))
+
+vexfunc.setIsCurrentTab()]]></script>
   </tool>
 
   <tool name="Create Project" label="Create Project" icon="hicon:/SVGIcons.index?BUTTONS_take.svg">
