@@ -206,11 +206,12 @@ newnode.setDisplayFlag(False)
 
 newnode.parm('env_map').set('$HMEGA/Assets/HDRI//panorama_map.hdr')
 newnode.parm('ogl_enablelight').set(0)
+newnode.parm('background_enable').set(0)
+
+
 
 newnode.setName('RS_DomeLight')
 
-#env = newnode.createOutputNode('envlight','PROXY_LIGHT_'+newnode.name())
-#env.setDisplayFlag(False)
 ]]></script>
   </tool>
 
