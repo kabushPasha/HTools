@@ -1,14 +1,19 @@
 {
 	"Particles":
 	{
-		"ConvertToSpheres" : {"addcode":"int prim = addprim(0,'sphere',@ptnum);\nmatrix3 t = ident()*f@pscale;\nsetprimintrinsic (0,'transform',prim,t);"},
-		"PscaleToRadius"	:	{"addcode":"setprimintrinsic(0,'transform',@ptnum,matrix3(ident()*f@pscale));"}
+		"spheres: ConvertToSpheres" : {"addcode":"int prim = addprim(0,'sphere',@ptnum);\nmatrix3 t = ident()*f@pscale;\nsetprimintrinsic (0,'transform',prim,t);"},
+		"spheres: PscaleToRadius"	:	{"addcode":"setprimintrinsic(0,'transform',@ptnum,matrix3(ident()*f@pscale));"},
+		"pscale: Pow" : {"addcode":"f@pscale = fit01(pow(rand(@ptnum),chf('pow')),chf('min_pscale'),chf('max_pscale'));"},
+		"pscale: Ramp" : {"addcode":"f@pscale = fit01(chramp('pscale_ramp',rand(@ptnum)),chf('min_pscale'),chf('max_pscale'));"},
+		"pscale: BirthGrow":{"addcode":"float birth = chi('birth_Frame') + rand(@ptnum)*chi('birth_jitter');\nfloat death = birth+chi('life') + rand(@ptnum)*chi('life_jitter');\nf@pscale = fit(@Frame,birth,death,0,1);"}
+		"pscale: BirthExplode":{"addcode":"float birth = chi('birth_Frame') + rand(@ptnum)*chi('birth_jitter');\nfloat death = birth+chi('life') + rand(@ptnum)*chi('life_jitter');\nf@pscale = 1-2*abs(fit(@Frame,birth,death,0,1)-0.5);"}
+		
 	},
 
 	"Modelling":
 	{
-		"Stick To Uvs":{"addcode":"v@P = primuv (1,'P',i@sourceprim,v@sourceprimuv);"},
-		"Mask By Dir" : {"addcode":"vector dir = normalize(chv('dir'));\nf@mask = chramp('dot_ramp',0.5*dot(v@N,dir)+0.5);\nv@Cd = f@mask;"}
+		"P: StickToUvs":{"addcode":"v@P = primuv (1,'P',i@sourceprim,v@sourceprimuv);"},
+		"mask: byDir" : {"addcode":"vector dir = normalize(chv('dir'));\nf@mask = chramp('dot_ramp',0.5*dot(v@N,dir)+0.5);\nv@Cd = f@mask;"}
 	}
 
 
