@@ -20,6 +20,7 @@
     <memberTool name="aces"/>
     <memberTool name="Import RS_Proxies"/>
     <memberTool name="Add RS Prefix"/>
+    <memberTool name="batchProxy"/>
   </toolshelf>
 
   <tool name="rs_cam_from_view" label="Rs camera from view" icon="hicon:/SVGIcons.index?OBJ_camera.svg">
@@ -338,5 +339,22 @@ else:
     
 mega = hou.expandString('$HEXT').replace('\\','/')
 hou.hscript('colorsettings -l "'+ mega +'/Assets/LUTS/Rec.709_for_ACEScg_Houdini.lut" -c')]]></script>
+  </tool>
+
+  <tool name="batchProxy" label="Batch Proxy" icon="hicon:/SVGIcons.index?SOP_filecache.svg">
+    <script scriptType="python"><![CDATA[import subprocess
+
+threads = 6
+
+for n in hou.selectedNodes():
+    if n.type().name() == 'Redshift_Proxy_Output':
+        hython = hou.getenv('HB')+'/hython'
+        file = hou.hipFile.path()    
+        cmd = 'hou.parm("' + n.path() + '/execute").pressButton()'
+        
+        print cmd
+        
+        for i in range(0,threads):    
+            subprocess.Popen([hython,file,'-c',cmd])]]></script>
   </tool>
 </shelfDocument>
