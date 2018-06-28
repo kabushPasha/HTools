@@ -26,6 +26,7 @@
     <memberTool name="LZ N2S"/>
     <memberTool name="DesignerAHK"/>
     <memberTool name="volume data"/>
+    <memberTool name="makeVerb"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -836,5 +837,41 @@ os.system("start " + ahk)]]></script>
             data = prim.voxelRange(prim.activeVoxelBoundingBox())
             print name+": ", min(data), max(data)
     ]]></script>
+  </tool>
+
+  <tool name="makeVerb" label="MakeVerb" icon="hicon:/SVGIcons.index?DATATYPES_code_variable.svg">
+    <script scriptType="python"><![CDATA[import hou,lzutil
+
+script = "#VERBScript\n"
+script +=  "sops = hou.sopNodeTypeCategory()\n"
+
+for n in hou.selectedNodes():
+    if n.verb():
+        v = n.verb()
+        parms = v.parms()
+        v.loadParmsFromNode(n)
+        newparms = v.parms()
+        
+        verbname = n.type().name()
+        script += "# " + verbname + ' verb\n'
+        script += verbname + "verb" + ' = sops.nodeVerb("' + verbname + '")\n'       
+        
+        script += verbname + "verb.setParms({\n"               
+        for key in parms.keys():
+            if  parms[key] != newparms[key]:
+                val = str(newparms[key])
+                if isinstance(newparms[key],basestring):
+                    val = "'" + val + "'"
+                script += "\t'" + key + "': " + val + ",\n"  
+        script += "\t})\n"   
+        script += verbname + "verb.execute(geo, [geo])"
+        
+    else:
+        print "[WARNING] " + n.type().name() + " has no verb"
+
+lzutil.copyToClipboard(script)
+print script
+
+]]></script>
   </tool>
 </shelfDocument>
