@@ -124,6 +124,11 @@
 		"pcimport" :  {"code":"vector P;\npcimport(handle,'P',P);"},
 		"pciterate" :  {"code":"while (pciterate(handle))\n{\nint pt;float d;\npcimport(handle,'point.distance',d);\npcimport(handle,'point.number',pt);\n}"}	
 	
+	},
+	
+	"Process":
+	{
+		"fit" :  {"code":"= fit(n1,chp('fit').x,chp('fit').y,chp('fit').z,chp('fit').w);"}	
 	}
 	
 	
