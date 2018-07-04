@@ -104,9 +104,9 @@ def createFlowNoiseFolderParmTemplate(id):
 	t_parm = hou.IntParmTemplate('t'+id,'Turb'+id,1,default_value = (3,))   
 	o_parm = hou.FloatParmTemplate('o'+id,'Offset'+id,1,default_value = (0,)) 
 	r_parm = hou.FloatParmTemplate('r'+id,'Rough'+id,1,default_value = (0.5,))   
-	flow = hou.FloatParmTemplate('flow'+id,'Flow'+id,1,default_value = (0.5,))   
-	flowrate = hou.FloatParmTemplate('flowrate'+id,'FlowRate'+id,1,default_value = (0.5,))   
-	selfAdvect = hou.FloatParmTemplate('selfAdvect'+id,'SelfAdvect'+id,1,default_value = (0.5,))   
+	flow = hou.FloatParmTemplate('flow'+id,'Flow'+id,1,default_value = (0,))   
+	flowrate = hou.FloatParmTemplate('flowrate'+id,'FlowRate'+id,1,default_value = (1,))   
+	selfAdvect = hou.FloatParmTemplate('selfAdvect'+id,'SelfAdvect'+id,1,default_value = (0,))   
 		
 
 	noise_folder = hou.FolderParmTemplate('noise'+id,'Noise'+id,\
