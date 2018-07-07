@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<menuDocument>
+  <menu>
+    <scriptItem id="promote_parm">
+      <label>Promote Parm</label>
+      <scriptCode><![CDATA[
+import lzutil
+p = kwargs['parms'][0]
+lzutil.promoteParm(p)
+]]>
+</scriptCode>
+    </scriptItem>
+
+<scriptItem id="hide_parm">
+      <label>Hide Parm</label>
+      <scriptCode><![CDATA[
+import lzutil
+p = kwargs['parms'][0]
+p.hide(1)
+]]>
+</scriptCode>
+    </scriptItem>
+
+
+  </menu>
+</menuDocument>

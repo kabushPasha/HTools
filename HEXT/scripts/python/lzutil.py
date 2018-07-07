@@ -431,6 +431,26 @@ def createParmWindow(n, dy = [0.1,0.95],dx = [0.05,0.35]):
 	tab.linkGroup = hou.paneLinkType.Pinned
 	panel.setName(pname)
 	
-	
-	
-	
+def promoteParm(p):
+	n = p.node()
+	pr = n.parent()
+
+	pt = p.parmTemplate()
+	pt.setName(n.name() + "_" + pt.name())
+	pt.setLabel(n.name() + " " + pt.label())
+	if pt.type() == hou.parmTemplateType.Menu:
+		pt.setDefaultValue(p.eval())
+	else:
+		pt.setDefaultValue((p.eval(),))
+
+	ptg = pr.parmTemplateGroup()
+	ptg.addParmTemplate(pt)
+
+	pr.setParmTemplateGroup(ptg)
+
+	np = pr.parm(pt.name())
+	p.set(np)
+
+
+
+
