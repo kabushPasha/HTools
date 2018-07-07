@@ -23,6 +23,16 @@ p.hide(1)
 </scriptCode>
     </scriptItem>
 
+    <scriptItem id="dublicate_parm">
+      <label>Dublicate Parm</label>
+      <scriptCode><![CDATA[
+import lzutil
+p = kwargs['parms'][0]
+lzutil.dublicateParm(p)
+]]>
+</scriptCode>
+    </scriptItem>
+
 
   </menu>
 </menuDocument>

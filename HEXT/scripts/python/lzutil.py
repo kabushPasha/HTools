@@ -451,6 +451,23 @@ def promoteParm(p):
 	np = pr.parm(pt.name())
 	p.set(np)
 
+def dublicateParm(p):
+	n = p.node()
+	pt = p.parmTemplate()
+	pt.setName(pt.name() + "_copy")
+	if pt.type() == hou.parmTemplateType.Menu:
+		pt.setDefaultValue(p.eval())
+	else:
+		pt.setDefaultValue((p.eval(),))
+
+	ptg = n.parmTemplateGroup()
+	ptg.addParmTemplate(pt)
+	n.setParmTemplateGroup(ptg)
+	np = n.parm(pt.name())
+	p.set(np)
+
+
+
 
 
 
