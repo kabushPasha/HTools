@@ -14,7 +14,6 @@
     <memberTool name="Rs Directional Light"/>
     <memberTool name="Rs Light Sun"/>
     <memberTool name="LZ RS LightDome"/>
-    <memberTool name="Rs displacement"/>
     <memberTool name="substance material"/>
     <memberTool name="Add Object Spare Parameters"/>
     <memberTool name="aces"/>
@@ -94,6 +93,7 @@ kwargs['ctrlclick'] = True
 newnode = objecttoolutils.genericCameraLightTool(kwargs, 'rslightsun')
 
 newnode.parm('RSL_volumeScale').set(1)
+newnode.setName('RS_Sun')
 
 newnode.setDisplayFlag(False)]]></script>
   </tool>
@@ -142,11 +142,22 @@ if rs is None:
     
     rs.parm('RS_renderAOVsToMPlay').set(1)
     rs.parm('RS_outputEnable').set(0)
+    rs.parm('RS_outputSkipRendered').set(0)  
     
-    rs.parm('RS_outputFileNamePrefix').set('$JOB/Render/$OS/frame.$F.bgeo.sc')
+    rs.parm('MotionBlurDeformationEnabled').set(1)  
+    rs.parm('RS_mbPoints').set(1)
+    rs.parm('RS_archive_selected').set(1)
+    rs.parm('RS_archive_skipFiles').set(1) 
+    rs.parm('RS_archive_noXform').set(1)     
+    
+    rs.parm('RS_outputFileNamePrefix').set('$JOB/Render/001_InitRender/$F.exr')
+    rs.parm('IrradiancePointCloudFilename').set('$JOB/Cache/Redshift/IPC/$F.rsmap')
+    rs.parm('IrradianceCacheFilename').set('$JOB/Cache/Redshift/IRC/$F.rsmap')
+    
+    rs.parm("UnifiedMaxSamples").setExpression('ch("UnifiedMinSamples")*4')    
+    
     rs.parm('RS_iprOverrideCameraRes').set(0)
     rs.parm('RS_iprUpdateMeshDeform').set(0)
-    rs.parm('RS_lights_exclude').set('PROXY_LIGHT*')
     
     rs.parm("RS_aov").set(1)
     rs.parm("RS_aovID_1").set(1)
@@ -156,8 +167,6 @@ if rs is None:
     rs.parm("RS_lights_candidate").set("RS_*")
     rs.parm("RS_objects_candidate").set("RS_*")
     rs.parm("RS_addDefaultLight").set(0)
-    
-    
     
     
 # Check if we have aprms and render view already
@@ -344,7 +353,7 @@ hou.hscript('colorsettings -l "'+ mega +'/Assets/LUTS/Rec.709_for_ACEScg_Houdini
   <tool name="batchProxy" label="Batch Proxy" icon="hicon:/SVGIcons.index?SOP_filecache.svg">
     <script scriptType="python"><![CDATA[import subprocess
 
-threads = 6
+threads = 1
 
 for n in hou.selectedNodes():
     if n.type().name() == 'Redshift_Proxy_Output':
