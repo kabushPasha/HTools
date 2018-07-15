@@ -129,6 +129,11 @@
 	"Process":
 	{
 		"fit" :  {"code":"= fit(n1,chp('fit').x,chp('fit').y,chp('fit').z,chp('fit').w);"}	
+	},
+	
+	"Samplers":
+	{
+		"sample_direction_cone" :  {"code":"vector center = chv('center');\nfloat maxangle = chf('maxangle');\nvector dir = sample_direction_cone(center,maxangle,rand(@ptnum));"}		
 	}
 	
 	
