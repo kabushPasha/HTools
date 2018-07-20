@@ -133,7 +133,9 @@
 	
 	"Samplers":
 	{
-		"sample_direction_cone" :  {"code":"vector center = chv('center');\nfloat maxangle = chf('maxangle');\nvector dir = sample_direction_cone(center,maxangle,rand(@ptnum));"}		
+		"sample_direction_cone" :  {"code":"vector center = chv('center');\nfloat maxangle = chf('maxangle');\nvector dir = sample_direction_cone(center,maxangle,rand(@ptnum));"},		
+		"sample_circle_edge" :  {"code":"vector2 dir =  sample_circle_edge_uniform(rand(@ptnum));\nv@N = set(dir.x,0,dir.y);\nv@up = {0,1,0};"}		,
+		"sample_circle_slice" :  {"code":"vector2 look = set(sin(chf('angle')*3.14*2),cos(chf('angle')*3.14*2));\nvector2 dir =  sample_circle_slice(look,chf('spread')*3.14,rand(@ptnum));\nv@N = set(dir.x,0,dir.y);\nv@up = {0,1,0};"}		
 	}
 	
 	

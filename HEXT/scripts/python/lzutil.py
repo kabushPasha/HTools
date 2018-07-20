@@ -466,7 +466,10 @@ def dublicateParm(p):
 	np = n.parm(pt.name())
 	p.set(np)
 
-
+def setNodePreset(n,preset_name):
+	op_path = n.path()
+	cmd = 'oppresetload %s "%s"' % (op_path, preset_name)
+	hou.hscript(cmd)
 
 
 
