@@ -353,7 +353,7 @@ hou.hscript('colorsettings -l "'+ mega +'/Assets/LUTS/Rec.709_for_ACEScg_Houdini
   <tool name="batchProxy" label="Batch Proxy" icon="hicon:/SVGIcons.index?SOP_filecache.svg">
     <script scriptType="python"><![CDATA[import subprocess
 
-threads = 1
+threads = 5
 
 for n in hou.selectedNodes():
     if n.type().name() == 'Redshift_Proxy_Output':
