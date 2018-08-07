@@ -407,7 +407,7 @@ def preset(n,preset_name):
 	hou.hscript(cmd)
 
 	
-def createParmWindow(n, dy = [0.1,0.95],dx = [0.05,0.35]):
+def createParmWindow(n, dy = [0.1,0.9],dx = [0.05,0.35]):
 	# create Size and Center
 	#dy = [0.1,0.95];
 	#dx = [0.05,0.35];

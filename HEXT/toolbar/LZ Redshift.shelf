@@ -187,7 +187,7 @@ if has_rs_parms == 0:
     user32 = ctypes.windll.user32
     sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
     #pos goes from bottom to top, from left to rigth
-    dy = [0.025,0.65];
+    dy = [0.05,0.65];
     dx = [0.57,0.85];
     
     pos = (sz[0] + int(sz[0]*dx[0]),int(sz[1]*(1 - dy[1] - dy[0])))

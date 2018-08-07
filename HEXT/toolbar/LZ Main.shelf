@@ -36,7 +36,7 @@ import ctypes
 user32 = ctypes.windll.user32
 sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
 #pos goes from bottom to top, from left to rigth
-dy = [0.025,0.65];
+dy = [0.05,0.65];
 dx = [0.025,0.55];
 
 
@@ -581,7 +581,7 @@ clipboard.setText(string)
 import ctypes
 user32 = ctypes.windll.user32
 sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
-dy = [0.1,0.95];
+dy = [0.1,0.9];
 dx = [0.05,0.35];    
 
 pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
