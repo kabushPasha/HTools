@@ -1,0 +1,1 @@
+start "" mplay.exe *.jpg *.png *.exr *.pic *.jpeg *.tif
