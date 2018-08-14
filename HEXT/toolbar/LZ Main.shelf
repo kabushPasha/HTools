@@ -877,11 +877,12 @@ print script
   </tool>
 
   <tool name="h264" label="h264" icon="hicon:/SVGIcons.index?VIEW_visualization_add_to_toolbar.svg">
-    <script scriptType="python"><![CDATA[from glob import glob
+    <script scriptType="python"><![CDATA[## OLD way with djv-view
+from glob import glob
 import os
 f = hou.ui.selectFile(collapse_sequences=True,multiple_select=True)
 # Find First and Last Frames
-fslpit = f.split("$F")
+fslpit = f.split("$F4")
 gstring =  hou.expandString(fslpit[0]) + "*" + fslpit[1]
 max = -1e6;
 min = 1e6;
@@ -894,6 +895,8 @@ for frame in glob(gstring):
     frame = frame.replace('\\',"/")
     fstr = frame.replace(hou.expandString(fslpit[0]),"").replace(fslpit[1],"")
    
+    print frame + "  " + fstr + " " + frame.replace(hou.expandString(fslpit[0]),"")
+    
     if int(fstr) < int(min):
         min = fstr
         mins = fstr
@@ -918,6 +921,32 @@ lzutil.openFolderFromEnv(os.path.dirname(os.path.dirname(hou.expandString(fslpit
 
     
 
-]]></script>
+"""
+# New way with ffmpeg
+f = hou.ui.selectFile(collapse_sequences=False,multiple_select=False)
+f = hou.expandString(f)
+import os
+start_frame = int(os.path.basename(f).rsplit(".")[0])
+folderName = os.path.basename(os.path.dirname(f))
+path = os.path.dirname(f) + "/%4d.jpg"
+out = os.path.dirname(f) + ".mp4";
+
+t = '"'
+
+#cmd = ["ffmpeg","-i",path,"-c:v","libx264","-preset","veryslow","-crf","0","-vf",'"scale=trunc(iw/2)*2:trunc(ih/2)*2"',out]
+cmd = ["ffmpeg","-i",t + path + t,t+out+t]
+
+code = ""
+for line in cmd:
+    code += " " + line
+    print line
+    
+print code    
+
+import subprocess
+subprocess.Popen(cmd)
+
+#os.system(code)
+"""]]></script>
   </tool>
 </shelfDocument>
