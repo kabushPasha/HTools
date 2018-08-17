@@ -1,2 +1,2 @@
-python2.7 "%~dp0\padZero.py"
+python2.7 "%~dp0\padZero.py" %1
 
