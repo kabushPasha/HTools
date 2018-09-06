@@ -27,8 +27,16 @@ class ExportTextures(sdplugins.Plugin):
             '''
             nodeName = node.getPropertyValueFromIdentifier('label',SDPropertyCategory.Annotation).toString()
             print (nodeName)  
-              
+          
+        print ("HI") 
         print (graph)
+        print ("path = " + graph.getFilePath())
+        print (graph.getUrl())
+        print (graph.getEmbedMethod())        
+        
+        
+        
+        
         pass
 
 # Register module classes
