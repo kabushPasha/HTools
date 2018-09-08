@@ -8,9 +8,9 @@ RAlt::+AppsKey
 #If
 
 #c::
-MouseClickDrag, Left, 0, 0, -100, 0, , R
-MouseMove, 100,0,,R
-Click
+MouseClickDrag, Left, 0, 0, -400, 0, , R
+MouseMove, 400,0,,R
+;Click
 ;winwaitactive
 ;SendInput ^F4
 return
