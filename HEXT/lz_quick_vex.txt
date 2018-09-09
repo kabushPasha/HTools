@@ -42,9 +42,7 @@
 		
 	"04 Modelling Vex":{
 		"01. Simple Spiral":{"code": "@P.y = chf('h')*f@u;\n@P.x = ch('r')*sin(f@u*chf('f')*6.18);\n@P.z = ch('r')*cos(f@u*chf('f')*6.18);"},
-		"02. Get Curve u":{"code":"f@u = float(@ptnum)/(@numpt-1);"},
-		"03. Get Curve u from vtx":{"code":"f@u = float(vertexprimindex(0,pointvertex(0,@ptnum)))/(primvertexcount(0,@primnum)-1);"},
-		"04. Curve uv's":{"code":"v@uv = set(float(vertexprimindex(0,pointvertex(0,@ptnum)))/(primvertexcount(0,@primnum)-1),0,0);"},
+		"02. Get Curve u":{"code":"float u = float(vertexprimindex(0,@vtxnum))/(@numvtx -1);"},
 		"05. Maketransform":{"code":"matrix t = maketransform(0,0,chv('translate'),chv('rotate'),chv('scale'));\n@P*=t;"},
 		"06. Correct Vdb Collisons" : {"code": "int vdb_input = 1;\nfloat density = volumesample(vdb_input,0,@P);\nvector grad = volumegradient(vdb_input,0,@P);\nif(density<0) @P -= normalize(grad)*density;"}
 	},	
