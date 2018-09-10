@@ -4,3 +4,12 @@ Harbor is the main app
 
 + Create Harbor Shortcut creates a shortcut on your desctop 
     (make it hidden and in properties and pin on taskbar)
+
+
+
+
+
+
+TODO:
+- add path based things that take path from clipboard
+- add separated buttons based on json
