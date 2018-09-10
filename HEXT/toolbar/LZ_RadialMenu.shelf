@@ -9,7 +9,6 @@
     <memberTool name="LZ Add fur"/>
     <memberTool name="LZ kwargs"/>
     <memberTool name="Perfomance Monitor"/>
-    <memberTool name="check shelf tool paths"/>
   </toolshelf>
 
   <tool name="LZ Add fur" label="LZ Add fur" icon="PLASMA_App">
@@ -232,18 +231,5 @@ dx = [0.5,0.8];
 pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
 size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))  
 panel = d.createFloatingPanel(hou.paneTabType.PerformanceMonitor,pos,size)]]></script>
-  </tool>
-
-  <tool name="check shelf tool paths" label="check shelf tool paths" icon="PLASMA_App">
-    <script scriptType="python"><![CDATA[from PySide2.QtWidgets  import  QApplication
-shelf = QApplication.clipboard().text()
-
-sh = hou.shelves.shelves()[shelf]
-for t in sh.tools():
-    if sh.filePath() != t.filePath():
-        print t.name()
-        
-        
-shelf = QApplication.clipboard().setText(sh.filePath())]]></script>
   </tool>
 </shelfDocument>

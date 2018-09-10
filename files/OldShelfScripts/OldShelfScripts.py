@@ -216,6 +216,135 @@ subprocess.Popen(cmd)
 """
 
 #=================================================================================
+# LZ Hair Utils Mesh Prepare
+#create timeshift node
+source = hou.selectedNodes()[0]
+timeshift = source.createOutputNode("timeshift","timeshift")
+timeshift.setPosition(source.position() + hou.Vector2(0,-1))
+timeshift.parm("frame").set(1.0)
+
+#create vdbfrompolygons node
+vdbfrompolygons = source.createOutputNode("vdbfrompolygons","vdbfrompolygons")
+vdbfrompolygons.setPosition(source.position() + hou.Vector2(3,-1))
+
+#create OUT_vdb node
+OUT_vdb = vdbfrompolygons.createOutputNode("null","OUT_vdb")
+OUT_vdb.setPosition(vdbfrompolygons.position() + hou.Vector2(0,-1))
+
+#create OUT_animated node
+OUT_animated = source.createOutputNode("null","OUT_animated")
+OUT_animated.setPosition(source.position() + hou.Vector2(-3,-1))
+
+#create OUT_static node
+OUT_static = timeshift.createOutputNode("null","OUT_static")
+OUT_static.setPosition(timeshift.position() + hou.Vector2(0,-1))
+
+#=================================================================================
+# LZ Compare nodes (now we have better hilights)
+nodes = hou.selectedNodes()
+parm_dicts = ()
+    
+for node in nodes:
+    node_parms = {}
+    parm_tuple = [(node.name(), node.parmTuples())]
+    node_parms.update(parm_tuple)
+    parm_dicts += (node_parms,)
+
+a_parm_vals = []
+b_parm_vals = []
+parm_labels = []    
+    
+node = nodes[0]
+for parm_tuple in parm_dicts[nodes.index(node)][node.name()]:
+    for parm in parm_tuple:
+            a_parm_vals.append(parm.evalAsString())
+            parm_labels.append(parm.name())
+
+node = nodes[1]            
+for parm_tuple in parm_dicts[nodes.index(node)][node.name()]:
+    for parm in parm_tuple:
+            b_parm_vals.append(parm.evalAsString())
+
+            
+if a_parm_vals != b_parm_vals:
+    message = "Changed parameters :" + '\n'
+    for val in range(0, len(parm_labels) - 1):
+        if a_parm_vals[val] != b_parm_vals[val]:
+            message += parm_labels[val] + '\n'
+            message += '\t' + nodes[0].name() +" = " + a_parm_vals[val] + '\n' 
+            message += '\t' + nodes[1].name() +" = " + b_parm_vals[val] + '\n'
+else:
+    message = "nodes are the same"
+
+print message
+
+#=================================================================================
+# Send to nuke
+# (no idea what i wanted to do)
+ipr =  hou.ui.paneTabOfType(hou.paneTabType.IPRViewer,0);
+
+import os
+dir = hou.expandString("$HC/$HIPNAME/render") 
+if not os.path.exists(dir):
+    os.makedirs(dir)
+dir += "/"
+
+files = os.listdir(dir)
+if len(files) > 0:
+    increment = int(files[len(files)-1].split("_")[0]) + 1
+else:
+    increment = 1
+
+name = str(increment).zfill(3)+"_screenshot.pic"
+
+path = dir + name + ".exr"
+
+ipr.saveFrame(path)
+# copy dir to clipboard
+import PySide.QtGui as qtg
+app = qtg.QApplication.instance()
+clipboard = app.clipboard()
+clipboard.setText(path)
+
+#=================================================================================
+# LZ Create Chopnet
+# now we have an hda
+if hou.selectedNodes() is not ():
+    for node in hou.selectedNodes():
+        if node.type().name()=='channel':
+            chopnet = node.parent().createNode("chopnet")
+            chopnet.setPosition(node.position() + hou.Vector2(2,0))
+            
+            geo = chopnet.createNode('geometry')
+            geo.parm("soppath").set('`opinputpath("../../' + node.name() + '",0)`')
+            geo.parm("method").setExpression('ch("../../' + node.name() + '/method")')
+            
+            #geo.parm("attribscope").set('`chs("../../' + node.name() + '/attscope")`')
+            #geo.parm("renamescope").set('`chs("../../' + node.name() + '/chanscope")`')
+            node.parm("attscope").set('`chs("../' + chopnet.name() + "/" + geo.name() + '/attribscope")`')
+            node.parm("chanscope").set('`chs("../' + chopnet.name() + "/" + geo.name() + '/renamescope")`')
+                        
+            node.parm("attscope").lock(True)
+            node.parm("chanscope").lock(True)
+            
+            out = geo.createOutputNode('null')
+            
+            node.parm('choppath').set("../" + chopnet.name() + "/" + out.name())
+            
+#=================================================================================
+# Cheack Shelf Paaths
+# (in case we saved our tool to our home directory)
+from PySide2.QtWidgets  import  QApplication
+shelf = QApplication.clipboard().text()
+
+sh = hou.shelves.shelves()[shelf]
+for t in sh.tools():
+    if sh.filePath() != t.filePath():
+        print t.name()
+        
+        
+shelf = QApplication.clipboard().setText(sh.filePath())
+
 
 
 
