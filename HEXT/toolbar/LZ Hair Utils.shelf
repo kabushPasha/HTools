@@ -4,32 +4,4 @@
  It should not be hand-edited when it is being used by the application.
  Note, that two definitions of the same element are not allowed in
  a single file. -->
-
-  <toolshelf name="LZ Hair Utils" label="LZ Hair Utils">
-    <memberTool name="MeshPrepare"/>
-  </toolshelf>
-
-  <tool name="MeshPrepare" label="MeshPrepare" icon="PLASMA_App">
-    <script scriptType="python"><![CDATA[#create timeshift node
-source = hou.selectedNodes()[0]
-timeshift = source.createOutputNode("timeshift","timeshift")
-timeshift.setPosition(source.position() + hou.Vector2(0,-1))
-timeshift.parm("frame").set(1.0)
-
-#create vdbfrompolygons node
-vdbfrompolygons = source.createOutputNode("vdbfrompolygons","vdbfrompolygons")
-vdbfrompolygons.setPosition(source.position() + hou.Vector2(3,-1))
-
-#create OUT_vdb node
-OUT_vdb = vdbfrompolygons.createOutputNode("null","OUT_vdb")
-OUT_vdb.setPosition(vdbfrompolygons.position() + hou.Vector2(0,-1))
-
-#create OUT_animated node
-OUT_animated = source.createOutputNode("null","OUT_animated")
-OUT_animated.setPosition(source.position() + hou.Vector2(-3,-1))
-
-#create OUT_static node
-OUT_static = timeshift.createOutputNode("null","OUT_static")
-OUT_static.setPosition(timeshift.position() + hou.Vector2(0,-1))]]></script>
-  </tool>
 </shelfDocument>

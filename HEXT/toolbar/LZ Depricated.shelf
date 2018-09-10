@@ -6,39 +6,7 @@
  a single file. -->
 
   <toolshelf name="LZ Depricated" label="LZ Depricated">
-    <memberTool name="LZ Create Visualisers"/>
+    <memberTool name="update snippets from clipboard"/>
+    <memberTool name="start server"/>
   </toolshelf>
-
-  <tool name="LZ Create Visualisers" label="LZ Create Visualisers" icon="hicon:/SVGIcons.index?NODEFLAGS_display.svg">
-    <script scriptType="python"><![CDATA[import lzutil
-import toolutils
-n = lzutil.viewNode()
-geo = n.geometry()
-pt_attribs = geo.pointAttribs()
-
-sv = toolutils.sceneViewer()
-vp = sv.curViewport()
-
-att_names = []
-pt_attribs_filtered = []
-
-for att in pt_attribs:
-    if att.name()!='P' and att.name()!='N' and att.name()!='v':
-        att_names += [att.name()]
-        pt_attribs_filtered += [att]
-
-ans = hou.ui.selectFromList(att_names)
-
-for id  in ans:
-    att = pt_attribs_filtered[id]
-    size = att.size()        
-    v = hou.viewportVisualizers.createVisualizer(hou.viewportVisualizers.type('vis_marker'))
-    v.setName(att.name())
-    v.setLabel(att.name())
-    v.setParm('attrib',att.name())
-    if size > 2:
-        v.setParm('style','vector')
-    v.setIsActive(1,vp)    
-]]></script>
-  </tool>
 </shelfDocument>
