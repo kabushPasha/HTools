@@ -2,7 +2,7 @@
 
 Add-Type -AssemblyName System.Windows.Forms
 $Form = New-Object system.Windows.Forms.Form
-$Form.Text = "Sample Form"
+$Form.Text = "Harbor v2.0"
 
 # Resize
 $Form.Width = 100
@@ -54,7 +54,7 @@ $y = 0
     $button = New-Object Windows.Forms.Button
     $button.text = $script
     $button.Location = New-Object Drawing.Point 0,$y
-    $button.Size = New-Object Drawing.Point 210,25
+    $button.Size = New-Object Drawing.Point 200,25
         
     $button.add_click({
         $Label.Text = $i
@@ -66,6 +66,7 @@ $y = 0
 
 
  # Create shortcuts for all commands
+ <#
 $commands = Get-Content -Path $PSScriptRoot/commands.txt
  foreach ($command in $commands) {
     $y += 30        
@@ -80,6 +81,39 @@ $commands = Get-Content -Path $PSScriptRoot/commands.txt
 
     $form.controls.add($button)
  }
+ #>
+
+ $json = (Get-Content -Raw -Path $PSScriptRoot/commands.json) | ConvertFrom-Json
+
+$names = $json.PSObject.Properties.Name
+foreach ($name in $names)
+{
+    #$json.$name
+    $y += 30        
+    $button = New-Object Windows.Forms.Button
+    $button.text = $name
+    $button.Location = New-Object Drawing.Point 0,$y
+    $button.Size = New-Object Drawing.Point 200,25
+    #$command    
+    $button.add_click({
+        start $json.$name
+    }.GetNewClosure())
+
+    $form.controls.add($button)
+}
+
+# Fix Position
+$Form.StartPosition = "Manual";
+Add-Type -AssemblyName System.Windows.Forms
+$screens = [System.Windows.Forms.Screen]::AllScreens
+$width = $screens[0].WorkingArea.Width
+$height = $screens[0].WorkingArea.Height
+
+#$width -= $Form.Width
+$height -= $Form.Height
+$Form.Location =  New-Object Drawing.Point $width,$height
+
+
 
 
 $Form.ShowDialog()

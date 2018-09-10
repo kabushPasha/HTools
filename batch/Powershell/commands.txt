@@ -1,6 +1,0 @@
-lzenv
-cmd
-regedit
-diskmgmt
-https://docs.google.com/document/d/1gHxbXGFtBngX05mxT7OLm4VmUNrVVfSzhH5KgWaVK98/edit
-X:\share
