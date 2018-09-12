@@ -1,0 +1,12 @@
+{
+"Env Var":"lzenv",
+"Cmd":"start cmd",
+"Regedit":"regedit",
+"DiskManagament":"diskmgmt",
+"WIKI":"start https://docs.google.com/document/d/1gHxbXGFtBngX05mxT7OLm4VmUNrVVfSzhH5KgWaVK98/edit",
+"Share":"start X:/share",
+"Mega":"start S:/MEGA",
+"HTools":"start S:/HTools",
+"Documents":"start C:/Users/Pavel/Documents",
+"JSON":"start S:\\HTools\\batch\\Powershell"
+}
