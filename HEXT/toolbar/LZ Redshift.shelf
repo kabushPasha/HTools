@@ -31,7 +31,23 @@ newnode.setDisplayFlag(False)
 newnode.setName("RS_Cam",1)
 
 newnode.parm("resx").set(1920)
-newnode.parm("resy").set(1080)]]></script>
+newnode.parm("resy").set(1080)
+
+# Add custom Focal actions
+ptg = newnode.parmTemplateGroup()
+# focal point
+pt = hou.FloatParmTemplate("f", "Focus point",3)
+pt.setTags({"script_action": "n = kwargs[\"node\"]\n\nimport toolutils\nsv = toolutils.sceneViewer()\nsv.setSnappingMode(hou.snappingMode.Prim)\npos = sv.selectPositions(number_of_positions=1)\n\nif pos[0].length() > 0:\n    n.parmTuple(\"f\").set(pos[0])\nsv.setSnappingMode(hou.snappingMode.Off)"})
+ptg.addParmTemplate(pt)
+# focal distance
+pt = hou.FloatParmTemplate("f2t", "Focal2Target", 1)
+pt.setTags({"script_action": "n = kwargs[\'node\']\nn.parm(\'RS_campro_dofDistance\').set(n.parm(\"f2t\"))\n"})
+pt.setDefaultExpression(["length(ch('tx')-ch('fx'),ch('ty')-ch('fy'),ch('tz')-ch('fz'))"])
+ptg.addParmTemplate(pt)
+# apply ptg
+newnode.setParmTemplateGroup(ptg)
+
+]]></script>
   </tool>
 
   <tool name="RS obj shader" label="RS obj shader" icon="RS_objectSpareParameters_icon">
