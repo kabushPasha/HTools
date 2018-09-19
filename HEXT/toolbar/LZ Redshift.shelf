@@ -308,7 +308,18 @@ hdr_dir = hou.StringParmTemplate("hdr_dir",
                                 string_type=hou.stringParmType.FileReference,
                                 item_generator_script_language=hou.scriptLanguage.Python,
                                 menu_type=hou.menuType.StringReplace)
+hdr_dir.setFileType(hou.fileType.Directory)
 ptg.addParmTemplate(hdr_dir)
+# Next Button
+next_btn = hou.ButtonParmTemplate("next", "Next")
+next_btn.setScriptCallback("n = hou.pwd();p = n.parm(\"hdr_img\");mi = p.menuItems();p.set(mi[mi.index(p.eval())+1])")
+next_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+ptg.addParmTemplate(next_btn)
+# Prev Button
+prev_btn = hou.ButtonParmTemplate("prev", "Prev")
+prev_btn.setScriptCallback("n = hou.pwd();p = n.parm(\"hdr_img\");mi = p.menuItems();p.set(mi[mi.index(p.eval())-1])")
+prev_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+ptg.addParmTemplate(prev_btn)
 # Rotate Button
 rotate_btn = hou.ButtonParmTemplate("rotate", "Rotate")
 rotate_btn.setScriptCallback("hou.pwd().parm(\'ry\').setExpression(\'360*$F/$FEND\')")
@@ -323,6 +334,9 @@ freeze_btn.setTags({"script_callback": "hou.pwd().parm(\'ry\').deleteAllKeyframe
 ptg.addParmTemplate(freeze_btn)
 
 newnode.setParmTemplateGroup(ptg)
+
+newnode.parm("hdr_img").set(newnode.parm("hdr_img").menuItems()[0])
+
 
 
 
