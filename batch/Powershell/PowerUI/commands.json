@@ -6,7 +6,10 @@
 "WIKI":"start https://docs.google.com/document/d/1gHxbXGFtBngX05mxT7OLm4VmUNrVVfSzhH5KgWaVK98/edit",
 "Share":"start X:/share",
 "Mega":"start S:/MEGA",
+"Cloud":"start S:/CloudStation",
 "HTools":"start S:/HTools",
 "Documents":"start C:/Users/Pavel/Documents",
-"JSON":"start S:\\HTools\\batch\\Powershell"
+"JSON":"start S:\\HTools\\batch\\Powershell\\PowerUI\\commands.json",
+"Z":"start Z:",
+"LIBS":"start Z:/LIBS"
 }
