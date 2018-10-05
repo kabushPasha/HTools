@@ -1,4 +1,4 @@
-﻿$folder = "C:\SDrive\Mega\Projects\2018\027_Scans\Render\\007_HornsRender"
+﻿$folder = "S:\\FPG\\s060\\Render\\004_FullRange"
 $files = Get-ChildItem $folder
 
 ForEach ($file in $files)
