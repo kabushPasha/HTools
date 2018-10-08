@@ -166,9 +166,9 @@ if rs is None:
     rs.parm('RS_archive_skipFiles').set(1) 
     rs.parm('RS_archive_noXform').set(1)     
     
-    rs.parm('RS_outputFileNamePrefix').set('$JOB/Render/001_InitRender/$F.exr')
-    rs.parm('IrradiancePointCloudFilename').set('$JOB/Cache/Redshift/IPC/$F.rsmap')
-    rs.parm('IrradianceCacheFilename').set('$JOB/Cache/Redshift/IRC/$F.rsmap')
+    rs.parm('RS_outputFileNamePrefix').set('$JOB/Render/001_InitRender/$F4.exr')
+    rs.parm('IrradiancePointCloudFilename').set('$JOB/Cache/Redshift/IPC/$F4.rsmap')
+    rs.parm('IrradianceCacheFilename').set('$JOB/Cache/Redshift/IRC/$F4.rsmap')
     
     rs.parm("UnifiedMaxSamples").setExpression('ch("UnifiedMinSamples")*4')    
     
