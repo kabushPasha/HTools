@@ -22,6 +22,7 @@
     <memberTool name="volume data"/>
     <memberTool name="makeVerb"/>
     <memberTool name="create_ref"/>
+    <memberTool name="pyhon"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -772,5 +773,14 @@ print script
         
         
     ]]></script>
+  </tool>
+
+  <tool name="pyhon" label="Pyhton" icon="SOP_python">
+    <script scriptType="python"><![CDATA[import toolutils
+n = toolutils.sceneViewer().currentNode()
+wr = n.createOutputNode('python')
+wr.setRenderFlag(1)
+wr.setDisplayFlag(1)
+wr.setCurrent(1)]]></script>
   </tool>
 </shelfDocument>
