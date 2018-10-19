@@ -8,14 +8,11 @@
   <toolshelf name="LZ_Redshift" label="LZ Redshift">
     <memberTool name="LZ RS Setup"/>
     <memberTool name="rs_cam_from_view"/>
-    <memberTool name="RS obj shader"/>
     <memberTool name="Rs vol shader"/>
     <memberTool name="RS Hair Params"/>
     <memberTool name="Rs Directional Light"/>
     <memberTool name="Rs Light Sun"/>
     <memberTool name="LZ RS LightDome"/>
-    <memberTool name="substance material"/>
-    <memberTool name="Add Object Spare Parameters"/>
     <memberTool name="aces"/>
     <memberTool name="Import RS_Proxies"/>
     <memberTool name="Add RS Prefix"/>
@@ -50,35 +47,11 @@ newnode.setParmTemplateGroup(ptg)
 ]]></script>
   </tool>
 
-  <tool name="RS obj shader" label="RS obj shader" icon="RS_objectSpareParameters_icon">
-    <script scriptType="python"><![CDATA[ctrlclick = kwargs["ctrlclick"] 
-hou.hscript('Redshift_objectSpareParameters')
-
-for n in hou.selectedNodes():
-    if ctrlclick:
-        shader = hou.node("/shop").createNode('RS_Material',n.name())
-    else :
-        shader = hou.node("/shop").createNode('redshift_vopnet',n.name())
-        mat = shader.createNode('Material')
-        mat.setDetailHighFlag(True)
-        out = shader.node('redshift_material1')        
-        out.setInput(0,mat)
-        mat.setPosition(out.position() + hou.Vector2(-2,0))
-        
-        
-        
-    n.parm('shop_materialpath').set(shader.path())]]></script>
-  </tool>
-
   <tool name="Rs vol shader" label="Rs vol shader" icon="hicon:/SVGIcons.index?SOP_volume.svg">
     <script scriptType="python"><![CDATA[hou.hscript('Redshift_objectSpareParameters')
 
-for n in hou.selectedNodes():
-    #n.parm('RS_objprop_volume_enable').set(1)
-    #n.parm('RS_objprop_volume_type').set(1)
-    
-    shader = hou.node("/shop").createNode("rs_volume",n.name())
-    
+for n in hou.selectedNodes():   
+    shader = hou.node("/shop").createNode("rs_volume",n.name())    
     n.parm('shop_materialpath').set(shader.path())
 ]]></script>
   </tool>
@@ -93,6 +66,7 @@ kwargs['ctrlclick'] = True
 newnode = objecttoolutils.genericCameraLightTool(kwargs, 'rslight')
 newnode.parm('RSL_intensityMultiplier').set(1)
 newnode.parm('RSL_volumeScale').set(1)
+newnode.parm('light_type').set(0)
 
 
 newnode.setDisplayFlag(False)
@@ -343,51 +317,6 @@ newnode.setParmTemplateGroup(ptg)
 
 newnode.parm("hdr_img").set(newnode.parm("hdr_img").menuItems()[0])
 
-
-
-
-]]></script>
-  </tool>
-
-  <tool name="substance material" label="substance material" icon="RS_objectSpareParameters_icon">
-    <helpText><![CDATA["""Select obj to apply mat to
-Substance folder must hacve the same name as textures"""
-]]></helpText>
-    <script scriptType="python"><![CDATA[hou.hscript('Redshift_objectSpareParameters')
-for n in hou.selectedNodes():
-    shader = hou.node("/shop").createNode('redshift_vopnet',n.name())
-    out = shader.node('redshift_material1')   
-    
-    mat = shader.createNode('Material')
-    mat.setDetailHighFlag(True)
-    mat.parm('refl_fresnel_mode').set('2')
-    mat.parm('refl_brdf').set('1')
-    mat.setPosition(out.position() + hou.Vector2(-2,0))
-    out.setInput(0,mat)
-    
-    disp = shader.createNode('Displacement')
-    disp.setDetailHighFlag(True)
-    disp.setPosition(out.position() + hou.Vector2(-2,2.5))
-    disp.parm('scale').set(0.01)
-    out.setInput(1,disp) 
-    
-    tex = shader.createNode('LZ_substance_textures')
-    tex.setDetailHighFlag(True)
-    tex.setPosition(out.position() + hou.Vector2(-4,0)) 
-    # set texture inputs
-    mat.setInput(0,tex,0)
-    disp.setInput(0,tex,1)
-    mat.setInput(14,tex,2)
-    out.setInput(2,tex,3)
-    mat.setInput(7,tex,4)
-    mat.setInput(47,tex,5)
-    mat.setInput(46,tex,6)
-    
-    
-    
-    n.parm("RS_objprop_rstess_enable").set(1)
-    n.parm("RS_objprop_displace_enable").set(1)
-    n.parm('shop_materialpath').set(shader.path())
 
 
 

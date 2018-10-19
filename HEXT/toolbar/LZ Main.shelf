@@ -21,8 +21,8 @@
     <memberTool name="LZ N2S"/>
     <memberTool name="volume data"/>
     <memberTool name="makeVerb"/>
-    <memberTool name="create_ref"/>
     <memberTool name="pyhon"/>
+    <memberTool name="create_ref"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -767,7 +767,7 @@ print script
     if n.parent().type().category().name() == 'Object':
         p = n.parent().parent()
         px = p.createNode('geo',"Proxy_" + n.name())
-        px.node('file1').destroy()
+        #px.node('file1').destroy()
         m = px.createNode('object_merge')
         m.parm('objpath1').set(m.relativePathTo(n))
         
