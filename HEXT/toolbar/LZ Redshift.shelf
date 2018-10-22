@@ -8,11 +8,11 @@
   <toolshelf name="LZ_Redshift" label="LZ Redshift">
     <memberTool name="LZ RS Setup"/>
     <memberTool name="rs_cam_from_view"/>
+    <memberTool name="LZ RS LightDome"/>
     <memberTool name="Rs vol shader"/>
     <memberTool name="RS Hair Params"/>
     <memberTool name="Rs Directional Light"/>
     <memberTool name="Rs Light Sun"/>
-    <memberTool name="LZ RS LightDome"/>
     <memberTool name="aces"/>
     <memberTool name="Import RS_Proxies"/>
     <memberTool name="Add RS Prefix"/>
