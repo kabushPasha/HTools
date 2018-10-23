@@ -261,6 +261,10 @@ def oldWay():
   </tool>
 
   <tool name="bone between nulls" label="bone between nulls" icon="hicon:/SVGIcons.index?DOP_noconrel.svg">
+    <helpText><![CDATA["""nulls should be connected
+pick the root null
+creates a bone between two connected nulls
+pick as many roots as you like"""]]></helpText>
     <script scriptType="python"><![CDATA[import lzrig
 
 for n in hou.selectedNodes():
