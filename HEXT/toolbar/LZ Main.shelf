@@ -23,6 +23,8 @@
     <memberTool name="makeVerb"/>
     <memberTool name="pyhon"/>
     <memberTool name="create_ref"/>
+    <memberTool name="nulls2Points"/>
+    <memberTool name="fix VDBs"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -782,5 +784,38 @@ wr = n.createOutputNode('python')
 wr.setRenderFlag(1)
 wr.setDisplayFlag(1)
 wr.setCurrent(1)]]></script>
+  </tool>
+
+  <tool name="nulls2Points" label="Nulls2Points" icon="hicon:/SVGIcons.index?SOP_add.svg">
+    <script scriptType="python"><![CDATA[sel = hou.selectedNodes()
+
+obj = hou.node("obj/")
+points_holder = obj.createNode('geo','points')
+points_holder.moveToGoodPosition()
+add = points_holder.createNode('add','points')
+
+add.parm('points').set(len(sel))
+
+i = 0
+for n in sel:
+    add.parm('usept' + str(i)).set(1)
+    add.parmTuple('pt' + str(i)).set(n.parmTuple('t').eval())    
+    i += 1
+    ]]></script>
+  </tool>
+
+  <tool name="fix VDBs" label="fix VDBs" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[vs = n.parm('voxelsize')
+exp = vs.expression()
+vs.setExpression('')
+vs.setExpression(exp)
+
+
+parms = n.parms()
+for p in parms:
+    print p
+    try ex = p.expression():
+        print ex
+    ]]></script>
   </tool>
 </shelfDocument>
