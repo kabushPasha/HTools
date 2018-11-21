@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="Canoe_Assets_interface" label="Canoe Assets Interface" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[from hutil.Qt import QtWidgets,QtGui,QtCore
+from glob import glob
+import os
+
+rows = 3
+
+class CanoeAssets(QtWidgets.QWidget):
+    def __init__(self):
+            
+        super(CanoeAssets, self).__init__() 
+        # Create Settings
+        self.objInstanceToggle = QtWidgets.QCheckBox("Object level Instance") 
+        
+        
+        # Create Scroll Area
+        scrollArea = QtWidgets.QScrollArea()   
+        scrollArea.setWidgetResizable(True)
+        scrollWidget = QtWidgets.QWidget()
+        scrollArea.setWidget(scrollWidget) 
+        scrollLayout = QtWidgets.QGridLayout()
+                
+        # Fill Main Layout
+        # find all folders in our assets directory
+        assetsPath = "S:\FPG\Assets\Env"
+        files =  glob( assetsPath + "\*")
+        i = 0 
+        for file in files:            
+            # get name
+            assetName = file.split("\\")[-1]  
+            # check if it has .rs proxy inside
+            proxy_filename =  file + "\\proxy.rs"
+            if os.path.isfile(proxy_filename): 
+                # check if it's a directory (skip stray files)
+                if os.path.isdir(file):                    
+                    # Create a button
+                    button_size = 150
+                    assetWidget = QtWidgets.QPushButton(assetName)
+                    assetWidget.setFixedSize(button_size,button_size)               
+                    # check for preview
+                    previewPath = file + "\\preview.jpg"
+                    if os.path.isfile(previewPath):
+                        assetWidget.setIcon(QtGui.QIcon(QtGui.QPixmap(previewPath)))
+                        assetWidget.setIconSize(QtCore.QSize(button_size, button_size))
+                        assetWidget.setText("")
+                    # connect clicked action
+                    assetWidget.clicked.connect(lambda _file=file:self.createAsset(self.createAsset(_file)))
+                    # add to layout
+                    scrollLayout.addWidget(assetWidget,i/rows,i%rows)
+                    i+=1   
+                
+        scrollWidget.setLayout(scrollLayout)
+        
+        # set main layout
+        mainLayout = QtWidgets.QGridLayout()
+        mainLayout.addWidget(self.objInstanceToggle)
+        mainLayout.addWidget(scrollArea)        
+        self.setLayout(mainLayout)
+   
+    def createAsset(self,file):
+        if file is not None:
+            assetName = file.split("\\")[-1]  
+            filename =  file + "\\proxy.rs"
+            if os.path.isfile(filename):
+                obj = hou.node('/obj')
+                proxy_holder = obj.createNode('geo',"RS_" + assetName,True)
+                if self.objInstanceToggle.isChecked():
+                    # create object level proxy
+                    proxy_holder.parm("RS_objprop_proxy_enable").set(1)
+                    proxy_holder.parm("RS_objprop_proxy_file").set(filename.replace("\\","/"))
+                    proxy_holder.createNode("redshift_proxySOP")
+                    proxy_holder.parm("scale").set(0.01)
+                    proxy_holder.parm("RS_objprop_proxy_preview").set(2)
+                else:
+                    add = proxy_holder.createNode("add")
+                    add.parm('usept0').set(1)
+                    wrangle = add.createOutputNode("attribwrangle")
+                    wrangle.parm('snippet').set('s@instancefile = "' +filename.replace("\\","/")+ '";\n\nv@v = {0,0,1};\nv@up = {0,1,0};')
+                    rsInstance = wrangle.createOutputNode('redshift_instancefileSOP')
+                    rsInstance.parm("prevMode").set(2)
+                    rsInstance.setDisplayFlag(True)            
+                    rsInstance.setRenderFlag(True) 
+                    
+                proxy_holder.moveToGoodPosition()
+
+def onCreateInterface():
+    return CanoeAssets()
+
+    
+]]></script>
+    <includeInToolbarMenu menu_position="105" create_separator="false"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>
