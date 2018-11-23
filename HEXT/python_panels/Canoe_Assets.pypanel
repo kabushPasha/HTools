@@ -11,7 +11,7 @@ from glob import glob
 import os
 import toolutils
 
-rows = 3
+rows = 4
 
 class CanoeAssets(QtWidgets.QWidget):
     def __init__(self):
@@ -32,8 +32,11 @@ class CanoeAssets(QtWidgets.QWidget):
                 
         # Fill Main Layout
         # find all folders in our assets directory
-        assetsPath = "S:\FPG\Assets\Env"
-        files =  glob( assetsPath + "\*")
+        assetsPaths = [ "S:\FPG\Assets\Env" , "S:\RRR\Assets\Env" ]
+        files = []
+        for path in assetsPaths:
+            files +=  glob( path + "\*")
+                
         i = 0 
         for file in files:            
             # get name
@@ -116,11 +119,12 @@ class CanoeAssets(QtWidgets.QWidget):
                         # Packed Add                        
                         packedAdd = merge.createOutputNode('LZ_PackedAdd')
                         packedAdd.parm("random_initial_rotation").set(1)
-                        packedAdd.parm("random_initial_rotation").set(multiple_instances)
+                        packedAdd.parm("multiple_instances").set(1)
                         # instance_from_id wrangle
                         wrangle2 = packedAdd.createOutputNode("attribwrangle","instance_from_id")
                         wrangle2.parm('snippet').set('s@instancefile = point(1,"path",i@id);')
                         wrangle2.setInput(1,merge,0)
+                        wrangle2.setInput(0,packedAdd,1)
                         render = wrangle2.createOutputNode('null',"RENDER")
                         packedAdd.setDisplayFlag(True)            
                         render.setRenderFlag(True) 
@@ -135,6 +139,46 @@ class CanoeAssets(QtWidgets.QWidget):
                         pack.move(hou.Vector2(-1.3,0))
                         packedAdd.move(hou.Vector2(-1.3,0))
                     
+                        # Find Number of proxies inside 
+                        file.replace("\\","/") + "/*.rs"
+                        proxies = glob(file.replace("\\","/") + "/*.rs")
+                        nproxies = len(proxies)
+                        
+                        if nproxies>1:
+                            # multiload snippet
+                            wrangle.parm("snippet").set('for (int i = 0;i<chi("npoints");i++)\n{\n    int pt = addpoint(0,0);\n    \n    string v = itoa(i + 1);\n    string instancefile = "' + file.replace("\\","/") + '/"+v+".rs";\n    setpointattrib(0,"instancefile",pt,instancefile);\n    \n    setpointattrib(0,"v",pt,{0,0,0});\n    setpointattrib(0,"up",pt,{0,1,0});\n}')
+                            
+                            
+                            ptg = wrangle.parmTemplateGroup()
+                            np = hou.IntParmTemplate("npoints", "Npoints", 1, default_value=([nproxies]), min=0, max=nproxies, )
+                            ptg.addParmTemplate(np)
+                            wrangle.setParmTemplateGroup(ptg)
+                            
+                            
+                            foreach_begin = wrangle.createOutputNode("block_begin","Begin")
+                            foreach_begin.setPosition(wrangle.position() + hou.Vector2(0.0046,-0.79125))
+                            foreach_begin.parm("method").set(1)
+                            foreach_begin.parm("blockpath").set('../End')
+                            
+                            foreach_end = copyPathWrangle.createOutputNode("block_end","End")
+                            foreach_end.setPosition(copyPathWrangle.position() + hou.Vector2(0.0046,-0.78417))
+                            foreach_end.parm("itermethod").set(1)
+                            foreach_end.parm("method").set(1)
+                            foreach_end.parm("useattrib").set(0)
+                            foreach_end.parm("blockpath").set('../Begin')
+                            foreach_end.parm("templatepath").set('../Begin')
+                            
+                            merge.setInput(0,foreach_end)   
+                            rsInstance.setInput(0,foreach_begin) 
+                            copyPathWrangle.setInput(1,foreach_begin)
+                            
+                            # Layout
+                            merge.destroy() 
+                            packedAdd.setInput(0,foreach_end)
+                            wrangle2.setInput(1,foreach_end)                            
+                            foreach_begin.move(hou.Vector2(0,1))
+                            wrangle.move(hou.Vector2(0,1))  
+                        
                 proxy_holder.moveToGoodPosition()
 
 def onCreateInterface():
