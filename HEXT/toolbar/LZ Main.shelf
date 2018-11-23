@@ -25,6 +25,7 @@
     <memberTool name="create_ref"/>
     <memberTool name="nulls2Points"/>
     <memberTool name="fix VDBs"/>
+    <memberTool name="AssetBrowser"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -817,5 +818,22 @@ for p in parms:
     try ex = p.expression():
         print ex
     ]]></script>
+  </tool>
+
+  <tool name="AssetBrowser" label="AssetBrowser" icon="hicon:/SVGIcons.index?SOP_agentunpack.svg">
+    <script scriptType="python"><![CDATA[d = hou.ui.curDesktop()
+
+import ctypes
+user32 = ctypes.windll.user32
+sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
+dy = [0.3,0.9];
+dx = [0.05,0.275];    
+
+pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
+size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
+
+panel = d.createFloatingPanel(hou.paneTabType.PythonPanel,pos,size)
+pypanel = panel.paneTabs()[0]
+pypanel.setActiveInterface(hou.pypanel.interfaceByName("Canoe_Assets_interface"))]]></script>
   </tool>
 </shelfDocument>
