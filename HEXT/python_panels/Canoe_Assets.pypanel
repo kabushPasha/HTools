@@ -84,12 +84,17 @@ class CanoeAssets(QtWidgets.QWidget):
                     proxy_holder.parm("scale").set(0.01)
                     proxy_holder.parm("RS_objprop_proxy_preview").set(2)
                 else:
-                    add = proxy_holder.createNode("add")
-                    add.parm('usept0').set(1)
-                    wrangle = add.createOutputNode("attribwrangle")
-                    script = 'string v = itoa(chi("version") + 1);\n'
-                    script += 's@instancefile = "' +file.replace("\\","/")+'/"+v+".rs";\n\nv@v = {0,0,1};\nv@up = {0,1,0};'
-                    wrangle.parm('snippet').set(script)
+                    wrangle = proxy_holder.createNode("attribwrangle","CreatePoint")
+                    wrangle.parm('class').set(0)
+                    script = "int pt = addpoint(0,0);\n\n"
+                    script += 'string v = itoa(chi("version") + 1);\n' 
+                    script += 'string instancefile = "' +file.replace("\\","/")+'/"+v+".rs";\n'
+                    script += 'setpointattrib(0,"instancefile",pt,instancefile);\n'
+                    script += '\n'
+                    script += 'setpointattrib(0,"v",pt,{0,0,0});\n'
+                    script += 'setpointattrib(0,"up",pt,{0,1,0});\n\n\n'                    
+                    wrangle.parm('snippet').set(script)                    
+                    
                     render = wrangle.createOutputNode('null',"RENDER")
                     rsInstance = render.createOutputNode('redshift_instancefileSOP',"PREVIEW")
                     rsInstance.parm("prevMode").set(2)
@@ -97,20 +102,38 @@ class CanoeAssets(QtWidgets.QWidget):
                     render.setRenderFlag(True) 
                     
                     if self.PackedAddToggle.isChecked():
-                        packedAdd = render.createOutputNode('LZ_PackedAdd')
+                        render.destroy() 
+                        # Pack node
+                        pack = rsInstance.createOutputNode('pack')                                                     
+                        pack.parm('createpath').set(0)   
+                        # Copy Path Wrangle
+                        copyPathWrangle = pack.createOutputNode('attribwrangle',"copy_path")
+                        script = 's@path = s@opinput1_instancefile;'
+                        copyPathWrangle.parm('snippet').set(script)  
+                        copyPathWrangle.setInput(1,wrangle,0)
+                        # Merge
+                        merge = copyPathWrangle.createOutputNode('merge')
+                        # Packed Add                        
+                        packedAdd = merge.createOutputNode('LZ_PackedAdd')
                         packedAdd.parm("random_initial_rotation").set(1)
-                        render.destroy()
-                        packedAdd.setInput(0,rsInstance)
-                        wrangle = packedAdd.createOutputNode("attribwrangle")
-                        wrangle.parm('snippet').set('s@instancefile = "' +filename.replace("\\","/")+ '";')
-                        wrangle.setInput(0,packedAdd,1)
-                        render = wrangle.createOutputNode('null',"RENDER")
+                        packedAdd.parm("random_initial_rotation").set(multiple_instances)
+                        # instance_from_id wrangle
+                        wrangle2 = packedAdd.createOutputNode("attribwrangle","instance_from_id")
+                        wrangle2.parm('snippet').set('s@instancefile = point(1,"path",i@id);')
+                        wrangle2.setInput(1,merge,0)
+                        render = wrangle2.createOutputNode('null',"RENDER")
                         packedAdd.setDisplayFlag(True)            
                         render.setRenderFlag(True) 
-                        
+                        # Jump into wrangle
                         packedAdd.setSelected(True)                        
                         sv = toolutils.sceneViewer()
                         sv.enterCurrentNodeState()
+                        
+                        # Layout
+                        wrangle.move(hou.Vector2(0,-1))
+                        rsInstance.move(hou.Vector2(-1.3,0))
+                        pack.move(hou.Vector2(-1.3,0))
+                        packedAdd.move(hou.Vector2(-1.3,0))
                     
                 proxy_holder.moveToGoodPosition()
 
