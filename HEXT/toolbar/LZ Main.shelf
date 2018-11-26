@@ -24,7 +24,7 @@
     <memberTool name="pyhon"/>
     <memberTool name="create_ref"/>
     <memberTool name="nulls2Points"/>
-    <memberTool name="fix VDBs"/>
+    <memberTool name="load expresions"/>
     <memberTool name="AssetBrowser"/>
   </toolshelf>
 
@@ -805,21 +805,6 @@ for n in sel:
     ]]></script>
   </tool>
 
-  <tool name="fix VDBs" label="fix VDBs" icon="PLASMA_App">
-    <script scriptType="python"><![CDATA[vs = n.parm('voxelsize')
-exp = vs.expression()
-vs.setExpression('')
-vs.setExpression(exp)
-
-
-parms = n.parms()
-for p in parms:
-    print p
-    try ex = p.expression():
-        print ex
-    ]]></script>
-  </tool>
-
   <tool name="AssetBrowser" label="AssetBrowser" icon="hicon:/SVGIcons.index?SOP_agentunpack.svg">
     <script scriptType="python"><![CDATA[d = hou.ui.curDesktop()
 
@@ -835,5 +820,9 @@ size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
 panel = d.createFloatingPanel(hou.paneTabType.PythonPanel,pos,size)
 pypanel = panel.paneTabs()[0]
 pypanel.setActiveInterface(hou.pypanel.interfaceByName("Canoe_Assets_interface"))]]></script>
+  </tool>
+
+  <tool name="load expresions" label="Load Expressions" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[hou.hscript("exread -v $HEXT/hscript.txt")]]></script>
   </tool>
 </shelfDocument>

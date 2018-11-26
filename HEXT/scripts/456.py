@@ -1,4 +1,4 @@
-hou.hscript("exread -v $HEXT/hscript.txt")
+#hou.hscript("exread -v $HEXT/hscript.txt")
 
 import glob
 path = hou.expandString('$JOB/hda/')
