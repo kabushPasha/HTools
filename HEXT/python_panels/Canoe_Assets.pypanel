@@ -122,7 +122,7 @@ class CanoeAssets(QtWidgets.QWidget):
                         packedAdd.parm("multiple_instances").set(1)
                         # instance_from_id wrangle
                         wrangle2 = packedAdd.createOutputNode("attribwrangle","instance_from_id")
-                        wrangle2.parm('snippet').set('s@instancefile = point(1,"path",i@id);')
+                        wrangle2.parm('snippet').set('s@instancefile = point(1,"path",i@pid);')
                         wrangle2.setInput(1,merge,0)
                         wrangle2.setInput(0,packedAdd,1)
                         render = wrangle2.createOutputNode('null',"RENDER")
