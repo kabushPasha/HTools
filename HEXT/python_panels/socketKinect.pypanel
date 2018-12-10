@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="scoketKinect" label="Socket Kinect" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[from hutil.Qt import QtWidgets,QtCore
+import socket
+
+timer_time = 100
+
+class Kinterface(QtWidgets.QWidget):
+    def __init__(self):
+        super(Kinterface, self).__init__()
+        mainLayout = QtWidgets.QGridLayout()
+       
+        ConnentButton = QtWidgets.QPushButton("Connent")
+        ConnentButton.clicked.connect(self.connect)
+        StartButton = QtWidgets.QPushButton("Start")
+        StartButton.clicked.connect(self.start)
+        EndButton = QtWidgets.QPushButton("End")
+        EndButton.clicked.connect(self.end)
+        Capture = QtWidgets.QPushButton("Capture")
+        Capture.clicked.connect(self.capture)
+        
+        mainLayout.addWidget(ConnentButton)
+        mainLayout.addWidget(StartButton)
+        mainLayout.addWidget(Capture)
+        mainLayout.addWidget(EndButton)        
+        self.setLayout(mainLayout)
+        
+        # Timer
+        self._timer = QtCore.QTimer()
+        self._timer.timeout.connect(self.tick) 
+        
+        self._socket = None
+            
+    def start(self):
+        print "Start"
+        self._socket.sendall(b'start')
+    def end(self):
+        print "End"
+        self._socket.sendall(b'end')
+    def connect(self):
+        HOST = '127.0.0.1'
+        PORT = 65432
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((HOST, PORT))
+        self._socket = s
+        
+    def capture(self):
+        self._socket.sendall(b'capture')
+        
+    def tick(self):
+        print("tick")                        
+                        
+            
+def createInterface():
+    return Kinterface()]]></script>
+    <includeInToolbarMenu menu_position="107" create_separator="false"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>
