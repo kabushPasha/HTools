@@ -471,6 +471,23 @@ def setNodePreset(n,preset_name):
 	cmd = 'oppresetload %s "%s"' % (op_path, preset_name)
 	hou.hscript(cmd)
 
+def installMyShelves():
+	d = hou.ui.curDesktop()
+	sd = d.shelfDock()
+	ssets = sd.shelfSets()
 
+	ss1 = ssets[0]
+	shelves = list(ss1.shelves())
+	lz_main = hou.shelves.shelves()['LZ Main']
+	if lz_main not in shelves:
+		shelves = [lz_main] + shelves
+		ss1.setShelves(shelves)
+
+	ss2 = ssets[1]
+	shelves = list(ss2.shelves())
+	lz_rs = hou.shelves.shelves()['LZ_Redshift']
+	if lz_rs not in shelves:
+		shelves = [lz_rs] + shelves
+		ss2.setShelves(shelves)
 
 
