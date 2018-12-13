@@ -15,18 +15,19 @@
     <memberTool name="Render View"/>
     <memberTool name="Reload Textures"/>
     <memberTool name="fileCache finder"/>
-    <memberTool name="New Flooating Panel"/>
-    <memberTool name="NodeParms"/>
-    <memberTool name="wrangle"/>
     <memberTool name="LZ N2S"/>
     <memberTool name="volume data"/>
     <memberTool name="makeVerb"/>
     <memberTool name="pyhon"/>
     <memberTool name="create_ref"/>
+    <memberTool name="quick_gal"/>
     <memberTool name="nulls2Points"/>
     <memberTool name="load expresions"/>
     <memberTool name="AssetBrowser"/>
     <memberTool name="my_shelves"/>
+    <memberTool name="New Flooating Panel"/>
+    <memberTool name="NodeParms"/>
+    <memberTool name="wrangle"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -827,5 +828,46 @@ pypanel.setActiveInterface(hou.pypanel.interfaceByName("Canoe_Assets_interface")
 
   <tool name="load expresions" label="Load Expressions" icon="PLASMA_App">
     <script scriptType="python"><![CDATA[hou.hscript("exread -v $HEXT/hscript.txt")]]></script>
+  </tool>
+
+  <tool name="quick_gal" label="QuickGal" icon="hicon:/SVGIcons.index?SHELF_flame_thrower.svg">
+    <script scriptType="python"><![CDATA[import toolutils
+ctrl_click =  kwargs['ctrlclick']
+
+choices = []
+gal_dict = dict()
+for g in hou.galleries.galleries():
+    gstr = str(g).split("/")[-1].split(".")[0]
+    if gstr!= "Geometry" and gstr != "VopMaterials":
+        for ge in g.galleryEntries():
+            item = gstr + "/" + ge.name()
+            choices.append(item)
+            gal_dict[item] = ge
+
+ans = hou.ui.selectFromTree(choices,exclusive=True)
+if ans is not ():
+    ge = gal_dict[ans[0]]
+    
+    ne = toolutils.networkEditor()
+    parent = ne.currentNode()
+    if parent.type().name() != 'geo':
+        parent = parent.parent()
+    n = ge.createChildNode(parent)
+
+    if not ctrl_click:
+        # Clean
+        for c in n.children():
+            for p in c.parms():
+                if p.keyframes() != ():
+                    if p.isLocked() == False:
+                        ex = p.expression()
+                        for parm in n.parms():
+                            ref = 'ch("../' + p.name() + '")'
+                            if ex.find(ref) != -1:
+                                p.deleteAllKeyframes()
+        # Extract
+        n.extractAndDelete()  
+
+]]></script>
   </tool>
 </shelfDocument>
