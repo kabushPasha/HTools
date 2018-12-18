@@ -11,7 +11,6 @@ import socket,pickle,time,toolutils
 
 
 timer_time = 100
-capture_anim = False
 fps = 24
 capture_delta = 1.0/fps
 
@@ -21,6 +20,9 @@ class Kinterface(QtWidgets.QWidget):
         super(Kinterface, self).__init__()
         mainLayout = QtWidgets.QGridLayout()
        
+        self.RecordToggle = QtWidgets.QCheckBox("Record Anim") 
+        self.RecordToggle.setChecked(False)        
+        
         ConnentButton = QtWidgets.QPushButton("Connent")
         ConnentButton.clicked.connect(self.connect)
         StartButton = QtWidgets.QPushButton("Start")
@@ -38,6 +40,7 @@ class Kinterface(QtWidgets.QWidget):
         CreateNulls = QtWidgets.QPushButton("CreateNulls")
         CreateNulls.clicked.connect(self.createNulls)
         
+        mainLayout.addWidget(self.RecordToggle)
         mainLayout.addWidget(ConnentButton)
         mainLayout.addWidget(StartButton)
         mainLayout.addWidget(Capture)
@@ -51,6 +54,7 @@ class Kinterface(QtWidgets.QWidget):
         b.clicked.connect(self.createBakedNulls)
         mainLayout.addWidget(b)
         
+        self.setStyleSheet("background-color: hsv(0,0,45);")
         self.setLayout(mainLayout)
         
         # Timer
@@ -86,41 +90,38 @@ class Kinterface(QtWidgets.QWidget):
                 n = self._points
                 n.parm("usept" + str(i)).set(1)                
                 
-                if capture_anim:
-                    n.parm("pt" + str(i) + "x").setKeyframe(hou.Keyframe(point[0],currtime))
-                    n.parm("pt" + str(i) + "y").setKeyframe(hou.Keyframe(point[1],currtime))
-                    n.parm("pt" + str(i) + "z").setKeyframe(hou.Keyframe(point[2],currtime)) 
-                else:
-                    n.parm("pt" + str(i) + "x").set(point[0])
-                    n.parm("pt" + str(i) + "y").set(point[1])                    
-                    n.parm("pt" + str(i) + "z").set(point[2]) 
-                    
-                    n.parm("o" + str(i) + "x").set(point[3])
-                    n.parm("o" + str(i) + "y").set(point[4])
-                    n.parm("o" + str(i) + "z").set(point[5])
-                    n.parm("o" + str(i) + "w").set(point[6])
+                n.parm("pt" + str(i) + "x").set(point[0])
+                n.parm("pt" + str(i) + "y").set(point[1])                    
+                n.parm("pt" + str(i) + "z").set(point[2]) 
+                
+                n.parm("o" + str(i) + "x").set(point[3])
+                n.parm("o" + str(i) + "y").set(point[4])
+                n.parm("o" + str(i) + "z").set(point[5])
+                n.parm("o" + str(i) + "w").set(point[6])
+                
+                if self.RecordToggle.isChecked():
                     if (currtime - self._keyframes[i][-1][1]) > capture_delta:
                         self._keyframes[i] += [[point,currtime]]
-                i += 1
-                
-                
-                
+                        
+                i += 1 
     
     def startCapture(self):
         self.createTarget()
         self._startTime = time.clock()
         self._timer.start(timer_time)        
-        #self._keyframes = [[[[],0]]]*26
         self._keyframes = []
         for i in range(0,26):
             self._keyframes.append([[[],0]])
         
     def stopCapture(self):
         self._timer.stop()
-        self.fillKeyframes()
+        if self.RecordToggle.isChecked():
+            self.fillKeyframes()
+            
     def tick(self):
         print("tick")  
         self.capture()
+        
     def fillKeyframes(self):
         i = 0
         n = self._points 
@@ -170,10 +171,7 @@ class Kinterface(QtWidgets.QWidget):
             npts = n.parm("points").eval()
             for i in range(0,npts):
                 null = obj.createNode('null',"Point_" + str(i))   
-                #null.parm("tx").setKeyframes(n.parm("pt" + str(i) + "x").keyframes())
-                #null.parm("ty").setKeyframes(n.parm("pt" + str(i) + "y").keyframes())
-                #null.parm("tz").setKeyframes(n.parm("pt" + str(i) + "z").keyframes())
-                
+              
                 n.parm("r" + str(i) + "x").setExpression('point(".",' +str(i)+ ',"r",0)')
                 n.parm("r" + str(i) + "y").setExpression('point(".",' +str(i)+ ',"r",1)')
                 n.parm("r" + str(i) + "z").setExpression('point(".",' +str(i)+ ',"r",2)')
@@ -185,9 +183,6 @@ class Kinterface(QtWidgets.QWidget):
                     for kf in kframes:
                         kf.setValue( n.parm("r" + str(i) + dim).evalAtTime(kf.time()) )
                     null.parm("r" + dim).setKeyframes(kframes)
-                    
-                
-                #point(".",0,"r",0)
             
 def createInterface():
     return Kinterface()
