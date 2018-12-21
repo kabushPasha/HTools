@@ -7,35 +7,64 @@
  in a single file. -->
   <interface name="scoketKinect" label="Socket Kinect" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
     <script><![CDATA[from hutil.Qt import QtWidgets,QtCore
-import socket
+import socket,pickle,time,toolutils
+
 
 timer_time = 100
+fps = 24
+capture_delta = 1.0/fps
+
 
 class Kinterface(QtWidgets.QWidget):
     def __init__(self):
         super(Kinterface, self).__init__()
         mainLayout = QtWidgets.QGridLayout()
        
+        self.RecordToggle = QtWidgets.QCheckBox("Record Anim") 
+        self.RecordToggle.setChecked(False)        
+        
         ConnentButton = QtWidgets.QPushButton("Connent")
         ConnentButton.clicked.connect(self.connect)
         StartButton = QtWidgets.QPushButton("Start")
         StartButton.clicked.connect(self.start)
         EndButton = QtWidgets.QPushButton("End")
         EndButton.clicked.connect(self.end)
-        Capture = QtWidgets.QPushButton("Capture")
+        Capture = QtWidgets.QPushButton("Capture Frame")
         Capture.clicked.connect(self.capture)
+        StartCapture = QtWidgets.QPushButton("Start Capture")
+        StartCapture.clicked.connect(self.startCapture)
+        StopCapture = QtWidgets.QPushButton("Stop Capture")
+        StopCapture.clicked.connect(self.stopCapture)
+        CreateTarget = QtWidgets.QPushButton("CreateTarget")
+        CreateTarget.clicked.connect(self.createTarget)
+        CreateNulls = QtWidgets.QPushButton("CreateNulls")
+        CreateNulls.clicked.connect(self.createNulls)
         
+        mainLayout.addWidget(self.RecordToggle)
         mainLayout.addWidget(ConnentButton)
         mainLayout.addWidget(StartButton)
         mainLayout.addWidget(Capture)
-        mainLayout.addWidget(EndButton)        
+        mainLayout.addWidget(StartCapture)
+        mainLayout.addWidget(StopCapture)
+        mainLayout.addWidget(EndButton)
+        mainLayout.addWidget(CreateTarget)
+        mainLayout.addWidget(CreateNulls)
+        
+        b = QtWidgets.QPushButton("Create Baked Nulls")
+        b.clicked.connect(self.createBakedNulls)
+        mainLayout.addWidget(b)
+        
+        self.setStyleSheet("background-color: hsv(0,0,45);")
         self.setLayout(mainLayout)
         
         # Timer
         self._timer = QtCore.QTimer()
         self._timer.timeout.connect(self.tick) 
-        
+                
         self._socket = None
+        self._points = None
+        self._startTime = 0
+        self._keyframes = []
             
     def start(self):
         print "Start"
@@ -48,17 +77,128 @@ class Kinterface(QtWidgets.QWidget):
         PORT = 65432
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((HOST, PORT))
-        self._socket = s
+        self._socket = s        
         
     def capture(self):
         self._socket.sendall(b'capture')
-        
-    def tick(self):
-        print("tick")                        
+        data_string = self._socket.recv(1024*4)
+        data = pickle.loads(data_string)
+        currtime = time.clock() - self._startTime 
+        if len(data) > 0:
+            i = 0
+            for point in data:           
+                n = self._points
+                n.parm("usept" + str(i)).set(1)                
+                
+                n.parm("pt" + str(i) + "x").set(point[0])
+                n.parm("pt" + str(i) + "y").set(point[1])                    
+                n.parm("pt" + str(i) + "z").set(point[2]) 
+                
+                n.parm("o" + str(i) + "x").set(point[3])
+                n.parm("o" + str(i) + "y").set(point[4])
+                n.parm("o" + str(i) + "z").set(point[5])
+                n.parm("o" + str(i) + "w").set(point[6])
+                
+                if self.RecordToggle.isChecked():
+                    if (currtime - self._keyframes[i][-1][1]) > capture_delta:
+                        self._keyframes[i] += [[point,currtime]]
                         
+                i += 1 
+    
+    def startCapture(self):
+        self.createTarget()
+        self._startTime = time.clock()
+        self._timer.start(timer_time)        
+        self._keyframes = []
+        for i in range(0,26):
+            self._keyframes.append([[[],0]])
+        
+    def stopCapture(self):
+        self._timer.stop()
+        if self.RecordToggle.isChecked():
+            self.fillKeyframes()
+            
+    def tick(self):
+        print("tick")  
+        self.capture()
+        
+    def fillKeyframes(self):
+        i = 0
+        n = self._points 
+        for pt in self._keyframes:            
+            for key in pt:        
+                if key[0] != []:
+                    n.parm("pt" + str(i) + "x").setKeyframe(hou.Keyframe(key[0][0],key[1]))
+                    n.parm("pt" + str(i) + "y").setKeyframe(hou.Keyframe(key[0][1],key[1]))
+                    n.parm("pt" + str(i) + "z").setKeyframe(hou.Keyframe(key[0][2],key[1]))
+                    
+                    n.parm("o" + str(i) + "x").setKeyframe(hou.Keyframe(key[0][3],key[1]))
+                    n.parm("o" + str(i) + "y").setKeyframe(hou.Keyframe(key[0][4],key[1]))
+                    n.parm("o" + str(i) + "z").setKeyframe(hou.Keyframe(key[0][5],key[1]))
+                    n.parm("o" + str(i) + "w").setKeyframe(hou.Keyframe(key[0][6],key[1]))
+            i += 1
+        
+    def createTarget(self):
+        geo = hou.node("/obj/geo")
+        if geo is None :
+            geo = hou.node("/obj").createNode("geo","geo")
+        add = geo.node("KinectPoints")
+        if add is None:
+            add = geo.createNode('add',"KinectPoints")
+        add.parm('points').set(26)
+        self._points = add
+    
+    def createNulls(self):
+        obj = hou.node("obj/")
+        for n in hou.selectedNodes():
+            g = n.geometry()
+            for p in g.points():
+                null = obj.createNode('null')
+                null.parm("tx").setExpression('point("' + null.relativePathTo(n) + '",'+str(p.number())+',"P",0)')
+                null.parm("ty").setExpression('point("' + null.relativePathTo(n) + '",'+str(p.number())+',"P",1)')
+                null.parm("tz").setExpression('point("' + null.relativePathTo(n) + '",'+str(p.number())+',"P",2)')
+                
+                null.parm("rx").setExpression('point("' + null.relativePathTo(n) + '",'+str(p.number())+',"r",0)')
+                null.parm("ry").setExpression('point("' + null.relativePathTo(n) + '",'+str(p.number())+',"r",1)')
+                null.parm("rz").setExpression('point("' + null.relativePathTo(n) + '",'+str(p.number())+',"r",2)')
+                
+                null.parm("geoscale").set(0.1)
+                null.parm("controltype").set(1)   
+                
+    def createBakedNulls(self):
+        obj = hou.node("obj/")
+        for n in hou.selectedNodes():
+            npts = n.parm("points").eval()
+            for i in range(0,npts):
+                null = obj.createNode('null',"Point_" + str(i))   
+              
+                n.parm("r" + str(i) + "x").setExpression('point(".",' +str(i)+ ',"r",0)')
+                n.parm("r" + str(i) + "y").setExpression('point(".",' +str(i)+ ',"r",1)')
+                n.parm("r" + str(i) + "z").setExpression('point(".",' +str(i)+ ',"r",2)')
+                
+                for dim in "xyz":
+                    kframes = n.parm("pt" + str(i) + dim).keyframes()
+                    null.parm("t" + dim).setKeyframes(kframes)
+                    
+                    for kf in kframes:
+                        kf.setValue( n.parm("r" + str(i) + dim).evalAtTime(kf.time()) )
+                    null.parm("r" + dim).setKeyframes(kframes)
             
 def createInterface():
-    return Kinterface()]]></script>
+    return Kinterface()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    ]]></script>
     <includeInToolbarMenu menu_position="107" create_separator="false"/>
     <help><![CDATA[]]></help>
   </interface>
