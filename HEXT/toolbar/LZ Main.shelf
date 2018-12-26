@@ -870,4 +870,10 @@ if ans is not ():
 
 ]]></script>
   </tool>
+
+  <tool name="my_shelves" label="My Shelves" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import lzutil
+lzutil.installMyShelves()
+]]></script>
+  </tool>
 </shelfDocument>

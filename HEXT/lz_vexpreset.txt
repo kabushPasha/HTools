@@ -14,6 +14,11 @@
 	{
 		"P: StickToUvs":{"addcode":"v@P = primuv (1,'P',i@sourceprim,v@sourceprimuv);"},
 		"mask: byDir" : {"addcode":"vector dir = normalize(chv('dir'));\nf@mask = chramp('dot_ramp',0.5*dot(v@N,dir)+0.5);\nv@Cd = f@mask;"}
+	},
+	
+	"Random":
+	{
+		"int String Array":{"addcode":"// pick random number from an array\nint values[] = {};\nforeach(int i;string s;split(chs('values'),' '))\nvalues[i] = atoi(s);\nint result = values[floor(len(values)*rand(@ptnum))];"}	
 	}
 
 }
