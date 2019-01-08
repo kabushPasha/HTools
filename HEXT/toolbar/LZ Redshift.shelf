@@ -17,6 +17,7 @@
     <memberTool name="Import RS_Proxies"/>
     <memberTool name="Add RS Prefix"/>
     <memberTool name="batchProxy"/>
+    <memberTool name="AssetPrepare"/>
   </toolshelf>
 
   <tool name="rs_cam_from_view" label="Rs camera from view" icon="hicon:/SVGIcons.index?OBJ_camera.svg">
@@ -418,5 +419,43 @@ for n in hou.selectedNodes():
         
         for i in range(0,threads):    
             subprocess.Popen([hython,file,'-c',cmd])]]></script>
+  </tool>
+
+  <tool name="AssetPrepare" label="AssetPrepare" icon="hicon:/SVGIcons.index?MISC_conductor.svg">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    t = n.createOutputNode('xform',"Maya_Scale")
+    t.parm('scale').set(0.01)
+    
+    t = t.createOutputNode('xform',"Centered")
+    t.parm("tx").setExpression("-$CEX")
+    t.parm("ty").setExpression("-$CEY")
+    t.parm("tz").setExpression("-$CEZ")
+    
+    t = t.createOutputNode('xform',"Grounded")
+    t.parm("ty").setExpression(r'-bbox(opinputpath(".",0),D_YMIN)')
+    
+    t = t.createOutputNode('xform',"Scale")    
+    t = t.createOutputNode("Rs_quickMat","Material")
+    
+    t.setDisplayFlag(1)    
+    n.setRenderFlag(1)
+    
+    # Add Rs Prefix to parent
+    p = n.parent()
+    if not p.name().startswith("RS_"):        
+        p.setName("RS_" + p.name(),1)
+        
+    t = t.createOutputNode("Redshift_Proxy_Output","ExportProxy")
+    t.parm("RS_archive_file").set("$HIP/$F.rs")
+    hou.setFrame(1)
+    
+    # Create Tommy
+    tommy = t.parent().createNode("testgeometry_tommy","ScaleTest")
+    tommy.setTemplateFlag(1)
+    tommy.parm("tx").set(1)
+    tommy.setPosition(n.position() + hou.Vector2(3,0))
+    
+    
+    ]]></script>
   </tool>
 </shelfDocument>
