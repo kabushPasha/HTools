@@ -438,7 +438,7 @@ for n in hou.selectedNodes():
     t = t.createOutputNode("Rs_quickMat","Material")
     
     t.setDisplayFlag(1)    
-    n.setRenderFlag(1)
+    t.setRenderFlag(1)
     
     # Add Rs Prefix to parent
     p = n.parent()
