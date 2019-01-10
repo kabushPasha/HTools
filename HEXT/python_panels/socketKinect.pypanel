@@ -47,7 +47,7 @@ class Kinterface(QtWidgets.QWidget):
         mainLayout.addWidget(StartCapture)
         mainLayout.addWidget(StopCapture)
         mainLayout.addWidget(EndButton)
-        mainLayout.addWidget(CreateTarget)
+        #mainLayout.addWidget(CreateTarget)
         mainLayout.addWidget(CreateNulls)
         
         b = QtWidgets.QPushButton("Create Baked Nulls")
@@ -137,7 +137,8 @@ class Kinterface(QtWidgets.QWidget):
                     n.parm("o" + str(i) + "z").setKeyframe(hou.Keyframe(key[0][5],key[1]))
                     n.parm("o" + str(i) + "w").setKeyframe(hou.Keyframe(key[0][6],key[1]))
             i += 1
-        
+    
+    # Old Way To Create Target with add node, use wrangle that stores rotations instead        
     def createTarget(self):
         geo = hou.node("/obj/geo")
         if geo is None :
