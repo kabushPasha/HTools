@@ -231,7 +231,7 @@ if has_render_panel == 0:
   </tool>
 
   <tool name="LZ RS LightDome" label="LZ RS LightDome" icon="RS_lightDome_icon">
-    <script scriptType="python"><![CDATA[import hou
+    <script scriptType="python"><![CDATA[import hou,os
 obj = hou.node("/obj")
 newnode = obj.createNode("rslightdome")
 newnode.moveToGoodPosition()
@@ -239,7 +239,11 @@ newnode.moveToGoodPosition()
 newnode.parm('RSL_volumeScale').set(1)
 newnode.setDisplayFlag(False)
 
-newnode.parm('env_map').set('$HMEGA/Assets/HDRI//panorama_map.hdr')
+default_hdr = "$HMEGA/Assets/HDRI/panorama_map.hdr"
+if not os.path.isfile(hou.expandString(default_hdr)):
+    default_hdr = "X:/Assets/HDRI/panorama_map.hdr"
+
+newnode.parm('env_map').set(default_hdr)
 newnode.parm('ogl_enablelight').set(0)
 #newnode.parm('background_enable').set(0)
 
@@ -282,10 +286,13 @@ return menuItems""",
 hdr_img.setTags({"script_action": "kwargs['node'].parm(\'env_map\').set(kwargs['node'].parm(\'hdr_img\'))"})
 ptg.addParmTemplate(hdr_img)
 # HDR Folder
+default_folder = "S:/CloudStation/Assets/HDRI/Heaven/"
+if not os.path.isdir(default_folder):
+    default_folder = "X:/Assets/HDRI/Heaven/"
 hdr_dir = hou.StringParmTemplate("hdr_dir",
                                 "HDR_dir",
                                 1,
-                                default_value=(["S:/CloudStation/Assets/HDRI/Heaven/"]),
+                                default_value=([default_folder]),
                                 string_type=hou.stringParmType.FileReference,
                                 item_generator_script_language=hou.scriptLanguage.Python,
                                 menu_type=hou.menuType.StringReplace)
