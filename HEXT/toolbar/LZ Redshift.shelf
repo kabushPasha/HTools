@@ -446,7 +446,7 @@ for n in hou.selectedNodes():
         p.setName("RS_" + p.name(),1)
         
     t = t.createOutputNode("Redshift_Proxy_Output","ExportProxy")
-    t.parm("RS_archive_file").set("$HIP/$F.rs")
+    t.parm("RS_archive_file").set("$HIP/1.rs")
     hou.setFrame(1)
     
     # Create Tommy
