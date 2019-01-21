@@ -23,6 +23,7 @@
     <memberTool name="quick_gal"/>
     <memberTool name="nulls2Points"/>
     <memberTool name="load expresions"/>
+    <memberTool name="Perfomance Monitor"/>
     <memberTool name="AssetBrowser"/>
     <memberTool name="my_shelves"/>
     <memberTool name="New Flooating Panel"/>
@@ -464,17 +465,7 @@ hou.hscript(h_preamble + h_extra_args + h_cmd)
   <tool name="start server" label="Start Server" icon="hicon:/SVGIcons.index?BUTTONS_internet.svg">
     <script scriptType="python"><![CDATA[import hrpyc,lzutil
 hrpyc.start_server()
-
-
-lzutil.copyToClipboard("con, hou = hrpyc.import_remote_module()")
-
-'''
-import PySide.QtGui as qtg
-app = qtg.QApplication.instance()
-clipboard = app.clipboard()
-string = "con, hou = hrpyc.import_remote_module()"
-clipboard.setText(string)
-''']]></script>
+lzutil.copyToClipboard("con, hou = hrpyc.import_remote_module()")]]></script>
   </tool>
 
   <tool name="LZ QuickVex PyPanel" label="LZ QuickVex PyPanel" icon="hicon:/SVGIcons.index?NETWORKS_vopnet.svg">
@@ -543,12 +534,6 @@ lzutil.setProject()
   <tool name="Reload Textures" label="Reload Textures" icon="SHELF_clear_texture_cache">
     <script scriptType="hscript"><![CDATA[texcache -c
 glcache -c]]></script>
-  </tool>
-
-  <tool name="update snippets from clipboard" label="update snippets from clipboard" icon="hicon:/SVGIcons.index?BUTTONS_cook.svg">
-    <script scriptType="python"><![CDATA[import lzutil
-for n in hou.selectedNodes():
-    lzutil.updateSnippetFromClipboard(n)]]></script>
   </tool>
 
   <tool name="fileCache finder" label="FileCache finder" icon="hicon:/SVGIcons.index?SOP_filecache.svg">
@@ -877,6 +862,94 @@ if ans is not ():
   <tool name="my_shelves" label="My Shelves" icon="PLASMA_App">
     <script scriptType="python"><![CDATA[import lzutil
 lzutil.installMyShelves()
+]]></script>
+  </tool>
+
+  <tool name="Perfomance Monitor" label="Perfomance Monitor" icon="hicon:/SVGIcons.index?CHOP_record.svg">
+    <script scriptType="python"><![CDATA[d = hou.ui.curDesktop()
+
+import ctypes
+user32 = ctypes.windll.user32
+sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
+dy = [0.4,0.95];
+dx = [0.5,0.8];    
+
+pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
+size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))  
+panel = d.createFloatingPanel(hou.paneTabType.PerformanceMonitor,pos,size)]]></script>
+  </tool>
+
+  <tool name="LZ N2S" label="LZ N2S" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[script = ''
+for n in hou.selectedNodes():
+    # CREATION AND POSITION
+    # comment
+    newline = '#create ' + n.name() + ' node' 
+    script += '\n' + newline + '\n'
+    # if we have a parent node
+    if len(n.inputs()) > 0:
+        if not n.inputs()[0].isSelected():
+            newline = n.inputs()[0].name() + ' = '
+            script += newline + '\n' 
+        # create node
+        newline = n.name() +' = ' + n.inputs()[0].name() + '.createOutputNode("' + n.type().name() + '","' + n.name() + '")'
+        script += newline + '\n'
+        # set position
+        dpos = n.position() - n.inputs()[0].position()
+        newline = n.name() +'.setPosition(' + n.inputs()[0].name() + '.position() + hou.Vector2(' + str(dpos.x()) + ',' +str(dpos.y()) + '))'
+        script += newline + '\n'
+    else:
+        # create node
+        if n.parent().path() == '/obj':
+            newline = 'obj = hou.node("/obj")'
+            script += newline + '\n'
+        else :
+            newline = n.parent().name() + ' = '
+            script += newline + '\n' 
+        newline = n.name() +' = ' + n.parent().name() + '.createNode("' + n.type().name() + '","' + n.name() + '")'
+        script += newline + '\n'
+     
+    # PROCESS PARAMETERS    
+    for p in n.parms():
+        if not p.isAtDefault():
+            if type(p) is hou.Parm:
+                # Notify if parm is spare
+                if p.isSpare():
+                    newline = '#This is a Spare Parameter!'
+                    script += newline + '\n'
+            
+                # If parm is keyframed(has an expression) copy it's expression, else only the value
+                if p.keyframes() == ():
+                    pt = p.parmTemplate()
+                    pval = str(p.eval())
+                    # if the parm is string -> unexpand it and add double qoutes
+                    if pt.dataType() == hou.parmData.String:                
+                        pval = repr(p.unexpandedString())
+                        #pval = '"' + pval +  '"'
+                    newline = n.name() + '.parm("' + p.name() + '").set(' + pval + ')'
+                    script += newline + '\n'
+                else:
+                    lang = p.expressionLanguage()
+                    expr = p.expression()
+                    newline = n.name() + ".parm('" + p.name() + "').setExpression('" + expr + "',language = hou." + str(p.expressionLanguage()) + ')'
+                    script += newline + '\n'
+    if n.isDisplayFlagSet():
+        newline = n.name() + '.setDisplayFlag(True)'
+        script += newline + '\n'
+
+# PRINT SCRIPT AND COPY TO CLIPBOARD
+print script
+
+#import PySide2.QtGui as qtg
+#app = qtg.QApplication.instance()
+#clipboard = app.clipboard()
+#clipboard.setText(script)
+
+from PySide2.QtWidgets  import  QApplication
+QApplication.clipboard().setText(script)
+
+
+
 ]]></script>
   </tool>
 </shelfDocument>
