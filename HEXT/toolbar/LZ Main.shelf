@@ -474,8 +474,8 @@ lzutil.copyToClipboard("con, hou = hrpyc.import_remote_module()")]]></script>
 import ctypes
 user32 = ctypes.windll.user32
 sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
-dy = [0.1,0.9];
-dx = [0.05,0.35];    
+dy = [0.05,0.925];
+dx = [0.015,0.4];    
 
 pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
 size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
@@ -485,15 +485,17 @@ size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
 
 panel = d.createFloatingPanel(hou.paneTabType.PythonPanel,pos,size)
 pypanel = panel.paneTabs()[0]
-pypanel.setActiveInterface(hou.pypanel.interfaceByName("LZ_Vex"))
+pypanel.setActiveInterface(hou.pypanel.interfaceByName("MegaVEX"))
+#pypanel.setActiveInterface(hou.pypanel.interfaceByName("LZ_Vex"))
 
-vexfunc = panel.panes()[0].createTab(hou.paneTabType.PythonPanel)
-vexfunc.setActiveInterface(hou.pypanel.interfaceByName("vexfunc"))
 
-vexpreset = panel.panes()[0].createTab(hou.paneTabType.PythonPanel)
-vexpreset.setActiveInterface(hou.pypanel.interfaceByName("LZ_Vexpreset"))
+#vexfunc = panel.panes()[0].createTab(hou.paneTabType.PythonPanel)
+#vexfunc.setActiveInterface(hou.pypanel.interfaceByName("vexfunc"))
 
-vexfunc.setIsCurrentTab()]]></script>
+#vexpreset = panel.panes()[0].createTab(hou.paneTabType.PythonPanel)
+#vexpreset.setActiveInterface(hou.pypanel.interfaceByName("LZ_Vexpreset"))
+
+#vexfunc.setIsCurrentTab()]]></script>
   </tool>
 
   <tool name="Create Project" label="Create Project" icon="hicon:/SVGIcons.index?BUTTONS_take.svg">

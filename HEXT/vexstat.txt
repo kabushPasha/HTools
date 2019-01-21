@@ -7,5 +7,6 @@
     "Axis on poly": 1,
     "ILM Cluster": 1,
     "MAXIMUM_CLICKS": 12,
-    "TURB V": 12
+    "TURB V": 12,
+    "sample_direction_cone": 1
 }
