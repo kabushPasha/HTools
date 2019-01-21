@@ -5,7 +5,7 @@
  used by the application.  Note, that two definitions of the
  same interface or of the interfaces menu are not allowed
  in a single file. -->
-  <interface name="LZ_Vex" label="LZ Vex" icon="hicon:/SVGIcons.index?SOP_attribvop.svg" help_url="">
+  <interface name="LZ_Vex" label="LZ Vex" icon="hicon:/SVGIcons.index?SOP_attribvop.svg" showNetworkNavigationBar="false" help_url="">
     <script><![CDATA[from hutil.Qt import QtWidgets,QtGui
 import lzutil
 import os
@@ -56,6 +56,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
             i += 1
          
         #set Layout
+        self.setStyleSheet("background-color: hsv(0,0,45);")
         self.setLayout(mainLayout)
           
     # FUNCTIONS    

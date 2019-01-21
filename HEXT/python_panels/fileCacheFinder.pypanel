@@ -5,7 +5,7 @@
  used by the application.  Note, that two definitions of the
  same interface or of the interfaces menu are not allowed
  in a single file. -->
-  <interface name="File Cache Finder" label="File Cache Finder" icon="MISC_python" help_url="">
+  <interface name="File Cache Finder" label="File Cache Finder" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
     <script><![CDATA[from hutil.Qt import QtWidgets
 import os,lzutil
 
@@ -61,6 +61,7 @@ class interface(QtWidgets.QWidget):
         nodes_list.adjustSize()
         
                 #set Layout
+        self.setStyleSheet("background-color: hsv(0,0,45);")
         self.setLayout(mainLayout)
                 
                 

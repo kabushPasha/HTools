@@ -46,6 +46,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
 			i += 1
 		 
 		#set Layout
+		self.setStyleSheet("background-color: hsv(0,0,45);")
 		self.setLayout(mainLayout)
 		  
 	# FUNCTIONS	

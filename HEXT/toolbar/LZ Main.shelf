@@ -831,6 +831,9 @@ pypanel.setActiveInterface(hou.pypanel.interfaceByName("Canoe_Assets_interface")
   </tool>
 
   <tool name="quick_gal" label="QuickGal" icon="hicon:/SVGIcons.index?SHELF_flame_thrower.svg">
+    <helpText><![CDATA["""Click : Create Gallery And unpack it
+Ctrl + Click : create gallery without unpacking
+"""]]></helpText>
     <script scriptType="python"><![CDATA[import toolutils
 ctrl_click =  kwargs['ctrlclick']
 
