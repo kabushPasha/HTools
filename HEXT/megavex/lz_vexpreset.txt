@@ -1,0 +1,38 @@
+{
+    "Modelling": {
+        "Axis on Poly": {
+            "addcode": "vector center = primuv (0,'P',i@primnum,{0.5,0.5,0});\nvector dx = primuv (0,'P',i@primnum,{0.6,0.5,0});\nvector dy = primuv (0,'P',i@primnum,{0.5,0.6,0});\n\ndx = normalize(dx-center);\ndy = normalize(dy-center);\nvector dz = cross(dx,dy);\n\ncenter += chv(\"offset\")*set(dx,dy,dz);\n\nint pt = addpoint(0,center);\nsetpointattrib(0,'N',pt,dy);\nsetpointattrib(0,'up',pt,dz);\n\nsetpointattrib(0,'pscale',pt,chf(\"pscale\"));\n\nremoveprim(0,i@primnum,1);\n\n\n\n\n\n\n\n"
+        },
+        "P: StickToUvs": {
+            "addcode": "v@P = primuv (1,'P',i@sourceprim,v@sourceprimuv);"
+        },
+        "mask: byDir": {
+            "addcode": "vector dir = normalize(chv('dir'));\nf@mask = chramp('dot_ramp',0.5*dot(v@N,dir)+0.5);\nv@Cd = f@mask;"
+        }
+    },
+    "Particles": {
+        "pscale: BirthExplode": {
+            "addcode": "float birth = chi('birth_Frame') + rand(@ptnum)*chi('birth_jitter');\nfloat death = birth+chi('life') + rand(@ptnum)*chi('life_jitter');\nf@pscale = 1-2*abs(fit(@Frame,birth,death,0,1)-0.5);"
+        },
+        "pscale: BirthGrow": {
+            "addcode": "float birth = chi('birth_Frame') + rand(@ptnum)*chi('birth_jitter');\nfloat death = birth+chi('life') + rand(@ptnum)*chi('life_jitter');\nf@pscale = fit(@Frame,birth,death,0,1);"
+        },
+        "pscale: Pow": {
+            "addcode": "f@pscale = fit01(pow(rand(@ptnum),chf('pow')),chf('min_pscale'),chf('max_pscale'));"
+        },
+        "pscale: Ramp": {
+            "addcode": "f@pscale = fit01(chramp('pscale_ramp',rand(@ptnum)),chf('min_pscale'),chf('max_pscale'));"
+        },
+        "spheres: ConvertToSpheres": {
+            "addcode": "int prim = addprim(0,'sphere',@ptnum);\nmatrix3 t = ident()*f@pscale;\nsetprimintrinsic (0,'transform',prim,t);"
+        },
+        "spheres: PscaleToRadius": {
+            "addcode": "setprimintrinsic(0,'transform',@ptnum,matrix3(ident()*f@pscale));"
+        }
+    },
+    "Random": {
+        "int String Array": {
+            "addcode": "// pick random number from an array\nint values[] = {};\nforeach(int i;string s;split(chs('values'),' '))\nvalues[i] = atoi(s);\nint result = values[floor(len(values)*rand(@ptnum))];"
+        }
+    }
+}

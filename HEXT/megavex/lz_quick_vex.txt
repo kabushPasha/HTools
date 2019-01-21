@@ -1,0 +1,158 @@
+{
+	"01 Noises":{
+	
+		"TURB": {"action":"lzutil.addNoiseToSnippet(n,'turb',0)"},
+		"AA": {"action":"lzutil.addNoiseToSnippet(n,'aa',0)"},
+		"FLOW": {"action":"lzutil.addNoiseToSnippet(n,'flow',0)"},
+		"TURB V": {"action":"lzutil.addNoiseToSnippet(n,'turb',1)"},
+		"AA V": {"action":"lzutil.addNoiseToSnippet(n,'aa',1)"},
+		"FLOW V": {"action":"lzutil.addNoiseToSnippet(n,'flow',1)"},
+		"CURL" : {"action":"lzutil.addCurlNoiseToSnippet(n)"}
+		},
+	
+	"02 Other Noises":
+		{
+		
+		"Other: 1D: Worley Seed" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wseed')"},		
+		"Other: 1D: Worley F1" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wf1')"},
+		"Other: 1D: Worley F2" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wf2')"},
+		"Other: 1D: Boxes" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','boxes')"},
+		"Other: 1D: Spheres" : {
+				"action":"lzutil.addNoiseScriptAndParmsToSnippet(n,'float','spheres')"}		
+		},
+
+	"03 Noise Process":{
+		"01. Vector displace" : {
+				"code":"@P += n1;"},
+		"02. Displace along normal" : {
+				"code":"@P += @N*n1;"},	
+		"03. Dont Export N" : {
+			"action":"n.parm('vex_outputmask').set('* ^N')"	},
+		"04. Delete N Attribute(point)" : {
+			"action":"n.createOutputNode('attribdelete').parm('ptdel').set('N')"},
+		"05. Create Rest" : {"code":"v@rest = @P;"},	
+		"06. Restore Rest" : {"code":"@P = v@rest;"},
+		"07. Create Vector4" : {"lib":["lzn"],"code":"vector4 pos = set(@P,@Time*chf('flow_speed'));"}
+		
+		},	
+		
+	"04 Modelling Vex":{
+		"01. Simple Spiral":{"code": "@P.y = chf('h')*f@u;\n@P.x = ch('r')*sin(f@u*chf('f')*6.18);\n@P.z = ch('r')*cos(f@u*chf('f')*6.18);"},
+		"02. Get Curve u":{"code":"float u = float(vertexprimindex(0,@vtxnum))/(@numvtx -1);"},
+		"05. Maketransform":{"code":"matrix t = maketransform(0,0,chv('translate'),chv('rotate'),chv('scale'));\n@P*=t;"},
+		"06. Correct Vdb Collisons" : {"code": "int vdb_input = 1;\nfloat density = volumesample(vdb_input,0,@P);\nvector grad = volumegradient(vdb_input,0,@P);\nif(density<0) @P -= normalize(grad)*density;"}
+	},	
+	
+
+	
+	"05 UTIL Scripts":{
+		"01. Include lzn.h" : {
+				"action":"lzutil.includeAddSafe(n,'lzn')"},	
+		"02. Remove by Tres" :{
+				"code":"if(rand(@ptnum)<chf('tres')) removepoint(0,@ptnum);"},
+		"03. Read Texture" :{
+				"code":"v@Cd = texture(chs('texture_path'),@uv.x,@uv.y);"},		
+		"09. Sphere Sprite ":{
+			"code" : "v@spritescale = {1,1,1};\ns@spriteshop = '/obj/sim/popnet/popsprite1/shopnet1/spritefog';\np@spriteuv = {0,0,1,1};"},
+		"10. Set Pscale":{
+			"code" : "f@pscale = chf('pscale');"},
+		"11. Pscale Ramp":{
+			"code" : "f@pscale = chf('pscale')*chramp('scaleRamp',rand(i@id));"},
+		"12. Pscale PowLaw":{
+			"code" : "f@pscale = fit01(pow(rand(@ptnum),chi('pow')),chf('min'),chf('max'));"}				
+	},	
+	
+	
+	"09 Bullet":{
+		"05. Move To Points" :{
+				"code":"int pt = nametopoint(1,s@name);\nmatrix3 t = point(1,'t',pt);\nvector pivot = point(1,'pivot',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n@P = point(1,'P',pt);"},		
+		"06. Move To Simmed Pieces":{
+			"code":"int pt = nametopoint(1,s@name);\n@P = point(1,'P',pt);\n\nmatrix3 t = primintrinsic(1,'transform',pt);\nsetprimintrinsic(0,'transform',@ptnum,t);\n\nvector pivot =  primintrinsic(1,'pivot',pt);\nsetprimintrinsic(0,'pivot',@ptnum,pivot);\nv@v = point(1,'v',pt);"},		
+		"07. Bullet Settings ":{
+			"code" : "i@active = chi('active');\ni@animated = chi('animated');\n\n//f@min_activation_impulse = chf('min_activation_impulse');\n//f@density = chf('density');"},		
+		"08. Bottom Inactive ":{
+			"code" : "if( @P.y<chf('tres')) i@active = 0;"}	
+	},
+	
+				
+	"06 Model":{
+		"00. Null" : {"node":"null"},
+		"01. Duplicate" : {"node":"copyxform"},
+		"02. Polyextrude" : {"node":"polyextrude"},
+		"03. Bevel" : {"node":"polybevel"},
+		"04. Subdivide" : {"node":"subdivide"},
+		"05. Copy To Points" : {"node":"copytopoints"},
+		"06. Transform" : {"node":"xform"},
+		"07. Polyframe" : {"node":"polyframe"},
+		"08. Resample" : {"node":"resample"}
+		},
+		
+	"07 Nodes":{
+		"01. Wrangle" : {"node":"attribwrangle"},
+		"02. AttribDelete" : {"node":"attribdelete"},
+		"03. AttribPromote" : {"node":"attribpromote"},
+		"04. AttribTransfer" : {"node":"attribtransfer"}
+		},
+
+	"09 FOLDERS":{
+		"01. Open HEXT Folder" : {
+			"action":"lzutil.openFolderFromEnv('$HEXT')"},
+		"03. Open HMEGA Folder" : {
+			"action":"lzutil.openFolderFromEnv('$HMEGA')"},	
+		"04. Open Documents Folder" : {
+			"action":"lzutil.openFolderFromEnv('$HOUDINI_USER_PREF_DIR')"},	
+		"05. Open HIP" : {
+			"action":"lzutil.openFolderFromEnv('$HIP')"},
+		"06. Open JOB" : {
+			"action":"lzutil.openFolderFromEnv('$JOB')"}			
+	},
+	
+	"10 Fracture":{
+		"01. Voronoi Fracture" : {"node":"voronoifracture"},
+		"02. Scatter" : {"node":"scatter"},
+		"03. Isooffset" : {"node":"isooffset"},	
+		"04. Exploded View" : {"node":"explodedview"}				
+	},
+	"11 VDB":{
+		"01. VDB From Polygons" : {"node":"vdbfrompolygons"},
+		"02. VDB From Particles" : {"node":"vdbfromparticles"},
+		"03. VDB Convert" : {"node":"convertvdb"},
+		"04. VDB Combine" : {"node":"vdbcombine"}
+	},
+	
+	"12 Matrices":{
+		"01. Orient from AX" : {"code":"p@orient = quaternion(set(v@xax,v@yax,v@zax));"},
+		"02. Intrinstic xform" :{
+				"code":"matrix3 m = primintrinsic(0,'transform',@ptnum);\nsetprimintrinsic(0,'transform',@ptnum,m);"}
+		
+	},
+	
+	
+	"Test":{},
+	"Test1":{}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

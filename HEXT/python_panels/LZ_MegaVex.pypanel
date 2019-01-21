@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="MegaVEX" label="MegaVEX" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[from hutil.Qt import QtWidgets,QtGui
+import lzutil
+import os
+import hou
+import glob,json,shutil
+
+class LZ_vex_interface(QtWidgets.QWidget):
+    def __init__(self,scipt = 'lz_quick_vex',rows = 4):
+        super(LZ_vex_interface, self).__init__() 
+        self.mainLayout = QtWidgets.QGridLayout()            
+        self.callbackDict = {}        
+        self.tabs = QtWidgets.QTabWidget()      
+        
+        hext = hou.expandString('$HEXT')
+        for json_file in  glob.glob(hext + "/megavex/*txt"):
+            tab = QtWidgets.QWidget()            
+            tabLayout = QtWidgets.QGridLayout()      
+            
+            json_obj = json.load(open(json_file))
+            
+            i = 0
+            # fill lists
+            for list_key in sorted(json_obj.keys()):
+                # create list widget
+                new_list = QtWidgets.QListWidget()
+                items = json_obj[list_key]
+                
+                for key in sorted(items.keys()):
+                    list_item = QtWidgets.QListWidgetItem(key)                
+                    picName =  key.split(". ")[len(key.split(". "))-1].lower().replace(":","").replace(" ","")
+                    #print picNam
+                    pic_path = hou.expandString('$HEXT\pic') + '\\' + picName + r".svg"
+                    if os.path.isfile(pic_path):
+                            list_item.setIcon(QtGui.QIcon(pic_path))
+                    new_list.addItem(list_item)
+                    self.callbackDict[key] = items[key]
+                    
+                new_list.doubleClicked.connect(self.doubleClickedList)
+                   
+                # create label
+                button = QtWidgets.QPushButton(list_key)
+                button.clicked.connect(lambda x=[json_file,list_key]: self.StoreVex(x))
+                #fill
+                layout = QtWidgets.QVBoxLayout()                         
+                layout.addWidget(button)
+                layout.addWidget(new_list)
+                tabLayout.addLayout(layout,i/rows,i%rows)
+                i += 1        
+            
+            tab.setLayout(tabLayout)
+            tab_name = os.path.basename(json_file).replace(".txt","")
+            self.tabs.addTab(tab,tab_name)
+        
+        #set Layout
+        self.setStyleSheet("background-color: hsv(0,0,45);")        
+        self.mainLayout.addWidget(self.tabs)        
+        self.setLayout(self.mainLayout)
+              
+    # FUNCTIONS     
+    def doubleClickedList(self,item):
+        item = self.callbackDict[item.data()]
+        # process view node
+        n = lzutil.viewNode()
+        self.processItem(item,n)
+    
+    def processItem(self,item,n):
+        # add libs
+        if item.has_key('lib'):
+            for lib in item['lib']:
+                lzutil.includeAddSafe(n,lib)
+        # add code
+        if item.has_key('code'):                                        
+            lzutil.copyToClipboard(item['code'])
+        if item.has_key('addcode'):                     
+            lzutil.snippetAddCode(n,item['addcode'])                        
+        # execute an action
+        if item.has_key('action'):
+            exec(item['action'])
+        # node  
+        if item.has_key('node'):
+            new_node = n.createOutputNode(item['node'])
+            new_node.setSelected(1,1)
+            new_node.setDisplayFlag(1)
+            new_node.setRenderFlag(1)
+        # clipboard
+        if item.has_key('clip'):                        
+            lzutil.copyToClipboard(item['clip'])
+     
+    def StoreVex(self,key):
+        if len(hou.selectedNodes()) == 1:
+            n = hou.selectedNodes()[0]
+            if n.type().name() == 'attribwrangle' or n.type().name() == 'volumewrangle' or True:
+                # get Snippets Code and Name
+                snippet_name = n.name().replace("_"," ")
+                code = n.parm("snippet").evalAsString()        
+                 
+                # Dublicate file as backup
+                hext = hou.expandString('$HEXT')
+                backup_dir = os.path.join(hext,"megavex/backup")
+                if not os.path.isdir(backup_dir):
+                    os.makedirs(backup_dir)          
+                max_backup = 0
+                for backup_file in  glob.glob(backup_dir + "\\" + os.path.basename(key[0]).replace(".txt","") + ".*.txt"):
+                    max_backup = max(int(backup_file.split(".")[-2]),max_backup)
+                max_backup += 1
+                bakup_path = backup_dir + "\\" + os.path.basename(key[0]).replace(".txt","." + str(max_backup) + ".txt")
+                shutil.copy(key[0],bakup_path)
+                
+                                
+                my_json = json.load(open(key[0]))       
+                my_json[key[1]][snippet_name] = {"addcode" : code}     
+                with open(key[0], 'w') as outfile:
+                    json.dump(my_json, outfile,sort_keys=True, indent=4, separators=(',', ': '))
+            
+            
+def onCreateInterface():
+    return LZ_vex_interface('megavex',rows = 4)      
+    
+    
+    
+    
+    
+]]></script>
+    <includeInToolbarMenu menu_position="108" create_separator="false"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>

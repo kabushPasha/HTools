@@ -1,0 +1,149 @@
+{
+	"Create Geometry":
+	{
+		"addpoint" : {"code":"int pt = addpoint(0,@P);"},
+		"addprim" : {"code":"int prim = addprim(0,'polyline',pt0,pt1);"},
+		"PrimTypes" : {"code":"\\\\'poly','polyline','tet','sphere','circle','tube','metaball','metasquad','AlembicRef','PackedDisk'"},
+		
+		"removepoint " : {"code":"removepoint (0,@ptnum);"},
+		"removeprim  " : {"code":"removeprim  (0,@primnum,1);"}
+	},
+	
+	"3D Space":
+	{
+		"intersect" : {"code":"vector P,uvw;\nint res = intersect(0,@P,v@dir,P,uvw);"},
+		"minpos" : {"code":"vector P = minpos(0,@P);"},
+		
+		"nearpoint" : {"code":"int npt = nearpoint(0,@P);"},
+		"nearpoints" : {"code":"int npts[] = nearpoints(0,@P,chf('maxDist'));"},
+		
+		"xyzdist" : {"code":"int prim;\nvector uv;\nfloat dist = xyzdist(0,@P,prim,uv);"},
+		
+		"primuv" : {"code":"v@P = primuv (0,'P',prim,uv);"},	
+		"uvsample" : {"code":" = uvsample(0,'AttName','uv',v@uvw);"}	
+	},	
+		
+	"Connectivity":
+	{
+		"neighbour" : {"code":"int nbr = neighbour(0,@ptnum,neighbourId);"},
+		"neighbourcount" : {"code":"int nnbrs = neighbourcount(0,@ptnum);"},
+		"neighbours" : {"code":"int nbrs = neighbours(0,@ptnum);"},
+		
+		"pointprims" : {"code":"int prims[] = pointprims(0,@ptnum);"},
+		"primpoints" : {"code":"int pts[] = primpoints (0,@primnum);"},
+		"primpoint" : {"code":"int pt = primpoint (0,@ptnum,vtxId);"}
+	},
+	
+	"Geo Info":
+	{
+		"npoints " : {"code":"int npts = npoints(0);"},
+		"nprimitives  " : {"code":"int nprims = nprimitives(0);"}
+	},
+	
+	"Read Attribs":
+	{
+		"detail" : {"code":" = detail(0,'AttName');"},
+		"point" : {"code":" = point (0,'AttName',i@ptnum);"},
+		"prim" : {"code":" = prim  (0,'AttName',i@primnum);"},
+		
+		
+		"setdetailattrib" : {"code":"setdetailattrib(0,'AttName',val);"},
+		"setpointattrib" : {"code":"setpointattrib(0,'AttName',i@ptnum,val);"},
+		"setprimattrib " : {"code":"setprimattrib (0,'AttName',i@primnum,val);"}
+	},	
+	
+	"Check Attribs":
+	{
+		"hasdetailattrib" : {"code":"int hasAtt = hasdetailattrib(0,'AttName');"},
+		"haspointattrib" : {"code":"int hasAtt = haspointattrib(0,'AttName');"},
+		"hasprimattrib" : {"code":"int hasAtt = hasprimattrib(0,'AttName');"},
+		
+		"findattribval" : {"code":"int pt = findattribval(0,'point','AttName',attValue);"},
+		"findattribvalcount" : {"code":"int npts = findattribvalcount (0,'point','AttName',attValue);"},
+		"nuniqueval" : {"code":"int nuniq = nuniqueval  (0,'point','AttName');"},
+		"uniqueval" : {"code":" = uniqueval(0,'point','AttName',0);"}
+	},
+	
+	"Intrinsics":
+	{
+		"detailintrinsic" : {"code":" = detailintrinsic(0,'IntName');"},	
+		"primintrinsic" : {"code":" = primintrinsic(0,'transform',@primnum);"},		
+		"setprimintrinsic " : {"code":"setprimintrinsic (0,'transform',@primnum,t);"}		
+	},
+	
+	"Ids And Names":
+	{
+		"idtopoint" : {"code":"int pt = idtopoint (0,i@id);"},
+		"idtoprim" : {"code":"int prim = idtoprim  (0,i@id);"},
+		"nametopoint" : {"code":"int pt = nametopoint(0,s@name);"},
+		"nametoprim" : {"code":"int prim = nametoprim(0,s@name);"}
+	},
+	
+	"BBOX":
+	{
+		"center" : {"code":" vector bbcenter = getbbox_center(0);"},	
+		"max" : {"code":" vector bbmax = getbbox_max (0);"},	
+		"min" : {"code":" vector bbmin = getbbox_min (0);"},	
+		"size" : {"code":" vector bbsize = getbbox_size (0);"},	
+		"relbbox " : {"code":" vector pos = relbbox(0,@P);"}
+	},
+
+	"Volume":
+	{
+		"volumegradient" : {"code":"vector grad = volumegradient(0,0,@P);"},
+		"volumesample" : {"code":"float density = volumesample(0,0,@P);"},
+		"volumesampleV" : {"code":"vector vel = volumesamplev(0,0,@P);"},	
+		"voxeldiameter" : {"code":"float vxsize = volumevoxeldiameter(0,0);"}	
+	},
+	
+	"Roatation":
+	{
+		"quaternion" : {"code":"p@orient = quaternion(t);"},	
+		"qconvert" : {"code":"matrix3 t = qconvert(p@orient);"}
+	},
+	
+	"Later":
+	{
+		"Chop" :  {"code":"hi"},
+		"Color" :  {"code":"hi"},
+		"Color" :  {"code":"hi"}
+	
+	},	
+	
+	"PC":
+	{
+		"pcopen" : {"code":"int handle =  pcopen(1,'P',@P,chf('radius'),chi('maxpt'));"},
+		"pcfarthest" :  {"code":"float maxDist =  pcfarthest(handle);"},
+		"pcfilter" :  {"code":"vector P = pcfilter(handle,'P');"},
+		"pcfind" :  {"code":"int pts[] = pcfind(0,'*','P',@P,chf('radius'),chi('maxpt'));"},
+		"pcfind_radius" :  {"code":"int pts[] = pcfind_radius(0,'*','P','pscale',chf('radscale'),@P,chf('radius'),chi('maxpt'));"},
+		"pcimport" :  {"code":"vector P;\npcimport(handle,'P',P);"},
+		"pcimport" :  {"code":"vector P;\npcimport(handle,'P',P);"},
+		"pciterate" :  {"code":"while (pciterate(handle))\n{\nint pt;float d;\npcimport(handle,'point.distance',d);\npcimport(handle,'point.number',pt);\n}"}	
+	
+	},
+	
+	"Process":
+	{
+		"fit" :  {"code":"= fit(n1,chp('fit').x,chp('fit').y,chp('fit').z,chp('fit').w);"}	
+	},
+	
+	"Samplers":
+	{
+		"sample_direction_cone" :  {"code":"vector center = chv('center');\nfloat maxangle = chf('maxangle');\nvector dir = sample_direction_cone(center,maxangle,rand(@ptnum));"},		
+		"sample_circle_edge" :  {"code":"vector2 dir =  sample_circle_edge_uniform(rand(@ptnum));\nv@N = set(dir.x,0,dir.y);\nv@up = {0,1,0};"}		,
+		"sample_circle_slice" :  {"code":"vector2 look = set(sin(chf('angle')*3.14*2),cos(chf('angle')*3.14*2));\nvector2 dir =  sample_circle_slice(look,chf('spread')*3.14,rand(@ptnum));\nv@N = set(dir.x,0,dir.y);\nv@up = {0,1,0};"}		
+	},
+	
+	"Regex":
+	{
+		"re_replace" : {"code":"string s1 =  re_replace('__my__',sprintf('%04d',i@id),chs('str'));"},
+		"re_split " : {"code":"string s1[] =  re_split ('/',chs('str'));"},
+		"split " : {"code":"string s1 =  split(chs('str'),'/');"},
+		"splitpath " : {"code":"string dir,filename;\nsplitpath(chs('path'),dir,filename);"},
+		"sprintf " : {"code":"sprintf('%04d',i);"}
+	}
+	
+	
+}
+				
