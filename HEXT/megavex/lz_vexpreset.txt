@@ -1,13 +1,32 @@
 {
+    "Hair": {
+        "Rotate along root": {
+            "addcode": "vector root = point(0,\"P\",primpoint(0,@primnum,0));\n\n@P -= root;\n\nvector dir = prim(0,\"N\",@primnum);\nfloat angle = chf(\"angle\")*180;//* (rand(@primnum)-0.5);\nvector4 q = quaternion(radians(angle),dir);\nv@P = qrotate(q,v@P);\n\nv@P += root;\n\n\n\n\n\n"
+        }
+    },
     "Modelling": {
         "Axis on Poly": {
             "addcode": "vector center = primuv (0,'P',i@primnum,{0.5,0.5,0});\nvector dx = primuv (0,'P',i@primnum,{0.6,0.5,0});\nvector dy = primuv (0,'P',i@primnum,{0.5,0.6,0});\n\ndx = normalize(dx-center);\ndy = normalize(dy-center);\nvector dz = cross(dx,dy);\n\ncenter += chv(\"offset\")*set(dx,dy,dz);\n\nint pt = addpoint(0,center);\nsetpointattrib(0,'N',pt,dy);\nsetpointattrib(0,'up',pt,dz);\n\nsetpointattrib(0,'pscale',pt,chf(\"pscale\"));\n\nremoveprim(0,i@primnum,1);\n\n\n\n\n\n\n\n"
         },
+        "Get Bbox": {
+            "addcode": "int i = npoints(1) > 0;\n@bx = clamp(relbbox(i,@P).x,0,1);\n@by = clamp(relbbox(i,@P).y,0,1);\n@bz = clamp(relbbox(i,@P).z,0,1);\n"
+        },
         "P: StickToUvs": {
             "addcode": "v@P = primuv (1,'P',i@sourceprim,v@sourceprimuv);"
         },
+        "Rotated RelBbox": {
+            "addcode": "#include <lzn.h>\nvector yax = point(1,\"P\",4) - point(1,\"P\",0);\nvector xax = point(1,\"P\",1) - point(1,\"P\",0);\nvector zax = point(1,\"P\",3) - point(1,\"P\",0);\nvector p = point(1,\"P\",0);\n\nfloat yd,xd,zd;\nyd = length(yax);\nxd = length(xax);\nzd = length(zax);\n\nyax = normalize(yax);\nxax = normalize(xax);\nzax = normalize(zax);\n\nmatrix m = maketransform(zax,yax,p);\n\n@P = @P*invert(m); \nf@bx = @P.x / xd;\nf@by = @P.y / yd;\nf@bz = @P.z / zd;\n@P = @P*m; \n \n@bx = saturate(@bx);\n@by = saturate(@by);\n@bz = saturate(@bz);\n"
+        },
         "mask: byDir": {
             "addcode": "vector dir = normalize(chv('dir'));\nf@mask = chramp('dot_ramp',0.5*dot(v@N,dir)+0.5);\nv@Cd = f@mask;"
+        }
+    },
+    "Other": {
+        "ILM Cluster": {
+            "addcode": "#include <lzn.h>\nfloat maxdistance = chf(\"maxdistance\");\nint maxpoints = chi(\"maxpoints\");\nfloat resample = chf(\"resample\");\n\nint nearpts[] = pcfind(0, \"P\", @P, maxdistance, maxpoints);\nforeach(int ptnum;nearpts)\n{\n    vector closepos = point(0, \"P\", ptnum);\n    int naddpts = floor(length(@P - closepos)/resample);\n    \n    for(int i=1;i<naddpts;i++)\n    {\n        vector n1 = ch('a1') * apvn(@P * ch('f1')+ set(i,ptnum,i));\n        addpoint(0, @P + normalize(closepos - @P)*i*resample  + n1); \n    }\n}\n\n\n\n"
+        },
+        "Phys Anim": {
+            "addcode": "vector a = {0,-9.8,0};\n@P += v@v*@Time + a*@Time*@Time*0.5;\n\nmatrix3 t = primintrinsic(0,'transform',@ptnum);\nrotate(t,length(v@w)*@Time,normalize(v@w));\nsetprimintrinsic (0,'transform',@ptnum,t);\n\nif(chi(\"correct_ground\"))\n    @P.y = max(@P.y,0);"
         }
     },
     "Particles": {

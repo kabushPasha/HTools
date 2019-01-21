@@ -4,6 +4,8 @@
     "05. Create Rest": 3,
     "05. Maketransform": 1,
     "06. Restore Rest": 2,
+    "Axis on poly": 1,
+    "ILM Cluster": 1,
     "MAXIMUM_CLICKS": 12,
     "TURB V": 12
 }
