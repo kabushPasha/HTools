@@ -17,6 +17,7 @@
     <memberTool name="Add RS Prefix"/>
     <memberTool name="batchProxy"/>
     <memberTool name="AssetPrepare"/>
+    <memberTool name="find_all_textures"/>
   </toolshelf>
 
   <tool name="rs_cam_from_view" label="Rs camera from view" icon="hicon:/SVGIcons.index?OBJ_camera.svg">
@@ -429,5 +430,49 @@ for n in hou.selectedNodes():
     
     
     ]]></script>
+  </tool>
+
+  <tool name="find_all_textures" label="Find All Textures" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import os
+type = 'redshift::TextureSampler'
+
+node_type = hou.nodeType(hou.vopNodeTypeCategory(),type)
+tex_nodes = node_type.instances()
+
+convert = 0
+size_total = 0
+
+for tex_node in tex_nodes:
+    #print tex_node.name() 
+    tex_path =  tex_node.parm("tex0").eval()
+    if os.path.isfile(tex_path):
+        tex_node.bypass(1)
+        
+        size = os.path.getsize(tex_path)*1e-6
+        if size > 1000:            
+            print tex_node.path()
+            print tex_path
+            print size
+            tex_node.setColor(hou.Color(1,0,0))
+       
+        if size < 1000:
+            tex_node.bypass(0)
+            print tex_node.path()
+            print tex_path
+            print size
+            size_total += size
+            
+        if convert:    
+            tp = r"C:\ProgramData\Redshift\bin\redshiftTextureProcessor.exe"            
+            tex_name = os.path.abspath(tex_path)            
+            os.system(r"start " + tp + " \"" + tex_name + "\" -l")
+            
+print "TOTAL SIZE"
+print size_total
+        
+        
+            
+            
+            ]]></script>
   </tool>
 </shelfDocument>

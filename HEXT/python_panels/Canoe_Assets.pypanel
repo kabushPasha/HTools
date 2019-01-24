@@ -32,7 +32,11 @@ class CanoeAssets(QtWidgets.QWidget):
                 
         # Fill Main Layout
         # find all folders in our assets directory
-        assetsPaths = [ "S:\FPG\Assets\Env" , "S:\RRR\Assets\Env" ]
+        assetsPaths = [
+        "S:\FPG\Assets\Env" , 
+        "S:\RRR\Assets\Env" ,
+        "S:\PTU\Assets\Env"
+        ]
         files = []
         for path in assetsPaths:
             files +=  glob( path + "\*")
