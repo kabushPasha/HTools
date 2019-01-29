@@ -19,5 +19,6 @@
     "removepoint ": 1,
     "sample_direction_cone": 3,
     "spheres: ConvertToSpheres": 2,
-    "volumesample": 4
+    "volumesample": 4,
+    "xyzdist": 1
 }
