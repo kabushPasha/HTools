@@ -668,7 +668,11 @@ if hou.selectedNodes()==():
 n = toolutils.sceneViewer().currentNode()
 #user_input = hou.ui.readInput("Script Name")
 #n.createOutputNode('attribwrangle',user_input[1] if user_input[1]!='' else 'script')
-wr = n.createOutputNode('attribwrangle')
+print n
+if n.type().category().name() == 'Object':
+    wr = n.createNode('attribwrangle')
+elif n.type().category().name() == 'Sop':
+    wr = n.createOutputNode('attribwrangle')
 
 wr.setRenderFlag(1)
 wr.setDisplayFlag(1)
