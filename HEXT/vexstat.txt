@@ -14,7 +14,9 @@
     "TURB V": 22,
     "addpoint": 3,
     "addprim": 3,
-    "pointprims": 1,
+    "maya strip namespaces": 7,
+    "maya strip namespaces 2": 1,
+    "pointprims": 2,
     "prim": 1,
     "primpoint": 1,
     "primuv": 2,
@@ -23,6 +25,7 @@
     "sample_direction_cone": 4,
     "setpointattrib": 1,
     "spheres: ConvertToSpheres": 3,
-    "volumesample": 4,
+    "volumegradient": 1,
+    "volumesample": 5,
     "xyzdist": 3
 }
