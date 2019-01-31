@@ -4,6 +4,11 @@
             "addcode": "vector root = point(0,\"P\",primpoint(0,@primnum,0));\n\n@P -= root;\n\nvector dir = prim(0,\"N\",@primnum);\nfloat angle = chf(\"angle\")*180;//* (rand(@primnum)-0.5);\nvector4 q = quaternion(radians(angle),dir);\nv@P = qrotate(q,v@P);\n\nv@P += root;\n\n\n\n\n\n"
         }
     },
+    "Masking": {
+        "Slide CenterWidth Mask": {
+            "addcode": "float u = float(vertexprimindex(0,@vtxnum))/(@numvtx -1);\nfloat c = chf(\"center\");\nfloat w = chf(\"width\");\nc = fit01(c,-w,1+w);\nv@Cd = fit(u,c-w,c+w,0,1);\n\n\n\n\n\n\n\n\n\n"
+        }
+    },
     "Modelling": {
         "Axis on Poly": {
             "addcode": "vector center = primuv (0,'P',i@primnum,{0.5,0.5,0});\nvector dx = primuv (0,'P',i@primnum,{0.6,0.5,0});\nvector dy = primuv (0,'P',i@primnum,{0.5,0.6,0});\n\ndx = normalize(dx-center);\ndy = normalize(dy-center);\nvector dz = cross(dx,dy);\n\ncenter += chv(\"offset\")*set(dx,dy,dz);\n\nint pt = addpoint(0,center);\nsetpointattrib(0,'N',pt,dy);\nsetpointattrib(0,'up',pt,dz);\n\nsetpointattrib(0,'pscale',pt,chf(\"pscale\"));\n\nremoveprim(0,i@primnum,1);\n\n\n\n\n\n\n\n"

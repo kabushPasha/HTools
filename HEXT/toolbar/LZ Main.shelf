@@ -672,7 +672,9 @@ wr = n.createOutputNode('attribwrangle')
 
 wr.setRenderFlag(1)
 wr.setDisplayFlag(1)
-wr.setCurrent(1)]]></script>
+wr.setCurrent(1)
+
+#wr.setColor(hou.Color(0.475,0.812,0.204))]]></script>
   </tool>
 
   <tool name="Gallerer" label="Gallerer" icon="hicon:/SVGIcons.index?SHELF_flower.svg">
