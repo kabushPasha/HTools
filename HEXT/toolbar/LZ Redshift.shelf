@@ -384,12 +384,15 @@ threads = 5
 for n in hou.selectedNodes():
     if n.type().name() == 'Redshift_Proxy_Output':
         hython = hou.getenv('HB')+'/hython'
-        file = hou.hipFile.path()    
-        cmd = 'hou.parm("' + n.path() + '/execute").pressButton()'
+        file = hou.hipFile.path()
         
-        print cmd
+        for i in range(0,threads):  
+            sf = int(n.parm("f1").eval())
+            cmd = 'hou.parm("' + n.path() + '/f1").set(' +str(sf+i)+ ');'
+            cmd += 'hou.parm("' + n.path() + '/f3").set(' +str(threads)+ ');'
         
-        for i in range(0,threads):    
+            cmd += 'hou.parm("' + n.path() + '/execute").pressButton()'
+            #print cmd
             subprocess.Popen([hython,file,'-c',cmd])]]></script>
   </tool>
 
