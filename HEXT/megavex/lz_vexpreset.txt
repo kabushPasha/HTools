@@ -1,7 +1,10 @@
 {
-    "Hair": {
+    "Hair/Curves": {
         "Rotate along root": {
             "addcode": "vector root = point(0,\"P\",primpoint(0,@primnum,0));\n\n@P -= root;\n\nvector dir = prim(0,\"N\",@primnum);\nfloat angle = chf(\"angle\")*180;//* (rand(@primnum)-0.5);\nvector4 q = quaternion(radians(angle),dir);\nv@P = qrotate(q,v@P);\n\nv@P += root;\n\n\n\n\n\n"
+        },
+        "curveU psacle": {
+            "addcode": "float u = float(vertexprimindex(0,@vtxnum))/(@numvtx -1);\nf@pscale = chf(\"psacle\")*chramp(\"u\",u);"
         }
     },
     "Masking": {
