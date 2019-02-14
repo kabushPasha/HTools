@@ -4,7 +4,7 @@ print "LZ: PadZero4 for sequences"
 
 
 # Set The Mode
-mode = "rename"
+mode = "brackets"
 if len(sys.argv) > 1:
 	if sys.argv[1] == 'mp':
 		mode = "mplay"
