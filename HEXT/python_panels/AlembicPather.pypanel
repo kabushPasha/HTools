@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="abcPather" label="AbcPather" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[from hutil.Qt import QtWidgets,QtGui,QtCore
+import lzutil
+import os
+import hou
+import glob,json,shutil,types
+
+class my_QTreeWidgetItem(QtWidgets.QTreeWidgetItem):
+    def __init__( self, parent, name ):
+        super( my_QTreeWidgetItem, self ).__init__( parent )
+        self.oldpath = ""
+        self.setText( 0, name[0] )
+
+class LZ_abc_interface(QtWidgets.QWidget):
+    def __init__(self):
+        super(LZ_abc_interface, self).__init__() 
+        self.mainLayout = QtWidgets.QGridLayout()            
+        
+        self.updateNode_btn = QtWidgets.QPushButton('Update', self)
+        self.updateNode_btn.clicked.connect(self.updateNode)
+        
+        self.rename_btn = QtWidgets.QPushButton('Rename', self)
+        self.rename_btn.clicked.connect(self.createRename)
+        
+        self.split_btn = QtWidgets.QPushButton('Split', self)
+        self.split_btn.clicked.connect(self.split)
+        self.delete_btn = QtWidgets.QPushButton('Delete', self)
+        self.delete_btn.clicked.connect(self.deleteGeo)
+        
+        self.TreeWidget = QtWidgets.QTreeWidget()
+        self.TreeWidget.setDragEnabled(1)
+        self.TreeWidget.setAcceptDrops(1)
+        self.TreeWidget.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.TreeWidget.itemChanged.connect(self.treeItemChanged)
+        self.TreeWidget.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        
+        self.mainLayout.addWidget(self.updateNode_btn)
+        self.mainLayout.addWidget(self.rename_btn)
+        self.mainLayout.addWidget(self.split_btn)
+        self.mainLayout.addWidget(self.delete_btn)
+        
+        self.mainLayout.addWidget(self.TreeWidget)
+        
+        self.setStyleSheet("background-color: hsv(0,0,45);")               
+        self.setLayout(self.mainLayout)
+     
+    def split(self):
+        if len(hou.selectedNodes()) == 1:
+            n = hou.selectedNodes()[0]
+            
+            for item in self.TreeWidget.selectedItems():
+                delete_str = "@path=" + item.oldpath
+                if item.childCount() != 0:
+                    delete_str += "*"
+            
+                    blast = n.createOutputNode("blast",item.text(0))
+                    blast.parm("group").set(delete_str)
+                    blast.parm("grouptype").set(4)
+                    blast.parm("negate").set(1)
+        
+        
+    def deleteGeo(self):
+        if len(hou.selectedNodes()) == 1:
+            n = hou.selectedNodes()[0]
+            
+            delete_str = ""
+            for item in self.TreeWidget.selectedItems():
+                delete_str += "@path=" + item.oldpath
+                if item.childCount() != 0:
+                    delete_str += "*"
+                delete_str += " "
+            
+            blast = n.createOutputNode("blast")
+            blast.parm("group").set(delete_str)
+            blast.parm("grouptype").set(4)
+            
+        
+        
+        
+    def treeItemDoubleClicked(self,item, column_no):
+        #print(item, column_no)
+        print item.oldpath.split("/")[-1]
+    
+    def treeItemChanged(self,item, column_no):
+        item.setText(0,item.text(0).replace(" ","_"))        
+        if len(item.oldpath.split("/")) > 1:
+            if item.text(0) != item.oldpath.split("/")[-2]:
+                item.setTextColor(0,QtGui.QColor(100,200,100))
+        
+    def createRename(self):        
+        root = self.TreeWidget.invisibleRootItem()
+        renames = []
+        
+        def traverse(root,fullpath,renames): 
+            child_count = root.childCount()
+            for i in range(child_count):
+                item = root.child(i)
+                url = item.text(0)
+                new_fullpath = fullpath +  url + "/"
+                old_fullpath = item.oldpath
+                if new_fullpath != old_fullpath:
+                    if item.childCount() == 0:
+                        renames += [[old_fullpath,new_fullpath]]
+                        #print new_fullpath
+                        #print old_fullpath
+                    
+                traverse(item,new_fullpath,renames)
+                
+        traverse(root,"",renames)       
+        def copyRenamesToWrangle():
+            if len(hou.selectedNodes()) == 1:
+                n = hou.selectedNodes()[0]
+                if n.parm("renames") is not None:
+                    n.parm("renames").set(len(renames))                    
+                    i = 0
+                    for pair in renames:
+                        n.parm("o" + str(i)).set(pair[0])
+                        n.parm("n" + str(i)).set(pair[1])
+                        i += 1 
+                
+                        
+        
+        copyRenamesToWrangle()
+        
+        
+    def updateNode(self):
+        if len(hou.selectedNodes()) == 1:
+            n = hou.selectedNodes()[0]
+            g = n.geometry()
+            pathAtt = g.findPrimAttrib("path")
+            strings = pathAtt.strings()
+            
+            structure = dict()
+            for string in strings: 
+                current_folder = structure
+                for folder in string.split("/"):
+                    if folder is not "":
+                        if current_folder.has_key(folder):
+                            current_folder = current_folder[folder]
+                        else:
+                            current_folder[folder] = dict()
+                            current_folder = current_folder[folder]
+            print n
+            
+            def printStr(structure,tabs = '',tree = self.TreeWidget,fullpath=""):
+                for key in structure.keys():
+                    new_fullpath = fullpath + key + "/"
+                    new_item = my_QTreeWidgetItem(tree, [key])
+                    new_item.setExpanded(True)
+                    new_item.oldpath = new_fullpath
+                    new_item.setFlags(new_item.flags() | QtCore.Qt.ItemIsEditable)
+                    printStr(structure[key],tabs + "  ",new_item,new_fullpath)
+
+            self.TreeWidget.update()
+            printStr(structure)
+             
+            
+            
+def onCreateInterface():
+    return LZ_abc_interface()      
+    
+    
+    
+    ]]></script>
+    <includeInToolbarMenu menu_position="109" create_separator="false"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>
