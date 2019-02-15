@@ -11,6 +11,7 @@ import lzutil
 import os
 import hou
 import glob,json,shutil,types
+import toolutils
 
 class my_QTreeWidgetItem(QtWidgets.QTreeWidgetItem):
     def __init__( self, parent, name ):
@@ -24,33 +25,104 @@ class LZ_abc_interface(QtWidgets.QWidget):
         self.mainLayout = QtWidgets.QGridLayout()            
         
         self.updateNode_btn = QtWidgets.QPushButton('Update', self)
-        self.updateNode_btn.clicked.connect(self.updateNode)
-        
+        self.updateNode_btn.clicked.connect(self.updateNode)        
         self.rename_btn = QtWidgets.QPushButton('Rename', self)
-        self.rename_btn.clicked.connect(self.createRename)
-        
+        self.rename_btn.clicked.connect(self.createRename)        
         self.split_btn = QtWidgets.QPushButton('Split', self)
         self.split_btn.clicked.connect(self.split)
         self.delete_btn = QtWidgets.QPushButton('Delete', self)
         self.delete_btn.clicked.connect(self.deleteGeo)
+        self.createMat_btn = QtWidgets.QPushButton('CreateMat', self)
+        self.createMat_btn.clicked.connect(self.createMat)
+        self.apply_btn = QtWidgets.QPushButton('Apply Group', self)
+        self.apply_btn.clicked.connect(self.applyGroup)
+        self.updateToggle = QtWidgets.QCheckBox("Update group realtime")  
+        self.getSelected_btn = QtWidgets.QPushButton('Select From Geo', self)
+        self.getSelected_btn.clicked.connect(self.getSelected)        
+        self.clearSel_btn = QtWidgets.QPushButton('Clear selection', self)
+        self.clearSel_btn.clicked.connect(self.clearSel)   
+        self.selFromNode_btn = QtWidgets.QPushButton('Selection From Node', self)
+        self.selFromNode_btn.clicked.connect(self.selFromNode) 
         
         self.TreeWidget = QtWidgets.QTreeWidget()
         self.TreeWidget.setDragEnabled(1)
         self.TreeWidget.setAcceptDrops(1)
         self.TreeWidget.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         self.TreeWidget.itemChanged.connect(self.treeItemChanged)
+        self.TreeWidget.itemSelectionChanged.connect(self.selectionChanged)
         self.TreeWidget.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
         
+        self.mainLayout.addWidget(self.updateToggle)
         self.mainLayout.addWidget(self.updateNode_btn)
         self.mainLayout.addWidget(self.rename_btn)
         self.mainLayout.addWidget(self.split_btn)
         self.mainLayout.addWidget(self.delete_btn)
+        self.mainLayout.addWidget(self.createMat_btn)
+        self.mainLayout.addWidget(self.apply_btn)        
+        self.mainLayout.addWidget(self.getSelected_btn)        
+        self.mainLayout.addWidget(self.selFromNode_btn)
+        self.mainLayout.addWidget(self.clearSel_btn)
         
         self.mainLayout.addWidget(self.TreeWidget)
         
         self.setStyleSheet("background-color: hsv(0,0,45);")               
         self.setLayout(self.mainLayout)
+      
+    def clearSel(self):
+        self.TreeWidget.clearSelection()
      
+    def selFromNode(self):
+        if len(hou.selectedNodes()) == 1:
+            n = hou.selectedNodes()[0]
+            if n.parm("group") is not None:
+                groups = n.parm("group").eval().split(" ")
+                new_groups = []
+                for group in groups:
+                    group = group.replace("@path=","")
+                    group = group.replace("*","")
+                    if group is not "":
+                        new_groups += [group]
+                    
+                self.SelectFromList(new_groups)
+     
+    def SelectFromList(self,groups):
+        root = self.TreeWidget.invisibleRootItem()
+        def traverse(root): 
+            child_count = root.childCount()
+            for i in range(child_count):
+                item = root.child(i)
+                if item.oldpath in groups:
+                    item.setSelected(True)                    
+                traverse(item)
+        traverse(root)    
+                    
+        
+    def getSelected(self):
+        sv = toolutils.sceneViewer()
+        sel  = sv.currentGeometrySelection()
+        s = sel.selections()[0]
+        n = sel.nodes()[0]
+        g = n.geometry()
+        att = g.findPrimAttrib("path")
+        paths = []
+        if att is not None:
+            for prim in s.prims(g):
+                path = prim.attribValue(att)
+                paths += [path]
+        
+        self.SelectFromList(paths)        
+        
+    def selectionChanged(self):
+        if self.updateToggle.isChecked():
+            self.applyGroup()
+        
+    def applyGroup(self):
+        if len(hou.selectedNodes()) == 1:
+            n = hou.selectedNodes()[0]          
+            sel_str = self.getSelectionString()  
+            if n.parm("group") is not None:
+                n.parm("group").set(sel_str)
+         
     def split(self):
         if len(hou.selectedNodes()) == 1:
             n = hou.selectedNodes()[0]
@@ -65,24 +137,37 @@ class LZ_abc_interface(QtWidgets.QWidget):
                     blast.parm("grouptype").set(4)
                     blast.parm("negate").set(1)
         
-        
     def deleteGeo(self):
         if len(hou.selectedNodes()) == 1:
-            n = hou.selectedNodes()[0]
-            
-            delete_str = ""
-            for item in self.TreeWidget.selectedItems():
-                delete_str += "@path=" + item.oldpath
-                if item.childCount() != 0:
-                    delete_str += "*"
-                delete_str += " "
-            
+            n = hou.selectedNodes()[0]            
+            delete_str = self.getSelectionString()            
             blast = n.createOutputNode("blast")
             blast.parm("group").set(delete_str)
             blast.parm("grouptype").set(4)
+            self.pick(blast)
+            self.updateNode()
+    
+    def getSelectionString(self):
+        sel_str = ""
+        for item in self.TreeWidget.selectedItems():
+            sel_str += "@path=" + item.oldpath
+            if item.childCount() != 0:
+                sel_str += "*"
+            sel_str += " "
+        return sel_str
             
-        
-        
+    def createMat(self):
+        if len(hou.selectedNodes()) == 1:
+            n = hou.selectedNodes()[0]          
+            sel_str = self.getSelectionString()  
+            quickMat = n.createOutputNode("Rs_quickMat")
+            quickMat.parm("group").set(sel_str)
+            self.pick(quickMat)
+            
+    def pick(self,n):
+        n.setDisplayFlag(True)
+        n.setRenderFlag(True)
+        n.setSelected(1,True) 
         
     def treeItemDoubleClicked(self,item, column_no):
         #print(item, column_no)
@@ -117,21 +202,46 @@ class LZ_abc_interface(QtWidgets.QWidget):
         def copyRenamesToWrangle():
             if len(hou.selectedNodes()) == 1:
                 n = hou.selectedNodes()[0]
-                if n.parm("renames") is not None:
-                    n.parm("renames").set(len(renames))                    
-                    i = 0
-                    for pair in renames:
-                        n.parm("o" + str(i)).set(pair[0])
-                        n.parm("n" + str(i)).set(pair[1])
-                        i += 1 
-                
-                        
-        
+                              
+                def createRenameWrangle(n):
+                    n = n.createOutputNode('attribwrangle',"Renamer")                    
+                    ptg = n.parmTemplateGroup()                  
+                    # parms
+                    hou_parm_template = hou.FolderParmTemplate("renames", "Renames", folder_type=hou.folderType.MultiparmBlock)
+                    hou_parm_template.setTags({"multistartoffset": "0"})
+                    hou_parm_template2 = hou.StringParmTemplate("o#", "Old", 1)
+                    hou_parm_template.addParmTemplate(hou_parm_template2)
+                    hou_parm_template2 = hou.StringParmTemplate("n#", "New", 1)
+                    hou_parm_template.addParmTemplate(hou_parm_template2)
+                    # add parms
+                    ptg.addParmTemplate(hou_parm_template)
+                    n.setParmTemplateGroup(ptg)
+                    n.parm("class").set(1)
+                    n.parm("snippet").set('for(int i =0;i<chi("renames");i++)    s@path = re_replace(chs("o" + itoa(i)),chs("n" + itoa(i)),s@path);')
+                    self.pick(n)
+                    
+                    return n
+                    
+                if n.parm("renames") is None:
+                    n = createRenameWrangle(n)  
+                    
+                n.parm("renames").set(len(renames))                    
+                i = 0
+                for pair in renames:
+                    n.parm("o" + str(i)).set(pair[0])
+                    n.parm("n" + str(i)).set(pair[1])
+                    i += 1 
+                    
         copyRenamesToWrangle()
         
         
-    def updateNode(self):
+    def updateNode(self):        
         if len(hou.selectedNodes()) == 1:
+            root = self.TreeWidget.invisibleRootItem()
+            child_count = root.childCount()
+            for i in range(child_count):
+                root.removeChild(root.child(i))
+                
             n = hou.selectedNodes()[0]
             g = n.geometry()
             pathAtt = g.findPrimAttrib("path")
