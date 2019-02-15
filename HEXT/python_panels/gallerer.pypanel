@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="gallerer" label="Gallerer" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[from hutil.Qt import QtWidgets,QtGui,QtCore
+import lzutil
+import os
+import hou
+import glob,json,shutil,toolutils
+
+class my_QTreeWidgetItem(QtWidgets.QTreeWidgetItem):
+    def __init__( self, parent, name ):
+        super( my_QTreeWidgetItem, self ).__init__( parent )
+        self.ge = []
+        self.setText( 0, name[0] )
+
+class LZ_vex_interface(QtWidgets.QWidget):
+    def __init__(self,scipt = 'lz_quick_vex',rows = 4):
+        super(LZ_vex_interface, self).__init__()
+        self.mainLayout = QtWidgets.QGridLayout() 
+        
+        self.extractToggle = QtWidgets.QCheckBox("Extract")  
+        self.extractToggle.setChecked(True)
+        
+        self.TreeWidget = QtWidgets.QTreeWidget()  
+        self.TreeWidget.itemDoubleClicked.connect(self.doubleClicked)
+        self.TreeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.TreeWidget.customContextMenuRequested.connect(self.openMenu)        
+        
+        self.fillGalleries()        
+        self.mainLayout.addWidget(self.extractToggle)
+        self.mainLayout.addWidget(self.TreeWidget)
+        
+        self.setStyleSheet("background-color: hsv(0,0,45);") 
+        self.setLayout(self.mainLayout)
+    
+    def update(self):
+        if len(hou.selectedNodes()) == 1:
+            n = hou.selectedNodes()[0]            
+            ge = self.TreeWidget.selectedItems()[0].ge          
+            if ge.name() == hou.selectedNodes()[0].name():            
+                print "updated " + str(ge)       
+                ge.setScriptFromNode(hou.selectedNodes()[0])
+                ge.setContentsFromNode(hou.selectedNodes()[0])
+            else:
+                print "Cant update: Names dont match"
+        else:
+            print "Cant update: no nodes selected"
+        
+        # Fix Category
+        ge = self.TreeWidget.selectedItems()[0].ge  
+        Category = self.TreeWidget.selectedItems()[0].parent().text(0)
+        if ge.categories()[0] != Category:
+            #print "CategoryError: " + ge.categories()[0] + " in " + Category
+            ge.setCategories([Category])
+            print "Category changed to " + Category
+               
+                
+       
+    def openMenu(self, position):
+        menu = QtWidgets.QMenu()
+
+        update_menu = QtWidgets.QAction("Update", self)
+        update_menu.triggered.connect(self.update)
+        menu.addAction(update_menu) 
+        #Extract_menu = QtWidgets.QAction("Extract", self)        
+        #menu.addAction(Extract_menu)
+
+        menu.exec_(self.TreeWidget.viewport().mapToGlobal(position))
+           
+    def doubleClicked(self,item, column_no):
+        ge =  item.ge
+        
+        ne = toolutils.networkEditor()
+        parent = ne.currentNode()
+        if parent.type().name() != 'geo':
+            parent = parent.parent()
+        n = ge.createChildNode(parent)
+        
+        if self.extractToggle.isChecked():
+            # Clean
+            for c in n.children():
+                for p in c.parms():
+                    if p.keyframes() != ():
+                        if p.isLocked() == False:
+                            ex = p.expression()
+                            for parm in n.parms():
+                                ref = 'ch("../' + p.name() + '")'
+                                if ex.find(ref) != -1:
+                                                p.deleteAllKeyframes()
+            # Extract
+            n.extractAndDelete() 
+        
+        
+    def fillGalleries(self):
+        for g in hou.galleries.galleries():
+            gstr = str(g).split("/")[-1].split(".")[0]
+            if gstr!= "Geometry" and gstr != "VopMaterials":
+            
+                gallery = QtWidgets.QTreeWidgetItem(self.TreeWidget, [gstr])
+           
+                for ge in g.galleryEntries():
+                    ge_name = ge.name()
+                    new_item = my_QTreeWidgetItem(gallery, [ge_name])
+                    new_item.ge = ge  
+                    
+    
+                
+                 
+def onCreateInterface():
+    return LZ_vex_interface()      ]]></script>
+    <includeInToolbarMenu menu_position="110" create_separator="false"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>
