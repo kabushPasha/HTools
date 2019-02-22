@@ -388,7 +388,11 @@ for n in hou.selectedNodes():
         
         for i in range(0,threads):  
             sf = int(n.parm("f1").eval())
-            cmd = 'hou.parm("' + n.path() + '/f1").set(' +str(sf+i)+ ');'
+            cmd = 'hou.parm("' + n.path() + '/f1").deleteAllKeyframes();'
+            cmd += 'hou.parm("' + n.path() + '/f2").deleteAllKeyframes();'
+            cmd += 'hou.parm("' + n.path() + '/f3").deleteAllKeyframes();'
+            
+            cmd += 'hou.parm("' + n.path() + '/f1").set(' +str(sf+i)+ ');'
             cmd += 'hou.parm("' + n.path() + '/f3").set(' +str(threads)+ ');'
         
             cmd += 'hou.parm("' + n.path() + '/execute").pressButton()'
