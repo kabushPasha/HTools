@@ -62,6 +62,17 @@
             "addcode": "// pick random number from an array\nint values[] = {};\nforeach(int i;string s;split(chs('values'),' '))\nvalues[i] = atoi(s);\nint result = values[floor(len(values)*rand(@ptnum))];"
         }
     },
+    "Transformations": {
+        "UpN to Orient": {
+            "addcode": "p@orient = quaternion(maketransform(v@N,v@up));  "
+        },
+        "orient to N": {
+            "addcode": "v@N = qrotate(p@orient,{0,0,1});\nv@up = qrotate(p@orient,{0,1,0});"
+        },
+        "orient to N and up": {
+            "addcode": "v@N = qrotate(p@orient,{0,0,1});\nv@up = qrotate(p@orient,{0,1,0});"
+        }
+    },
     "Utility": {
         "maya strip namespaces": {
             "addcode": "string clean_path = \"\";\nstring pieces[] = split(s@path,\"/\");\nforeach(int i;string s;pieces)\n{\n// strip the last Shape staff\nif( i != len(pieces)-1)\n    {\n        //check if we have namespaces\n        string parts[] = split(s,\":\");\n        int nparts = len(parts);\n        if( nparts > 1)\n            clean_path += parts[nparts - 1] + \"/\";\n        else\n            clean_path += s + \"/\";    \n    }\n}\n\ns@path = clean_path;"

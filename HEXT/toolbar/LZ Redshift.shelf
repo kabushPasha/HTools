@@ -382,7 +382,7 @@ hou.hscript('colorsettings -l "'+ mega +'/Assets/LUTS/Rec.709_for_ACEScg_Houdini
 threads = 5
 
 for n in hou.selectedNodes():
-    if n.type().name() == 'Redshift_Proxy_Output':
+    if n.type().name() == 'Redshift_Proxy_Output' or n.type().name() == 'Redshift_ROP':
         hython = hou.getenv('HB')+'/hython'
         file = hou.hipFile.path()
         
@@ -397,7 +397,9 @@ for n in hou.selectedNodes():
         
             cmd += 'hou.parm("' + n.path() + '/execute").pressButton()'
             #print cmd
-            subprocess.Popen([hython,file,'-c',cmd])]]></script>
+            subprocess.Popen([hython,file,'-c',cmd])
+            
+]]></script>
   </tool>
 
   <tool name="AssetPrepare" label="AssetPrepare" icon="hicon:/SVGIcons.index?MISC_conductor.svg">
