@@ -10,6 +10,7 @@
 from glob import glob
 import os
 import toolutils
+import lzutil
 
 rows = 4
 
@@ -89,50 +90,31 @@ class CanoeAssets(QtWidgets.QWidget):
                     proxy_holder.parm("RS_objprop_proxy_enable").set(1)
                     proxy_holder.parm("RS_objprop_proxy_file").set(filename.replace("\\","/"))
                     proxy_holder.createNode("redshift_proxySOP")
-                    proxy_holder.parm("scale").set(0.01)
                     proxy_holder.parm("RS_objprop_proxy_preview").set(2)
                 else:
                     wrangle = proxy_holder.createNode("attribwrangle","CreatePoint")
                     wrangle.parm('class').set(0)
-                    script = "int pt = addpoint(0,0);\n\n"
-                    script += 'string v = itoa(chi("version") + 1);\n' 
-                    script += 'string instancefile = "' +file.replace("\\","/")+'/"+v+".rs";\n'
-                    script += 'setpointattrib(0,"instancefile",pt,instancefile);\n'
-                    script += '\n'
-                    script += 'setpointattrib(0,"v",pt,{0,0,0});\n'
-                    script += 'setpointattrib(0,"up",pt,{0,1,0});\n\n\n'                    
-                    wrangle.parm('snippet').set(script)                    
+                    lzutil.preset(wrangle,"RS ProxyLoader")  
+                    wrangle.parm("file0").set(filename.replace("\\","/"))
                     
                     render = wrangle.createOutputNode('null',"RENDER")
-                    rsInstance = render.createOutputNode('redshift_instancefileSOP',"PREVIEW")
-                    rsInstance.parm("prevMode").set(2)
+                    rsInstance = render.createOutputNode('LZ_RS_InstanceProxies::001',"instance_proxies")
                     rsInstance.setDisplayFlag(True)            
                     render.setRenderFlag(True) 
                     
                     if self.PackedAddToggle.isChecked():
                         render.destroy() 
-                        # Pack node
-                        pack = rsInstance.createOutputNode('pack')                                                     
-                        pack.parm('createpath').set(0)   
-                        # Copy Path Wrangle
-                        copyPathWrangle = pack.createOutputNode('attribwrangle',"copy_path")
-                        script = 's@path = s@opinput1_instancefile;'
-                        copyPathWrangle.parm('snippet').set(script)  
-                        copyPathWrangle.setInput(1,wrangle,0)
-                        # Merge
-                        merge = copyPathWrangle.createOutputNode('merge')
                         # Packed Add                        
-                        packedAdd = merge.createOutputNode('LZ_PackedAdd')
+                        packedAdd = rsInstance.createOutputNode('LZ_PackedAdd')
                         packedAdd.parm("random_initial_rotation").set(1)
                         packedAdd.parm("multiple_instances").set(1)
-                        # instance_from_id wrangle
-                        wrangle2 = packedAdd.createOutputNode("attribwrangle","instance_from_id")
-                        wrangle2.parm('snippet').set('s@instancefile = point(1,"path",i@pid);')
-                        wrangle2.setInput(1,merge,0)
-                        wrangle2.setInput(0,packedAdd,1)
-                        render = wrangle2.createOutputNode('null',"RENDER")
+
+                        instance_proxies = packedAdd.createOutputNode('LZ_RS_InstanceProxies::001',"instance_proxies")
+                        instance_proxies.parm('reverse').set(1)
+                        render = instance_proxies.createOutputNode('null',"RENDER")
+                        render.setRenderFlag(True)
                         packedAdd.setDisplayFlag(True)            
-                        render.setRenderFlag(True) 
+                        
                         # Jump into wrangle
                         packedAdd.setSelected(True)                        
                         sv = toolutils.sceneViewer()
@@ -141,7 +123,6 @@ class CanoeAssets(QtWidgets.QWidget):
                         # Layout
                         wrangle.move(hou.Vector2(0,-1))
                         rsInstance.move(hou.Vector2(-1.3,0))
-                        pack.move(hou.Vector2(-1.3,0))
                         packedAdd.move(hou.Vector2(-1.3,0))
                     
                         # Find Number of proxies inside 
@@ -149,41 +130,17 @@ class CanoeAssets(QtWidgets.QWidget):
                         proxies = glob(file.replace("\\","/") + "/*.rs")
                         nproxies = len(proxies)
                         
-                        if nproxies>1:
-                            # multiload snippet
-                            wrangle.parm("snippet").set('for (int i = 0;i<chi("npoints");i++)\n{\n    int pt = addpoint(0,0);\n    \n    string v = itoa(i + 1);\n    string instancefile = "' + file.replace("\\","/") + '/"+v+".rs";\n    setpointattrib(0,"instancefile",pt,instancefile);\n    \n    setpointattrib(0,"v",pt,{0,0,0});\n    setpointattrib(0,"up",pt,{0,1,0});\n}')
+                        if nproxies > 1:
+                            wrangle.parm("type0").set(2)
                             
+                            folder = file.replace("\\","/")
+                            result = ""
+                            for file in glob(folder + "/*.rs"):
+                                result +=  os.path.abspath(file).rsplit("\\",1)[1].rsplit(".")[0] + " "
                             
-                            ptg = wrangle.parmTemplateGroup()
-                            np = hou.IntParmTemplate("npoints", "Npoints", 1, default_value=([nproxies]), min=0, max=nproxies, )
-                            ptg.addParmTemplate(np)
-                            wrangle.setParmTemplateGroup(ptg)
+                            wrangle.parm("files_string0").set(result.rstrip())
+                                
                             
-                            
-                            foreach_begin = wrangle.createOutputNode("block_begin","Begin")
-                            foreach_begin.setPosition(wrangle.position() + hou.Vector2(0.0046,-0.79125))
-                            foreach_begin.parm("method").set(1)
-                            foreach_begin.parm("blockpath").set('../End')
-                            
-                            foreach_end = copyPathWrangle.createOutputNode("block_end","End")
-                            foreach_end.setPosition(copyPathWrangle.position() + hou.Vector2(0.0046,-0.78417))
-                            foreach_end.parm("itermethod").set(1)
-                            foreach_end.parm("method").set(1)
-                            foreach_end.parm("useattrib").set(0)
-                            foreach_end.parm("blockpath").set('../Begin')
-                            foreach_end.parm("templatepath").set('../Begin')
-                            
-                            merge.setInput(0,foreach_end)   
-                            rsInstance.setInput(0,foreach_begin) 
-                            copyPathWrangle.setInput(1,foreach_begin)
-                            
-                            # Layout
-                            merge.destroy() 
-                            packedAdd.setInput(0,foreach_end)
-                            wrangle2.setInput(1,foreach_end)                            
-                            foreach_begin.move(hou.Vector2(0,1))
-                            wrangle.move(hou.Vector2(0,1))  
-                        
                 proxy_holder.moveToGoodPosition()
 
 def onCreateInterface():
