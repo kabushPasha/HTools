@@ -80,68 +80,78 @@ class CanoeAssets(QtWidgets.QWidget):
    
     def createAsset(self,file):
         if file is not None:
-            assetName = file.split("\\")[-1]  
-            filename =  file + "\\1.rs"
-            if os.path.isfile(filename):
-                obj = hou.node('/obj')
-                proxy_holder = obj.createNode('geo',"RS_" + assetName,True)
-                if self.objInstanceToggle.isChecked():
-                    # create object level proxy
-                    proxy_holder.parm("RS_objprop_proxy_enable").set(1)
-                    proxy_holder.parm("RS_objprop_proxy_file").set(filename.replace("\\","/"))
-                    proxy_holder.createNode("redshift_proxySOP")
-                    proxy_holder.parm("RS_objprop_proxy_preview").set(2)
-                else:
-                    wrangle = proxy_holder.createNode("attribwrangle","CreatePoint")
-                    wrangle.parm('class').set(0)
-                    lzutil.preset(wrangle,"RS ProxyLoader")  
-                    wrangle.parm("file0").set(filename.replace("\\","/"))
-                    
-                    render = wrangle.createOutputNode('null',"RENDER")
-                    rsInstance = render.createOutputNode('LZ_RS_InstanceProxies::001',"instance_proxies")
-                    rsInstance.setDisplayFlag(True)            
-                    render.setRenderFlag(True) 
-                    
-                    if self.PackedAddToggle.isChecked():
-                        render.destroy() 
-                        # Packed Add                        
-                        packedAdd = rsInstance.createOutputNode('LZ_PackedAdd')
-                        packedAdd.parm("random_initial_rotation").set(1)
-                        packedAdd.parm("multiple_instances").set(1)
-
-                        instance_proxies = packedAdd.createOutputNode('LZ_RS_InstanceProxies::001',"instance_proxies")
-                        instance_proxies.parm('reverse').set(1)
-                        render = instance_proxies.createOutputNode('null',"RENDER")
-                        render.setRenderFlag(True)
-                        packedAdd.setDisplayFlag(True)            
+            add_to_ProxyLoader = True
+            add_to_ProxyLoader *= (len(hou.selectedNodes()) == 1)
+            if add_to_ProxyLoader: add_to_ProxyLoader*= hou.selectedNodes()[0].type().name()=='attribwrangle'
+            if add_to_ProxyLoader: add_to_ProxyLoader*= (hou.selectedNodes()[0].parm("proxies") is not None)
+            if add_to_ProxyLoader:
+                proxy_loader = hou.selectedNodes()[0]
+                new_id = proxy_loader.parm("proxies").eval()
+                proxy_loader.parm("proxies").set(new_id + 1)
+                proxy_loader.parm("file" + str(new_id)).set(file.replace("\\","/") + "/1.rs")
+            
+            else:
+                assetName = file.split("\\")[-1]  
+                filename =  file + "\\1.rs"
+                if os.path.isfile(filename):
+                    obj = hou.node('/obj')
+                    proxy_holder = obj.createNode('geo',"RS_" + assetName,True)
+                    if self.objInstanceToggle.isChecked():
+                        # create object level proxy
+                        proxy_holder.parm("RS_objprop_proxy_enable").set(1)
+                        proxy_holder.parm("RS_objprop_proxy_file").set(filename.replace("\\","/"))
+                        proxy_holder.createNode("redshift_proxySOP")
+                        proxy_holder.parm("RS_objprop_proxy_preview").set(2)
+                    else:
+                        wrangle = proxy_holder.createNode("attribwrangle","CreatePoint")
+                        wrangle.parm('class').set(0)
+                        lzutil.preset(wrangle,"RS ProxyLoader")  
+                        wrangle.parm("file0").set(filename.replace("\\","/"))
                         
-                        # Jump into wrangle
-                        packedAdd.setSelected(True)                        
-                        sv = toolutils.sceneViewer()
-                        sv.enterCurrentNodeState()
+                        render = wrangle.createOutputNode('null',"RENDER")
+                        rsInstance = render.createOutputNode('LZ_RS_InstanceProxies::001',"instance_proxies")
+                        rsInstance.setDisplayFlag(True)            
+                        render.setRenderFlag(True) 
                         
-                        # Layout
-                        wrangle.move(hou.Vector2(0,-1))
-                        rsInstance.move(hou.Vector2(-1.3,0))
-                        packedAdd.move(hou.Vector2(-1.3,0))
-                    
-                        # Find Number of proxies inside 
-                        file.replace("\\","/") + "/*.rs"
-                        proxies = glob(file.replace("\\","/") + "/*.rs")
-                        nproxies = len(proxies)
-                        
-                        if nproxies > 1:
-                            wrangle.parm("type0").set(2)
+                        if self.PackedAddToggle.isChecked():
+                            render.destroy() 
+                            # Packed Add                        
+                            packedAdd = rsInstance.createOutputNode('LZ_PackedAdd')
+                            packedAdd.parm("random_initial_rotation").set(1)
+                            packedAdd.parm("multiple_instances").set(1)
+    
+                            instance_proxies = packedAdd.createOutputNode('LZ_RS_InstanceProxies::001',"instance_proxies")
+                            instance_proxies.parm('reverse').set(1)
+                            render = instance_proxies.createOutputNode('null',"RENDER")
+                            render.setRenderFlag(True)
+                            packedAdd.setDisplayFlag(True)            
                             
-                            folder = file.replace("\\","/")
-                            result = ""
-                            for file in glob(folder + "/*.rs"):
-                                result +=  os.path.abspath(file).rsplit("\\",1)[1].rsplit(".")[0] + " "
+                            # Jump into wrangle
+                            packedAdd.setSelected(True)                        
+                            sv = toolutils.sceneViewer()
+                            sv.enterCurrentNodeState()
                             
-                            wrangle.parm("files_string0").set(result.rstrip())
+                            # Layout
+                            wrangle.move(hou.Vector2(0,-1))
+                            rsInstance.move(hou.Vector2(-1.3,0))
+                            packedAdd.move(hou.Vector2(-1.3,0))
+                        
+                            # Find Number of proxies inside 
+                            file.replace("\\","/") + "/*.rs"
+                            proxies = glob(file.replace("\\","/") + "/*.rs")
+                            nproxies = len(proxies)
+                            
+                            if nproxies > 1:
+                                wrangle.parm("type0").set(2)
                                 
-                            
-                proxy_holder.moveToGoodPosition()
+                                folder = file.replace("\\","/")
+                                result = ""
+                                for file in glob(folder + "/*.rs"):
+                                    result +=  os.path.abspath(file).rsplit("\\",1)[1].rsplit(".")[0] + " "
+                                
+                                wrangle.parm("files_string0").set(result.rstrip())
+                                
+                    proxy_holder.moveToGoodPosition()
 
 def onCreateInterface():
     return CanoeAssets()
