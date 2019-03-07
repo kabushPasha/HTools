@@ -139,7 +139,7 @@ newnode.setDisplayFlag(False)]]></script>
     "TessellationDisplacementEnable"]
     
     for parm in parms:
-        print parm
+        #print parm
         n.parm(parm).set(n.parm(parm + "2"))
 
 
