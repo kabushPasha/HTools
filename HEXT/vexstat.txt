@@ -33,7 +33,7 @@
     "primuv": 7,
     "qconvert": 1,
     "qrotate": 5,
-    "re_replace": 12,
+    "re_replace": 13,
     "re_split ": 1,
     "removepoint ": 12,
     "removeprim  ": 2,
