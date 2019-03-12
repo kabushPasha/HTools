@@ -189,6 +189,9 @@
         }
     },
     "Regex": {
+        "PadZero4": {
+            "code": "sprintf('%04d',"
+        },
         "re_replace": {
             "code": "string s1 =  re_replace('__my__',sprintf('%04d',i@id),chs('str'));"
         },
