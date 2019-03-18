@@ -151,7 +151,7 @@ if rs is None:
     ipr = __import__('roptoolutils').createRenderNode('Redshift_IPR')
     
     rs.parm('RS_renderAOVsToMPlay').set(1)
-    rs.parm('RS_outputEnable').set(0)
+    #rs.parm('RS_outputEnable').set(0)
     
     rs.parm('MotionBlurDeformationEnabled').set(1)  
     rs.parm('RS_mbPoints').set(1)
