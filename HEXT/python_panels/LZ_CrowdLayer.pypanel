@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="crowd_layer" label="Crowd Layer" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[from hutil.Qt import QtWidgets,QtGui,QtCore
+import lzutil
+import os
+import hou
+import glob,json,shutil,types
+import toolutils
+
+def lz_check(condition,error_message):
+    if not condition : raise Exception(error_message)     
+
+class my_QTreeWidgetItem(QtWidgets.QTreeWidgetItem):
+    def __init__( self, parent, name ):
+        super( my_QTreeWidgetItem, self ).__init__( parent )
+        self.oldpath = ""
+        self.setText( 0, name[0] )
+
+class LZ_abc_interface(QtWidgets.QWidget):
+    def __init__(self):
+        super(LZ_abc_interface, self).__init__() 
+        self.mainLayout = QtWidgets.QGridLayout()            
+        
+        self.updateNode_btn = QtWidgets.QPushButton('Update', self)
+        self.updateNode_btn.clicked.connect(self.updateNode)        
+        '''
+        self.rename_btn = QtWidgets.QPushButton('Rename', self)
+        self.rename_btn.clicked.connect(self.createRename)        
+        self.split_btn = QtWidgets.QPushButton('Split', self)
+        self.split_btn.clicked.connect(self.split)
+        self.delete_btn = QtWidgets.QPushButton('Delete', self)
+        self.delete_btn.clicked.connect(self.deleteGeo)
+        self.createMat_btn = QtWidgets.QPushButton('CreateMat', self)
+        self.createMat_btn.clicked.connect(self.createMat)
+        self.apply_btn = QtWidgets.QPushButton('Apply Group', self)
+        self.apply_btn.clicked.connect(self.applyGroup)
+        self.updateToggle = QtWidgets.QCheckBox("Update group realtime")  
+        self.getSelected_btn = QtWidgets.QPushButton('Select From Geo', self)
+        self.getSelected_btn.clicked.connect(self.getSelected)        
+        self.clearSel_btn = QtWidgets.QPushButton('Clear selection', self)
+        self.clearSel_btn.clicked.connect(self.clearSel)   
+        self.selFromNode_btn = QtWidgets.QPushButton('Selection From Node', self)
+        self.selFromNode_btn.clicked.connect(self.selFromNode) 
+        '''
+        
+        self.TreeWidget = QtWidgets.QTreeWidget()
+        self.TreeWidget.itemSelectionChanged.connect(self.selectionChanged)
+        self.TreeWidget.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        
+        #self.mainLayout.addWidget(self.updateToggle)
+        self.mainLayout.addWidget(self.updateNode_btn)
+        #self.mainLayout.addWidget(self.rename_btn)
+        #self.mainLayout.addWidget(self.split_btn)
+        #self.mainLayout.addWidget(self.delete_btn)
+        #self.mainLayout.addWidget(self.createMat_btn)
+        #self.mainLayout.addWidget(self.apply_btn)        
+        #self.mainLayout.addWidget(self.getSelected_btn)        
+        #self.mainLayout.addWidget(self.selFromNode_btn)
+        #self.mainLayout.addWidget(self.clearSel_btn)
+        
+        self.mainLayout.addWidget(self.TreeWidget)
+        
+        self.setStyleSheet("background-color: hsv(0,0,45);")               
+        self.setLayout(self.mainLayout)
+        
+        self.namespace = ""
+        self.base_name = "All"
+        self.parms_dict = dict()
+        self.realtime_update = 0
+    
+    def create_parms_dict(self):
+        try:
+            lz_check(len(hou.selectedNodes()) > 0,'No selected Nodes')
+            n = hou.selectedNodes()[0]
+            lz_check(n.parm("Shapes_Folder") != None,'No Shapes_Folder Parm, please select an LZ Create Layer node')
+            
+            nparms = n.parm("Shapes_Folder").eval()
+            for i in range(0,nparms):
+                shape_name = n.parm("sname" + str(i)).eval().split(".")[-1]
+                self.parms_dict[shape_name] = [n.parm("shape" + str(i))]
+            
+        except Exception as exc:
+            print exc   
+            
+    
+    
+    def clearSel(self):
+        self.TreeWidget.clearSelection()
+              
+    def treeItemDoubleClicked(self,item, column_no):
+        #print(item, column_no)
+        print item.oldpath.split("/")[-1]
+    
+    def selectionChanged(self):
+        # realtime update is to update items only when we select them, but not use update button
+        if self.realtime_update:
+            root = self.TreeWidget.invisibleRootItem()        
+            # create parms dict
+            self.create_parms_dict()
+            # clear node selection
+            for key in self.parms_dict.keys():
+                self.parms_dict[key][0].set(0)
+            
+            def set_selected_shapes(root):
+                # try to select self
+                key =  self.namespace + "_" + root.text(0)
+                if key in self.parms_dict.keys():
+                    self.parms_dict[key][0].set(1)            
+                # select children
+                child_count = root.childCount()
+                for i in range(child_count):
+                    item = root.child(i)
+                    set_selected_shapes(item)
+                    
+            for item in self.TreeWidget.selectedItems():
+                set_selected_shapes(item)
+            
+            
+            
+    def updateNode(self):
+            self.realtime_update = 0
+            root = self.TreeWidget.invisibleRootItem()
+            child_count = root.childCount()
+            for i in range(child_count):
+                root.removeChild(root.child(i))
+            
+            try:  
+                lz_check(len(hou.selectedNodes()) > 0,'No selected Nodes')                
+                n = hou.selectedNodes()[0]            
+                lz_check(len(n.inputs()) > 0,'node has no inputs')      
+                g = n.inputs()[0].geometry()
+                lz_check(len(g.prims()) == 1,'geometry has not exactly one prim')   
+                lz_check(g.prims()[0].type().name()=='Agent','Prim is not An Agent') 
+                
+                ag = g.prims()[0]
+                ad = ag.definition()
+                sl = ad.shapeLibrary()
+                
+                lz_check(sl.isExternalReference(),'Shape library is not stored on disk, wtf?') 
+                
+                sl_path = hou.expandString(sl.fileName())
+                map = os.path.dirname(sl_path) + "/map.json"
+                lz_check( os.path.isfile(map), "No map json file found at:\n" + map )
+                
+                structure_with_namespace = json.load(open(map)) 
+                structure = structure_with_namespace["structure"]
+                self.namespace = structure_with_namespace["namespace"]
+                
+                # create parms dict
+                self.create_parms_dict()
+                # Create Our Tree
+                def printStr(structure,tabs = '',tree = self.TreeWidget,fullpath=""):
+                    for key in structure.keys():
+                        test_key =  self.namespace + "_" + key
+                        
+                        if len(structure[key]) != 0 or test_key in self.parms_dict.keys():
+                            new_fullpath = fullpath + key + "/"
+                            new_item = my_QTreeWidgetItem(tree, [key])
+                            new_item.setExpanded(True)
+                            new_item.oldpath = new_fullpath
+                            
+                            # Check if our node has this item selected and apply it
+                            if test_key in self.parms_dict.keys():
+                                selected = self.parms_dict[test_key][0].eval()
+                                new_item.setSelected(selected)
+                            
+                            printStr(structure[key],tabs + "  ",new_item,new_fullpath)
+                
+                self.TreeWidget.update()                
+                printStr(structure)
+                
+                root = self.TreeWidget.invisibleRootItem()
+                def traverse(root): 
+                    child_count = root.childCount()
+                    All_selected = 1 * (root.childCount()>0)
+                    for i in range(child_count):
+                        item = root.child(i)
+                        traverse(item)
+                        All_selected *= item.isSelected()
+                    if All_selected == 1:
+                        for i in range(child_count):
+                            item = root.child(i)
+                            item.setSelected(0)
+                        root.setSelected(1)
+                traverse(root)  
+                
+                self.realtime_update = 1
+                
+            except Exception as exc:
+                print exc
+                
+            
+def onCreateInterface():
+    return LZ_abc_interface()]]></script>
+    <includeInToolbarMenu menu_position="111" create_separator="false"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>
