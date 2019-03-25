@@ -141,12 +141,17 @@ class LZ_abc_interface(QtWidgets.QWidget):
                 ag = g.prims()[0]
                 ad = ag.definition()
                 sl = ad.shapeLibrary()
+                rig = ad.rig()
                 
                 lz_check(sl.isExternalReference(),'Shape library is not stored on disk, wtf?') 
                 
                 sl_path = hou.expandString(sl.fileName())
                 map = os.path.dirname(sl_path) + "/map.json"
                 lz_check( os.path.isfile(map), "No map json file found at:\n" + map )
+                
+                # We can find the shape structure in rig, but its nt as clear where the geometry lies there
+                #rig_structure = json.loads(rig.asJSON())
+                #print rig_structure
                 
                 structure_with_namespace = json.load(open(map)) 
                 structure = structure_with_namespace["structure"]

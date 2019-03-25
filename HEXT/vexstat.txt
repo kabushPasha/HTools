@@ -31,7 +31,7 @@
     "orient to N and up": 3,
     "pointprims": 3,
     "prim": 1,
-    "primintrinsic": 2,
+    "primintrinsic": 3,
     "primpoint": 3,
     "primpoints": 2,
     "primuv": 7,
