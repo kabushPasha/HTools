@@ -441,7 +441,8 @@ for n in hou.selectedNodes():
             cmd += 'hou.parm("' + n.path() + '/f1").set(' +str(sf+i)+ ');'
             cmd += 'hou.parm("' + n.path() + '/f3").set(' +str(threads)+ ');'
         
-            cmd += 'hou.parm("' + n.path() + '/execute").pressButton()'
+            cmd += 'hou.parm("' + n.path() + '/execute").pressButton();'
+            cmd += 'import time;time.sleep(60)'
             #print cmd
             subprocess.Popen([hython,file,'-c',cmd])
             
