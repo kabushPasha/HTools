@@ -1,0 +1,1 @@
+C:\Users\Pavel\AppData\Local\Programs\Python\Python37\python.exe X:\SHARE\PashaK\!Ambient\MultiServerClassWeb.py
