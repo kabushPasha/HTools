@@ -1,1 +1,0 @@
-setx HTOOLS %~dp0
