@@ -494,7 +494,55 @@ float wf2(vector P)
 	wnoise(P, seed, f1, f2);
 	return f2;	
 }
-	
+
+float cwseed(vector P)	
+{
+	int seed;
+	float f1,f2;
+	cwnoise(P, seed, f1, f2);
+	return seed;	
+}
+float cwf1(vector P)	
+{
+	int seed;
+	float f1,f2;
+	cwnoise(P, seed, f1, f2);
+	return f1;	
+}
+float cwf2(vector P)	
+{
+	int seed;
+	float f1,f2;
+	cwnoise(P, seed, f1, f2);
+	return f2;	
+}
+
+float mwseed(vector P)	
+{
+	int seed;
+	float f1,f2;
+	mwnoise(P, seed, f1, f2);
+	return seed;	
+}
+float mwf1(vector P)	
+{
+	int seed;
+	float f1,f2;
+	mwnoise(P, seed, f1, f2);
+	return f1;	
+}
+float mwf2(vector P)	
+{
+	int seed;
+	float f1,f2;
+	mwnoise(P, seed, f1, f2);
+	return f2;	
+}
+
+
+
+
+
 float boxes(vector _pos)
 {
 	vector pos = _pos;
