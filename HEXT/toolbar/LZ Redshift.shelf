@@ -527,7 +527,7 @@ matte.parm("RS_objprop_matte_shadowsFromM").set(0)
     <script scriptType="python"><![CDATA[obj = hou.node("obj")
 
 holder = obj.createNode("geo","RS_Spheres")
-holder.parm("ty").set(1.5)
+holder.parm("ty").set(0.6)
 holder.parm("scale").set(0.5)
 merge = holder.createNode("merge")
 
