@@ -17,6 +17,9 @@
     <memberTool name="batchProxy"/>
     <memberTool name="AssetPrepare"/>
     <memberTool name="find_all_textures"/>
+    <memberTool name="matte_grid"/>
+    <memberTool name="spheres"/>
+    <memberTool name="add_reflection_sphere"/>
   </toolshelf>
 
   <tool name="rs_cam_from_view" label="Rs camera from view" icon="hicon:/SVGIcons.index?OBJ_camera.svg">
@@ -495,5 +498,134 @@ print size_total
             
             
             ]]></script>
+  </tool>
+
+  <tool name="matte_grid" label="Matte Grid" icon="hicon:/SVGIcons.index?COP2_atop.svg">
+    <script scriptType="python"><![CDATA[obj = hou.node("obj")
+
+matte = obj.createNode("geo","RS_Matte_grid")
+grid = matte.createNode("grid")
+mat = grid.createOutputNode("Rs_quickMat")
+material = mat.node("mat").node("mat").node("Material1")
+material.parm("refl_weight").set(1)
+
+mat.setDisplayFlag(1)
+mat.setRenderFlag(1)
+
+matte.parm("RS_objprop_matte_enable").set(1)
+matte.parm("RS_objprop_matte_alpha").set(0)
+matte.parm("RS_objprop_matte_reflscale").set(1)
+matte.parm("RS_objprop_matte_refrscale").set(1)
+matte.parm("RS_objprop_matte_diffscale").set(1)
+matte.parm("RS_objprop_matte_shadowenable").set(1)
+matte.parm("RS_objprop_matte_shadowsFromM").set(0)
+
+]]></script>
+  </tool>
+
+  <tool name="spheres" label="Spheres" icon="hicon:/SVGIcons.index?TOOLS_select_remove.svg">
+    <script scriptType="python"><![CDATA[obj = hou.node("obj")
+
+holder = obj.createNode("geo","RS_Spheres")
+holder.parm("ty").set(1.5)
+holder.parm("scale").set(0.5)
+merge = holder.createNode("merge")
+
+# Diffuse
+sphere = holder.createNode("sphere")
+sphere.parm("type").set(1)
+sphere.parm("freq").set(8)
+
+mat = sphere.createOutputNode("Rs_quickMat")
+material = mat.node("mat").node("mat").node("Material1")
+material.parmTuple("diffuse_color").set(hou.Vector3(1,1,1))
+merge.setNextInput(mat)
+
+# reflect
+sphere = holder.createNode("sphere")
+sphere.parm("type").set(1)
+sphere.parm("freq").set(8)
+sphere.parm("tx").set(2.5)
+
+mat = sphere.createOutputNode("Rs_quickMat")
+material = mat.node("mat").node("mat").node("Material1")
+material.parm("refl_weight").set(1)
+material.parm("diffuse_weight").set(0)
+material.parm("refl_fresnel_mode").set("2")
+material.parm("refl_metalness").set(1)
+merge.setNextInput(mat)
+# refract
+sphere = holder.createNode("sphere")
+sphere.parm("type").set(1)
+sphere.parm("freq").set(8)
+sphere.parm("tx").set(-2.5)
+
+mat = sphere.createOutputNode("Rs_quickMat")
+material = mat.node("mat").node("mat").node("Material1")
+material.parm("refl_weight").set(1)
+material.parm("refr_weight").set(1)
+merge.setNextInput(mat)
+
+holder.layoutChildren()
+holder.moveToGoodPosition()
+
+
+#mat.setDisplayFlag(1)
+#mat.setRenderFlag(1)]]></script>
+  </tool>
+
+  <tool name="add_reflection_sphere" label="Reflection Sphere" icon="hicon:/SVGIcons.index?SCENEGRAPH_domelight.svg">
+    <script scriptType="python"><![CDATA[hdri = hou.selectedNodes()[0]
+if hdri.type().name() == 'rslightdome::2.0':
+    print "hi"
+    refl_sphere = hdri.createOutputNode("geo","RS_ReflectionSphere")
+    refl_sphere.parm("ry").set(270.6)
+    refl_sphere.parm("scale").set(100000)
+    
+    refl_sphere.parm("viewportlod").set(4)
+    refl_sphere.parm("MESHFLAG_PRIMARYRAYVISIBLE").set(0)
+    refl_sphere.parm("MESHFLAG_SHADOWCASTER").set(0)
+    refl_sphere.parm("MESHFLAG_SHADOWRECEIVER").set(0)
+    refl_sphere.parm("MESHFLAG_NOSELFSHADOW").set(0)
+    refl_sphere.parm("MESHFLAG_AOCASTER").set(0)
+    refl_sphere.parm("MESHFLAG_REFLECTIONVISIBLE").set(0)
+    refl_sphere.parm("MESHFLAG_REFLECTIONCASTER").set(0)
+    refl_sphere.parm("MESHFLAG_REFRACTIONCASTER").set(0)
+    refl_sphere.parm("MESHFLAG_FGVISIBLE").set(0)
+    refl_sphere.parm("MESHFLAG_GIVISIBLE").set(0)
+    refl_sphere.parm("MESHFLAG_CAUSTICVISIBLE").set(0)
+    refl_sphere.parm("MESHFLAG_FGCASTER").set(0)
+    refl_sphere.parm("MESHFLAG_GICASTER").set(0)
+    
+    #create sphere1 node    
+    sphere1 = refl_sphere.createNode("sphere","sphere1")
+    sphere1.parm("type").set(2)
+    sphere1.parm("rows").set(55)
+    sphere1.parm("cols").set(105)
+    
+    #create uvtexture1 node
+    uvtexture1 = sphere1.createOutputNode("texture","uvtexture1")
+    uvtexture1.setPosition(sphere1.position() + hou.Vector2(4.85722573274e-17,-0.734234228274))
+    uvtexture1.parm("type").set(1)
+    uvtexture1.parm("su").set(-1.0)
+    uvtexture1.parm("fixseams").set(1)
+    
+    #create Rs_quickMat1 node
+    Rs_quickMat1 = uvtexture1.createOutputNode("Rs_quickMat::004","Rs_quickMat1")
+    Rs_quickMat1.setPosition(uvtexture1.position() + hou.Vector2(2.82882882883,-0.90990990991))
+    Rs_quickMat1.parm("material").set('/obj/RS_sphere1/Rs_quickMat1')
+    
+    material = Rs_quickMat1.node("mat").node("mat")
+    tex = material.createNode('redshift::TextureSampler')
+    tex.parm("tex0").set(hdri.parm("env_map"))
+    
+    material.node("redshift_material1").setInput(0,tex)
+    
+    Rs_quickMat1.setRenderFlag(1)
+    
+    
+    
+    
+    ]]></script>
   </tool>
 </shelfDocument>
