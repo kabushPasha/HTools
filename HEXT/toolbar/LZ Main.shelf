@@ -968,4 +968,40 @@ QApplication.clipboard().setText(script)
 
 ]]></script>
   </tool>
+
+  <tool name="lz_box" label="BOX" icon="hicon:/SVGIcons.index?SOP_box.svg">
+    <script scriptType="python"><![CDATA[n = hou.selectedNodes()[0]
+
+import toolutils
+sv = toolutils.sceneViewer()
+sv.setSnappingMode(hou.snappingMode.Prim)
+pos = sv.selectPositions(number_of_positions=2)
+
+minx = min(pos[0].x(),pos[1].x())
+maxx = max(pos[0].x(),pos[1].x())
+wx = maxx - minx;
+tx = minx + wx*0.5;
+
+miny = min(pos[0].y(),pos[1].y())
+maxy = max(pos[0].y(),pos[1].y())
+wy = maxy - miny;
+ty = miny + wy*0.5;
+
+minz = min(pos[0].z(),pos[1].z())
+maxz = max(pos[0].z(),pos[1].z())
+wz = maxz - minz;
+tz = minz + wz*0.5;
+
+dn = n.parent().displayNode()
+# change to boolean if you want boolean operation
+merge = dn.createOutputNode('merge')
+box = merge.createInputNode(1,'box')
+box.parmTuple("t").set(hou.Vector3([tx,ty,tz]))
+box.parmTuple("size").set(hou.Vector3([wx,wy,wz]))
+
+sv.setSnappingMode(hou.snappingMode.Off)
+box.setSelected(True,True)
+merge.setDisplayFlag(True)
+sv.enterCurrentNodeState()   ]]></script>
+  </tool>
 </shelfDocument>
