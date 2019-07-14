@@ -1,0 +1,50 @@
+﻿/* 
+	This macro automatically converts a ZSphere to Adaptive Skin and appends it to your current tool
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef, AdaptiveSkin,
+
+	[If, [IExists,Tool:Adaptive Skin:Make Adaptive Skin],
+
+		//Store Current Tool
+		[VarSet,CurTool,[IGet,Tool:Item Info]]
+		
+		//Make Adaptive Skin
+		[IPress,Tool:Adaptive Skin:Preview]
+		[IPress,Tool:Adaptive Skin:Make Adaptive Skin]
+		
+		//Get new Tool Name
+		[ISet, Tool:Item Info,[IGetMax,Tool:Item Info]]
+		[VarSet,PMesh3D,[IGetTitle,Tool:Current Tool]]
+		
+		//Change back to Orig Tool
+		[ISet,Tool:Item Info,CurTool]
+	
+		//Append PolyMesh3D
+		[IPress,Tool:SubTool:Append]
+		[IPress,[StrMerge,"PopUp:",PMesh3D]]
+		[IKeyPress,SHIFT,[IPress,Tool:SubTool:SelectDown]]
+	,
+		[MessageOk,"Error: ZSphere tool must be selected for Adaptive Skin 2 to work"] 
+		[Exit]
+	]
+	
+]//Routine AdaptiveSkin
+
+
+[IButton,???,"Creates an Adaptive Skin from the current ZSphere subtool and appends it to your existing tool.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,AdaptiveSkin]
+,,1,,,]

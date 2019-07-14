@@ -1,0 +1,64 @@
+﻿/* 
+	This macro creates a toggable button that will cycle through Depth Masking for the selected brush
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarDef,InnerDepthValue,-0.01] //Sets the InnerDepth values used. (Default is -0.01.)
+[VarDef,OuterDepthValue,0.01] //Sets the InnerDepth values used. (Default is 0.01.)
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,DepthToggler,
+
+	//Create Memory Block to store which cycle the macro is on
+	[If,[MemGetSize,MP_BDepthCycleMemBlock],,
+		//Create and then set to 0
+		[MVarDef,MP_BDepthCycleMemBlock,1,0]
+		[MVarSet,MP_BDepthCycleMemBlock,0,0] //CurrentCycle
+	]
+	[VarSet,CurrentCycle,[MVarGet,MP_BDepthCycleMemBlock,0]]
+	
+	//Convex Depth
+	[If,CurrentCycle==0,
+		[ISet,Brush:Depth:Depth Mask,1]
+		[ISet,Brush:Depth:OuterDepth,1]
+		[ISet,Brush:Depth:InnerDepth,InnerDepthValue]
+		[Note,"Convex Depth Mask",,.1]
+	,]
+	
+	//Concave Depth
+	[If,CurrentCycle==1,
+		[ISet,Brush:Depth:Depth Mask,1]
+		[ISet,Brush:Depth:OuterDepth,OuterDepthValue]
+		[ISet,Brush:Depth:InnerDepth,-1]
+		[Note,"Concave Depth Mask",,.1]
+	,]
+	
+	//Depth Off
+	[If,CurrentCycle==2,
+		[ISet,Brush:Depth:Depth Mask,0]
+		[ISet,Brush:Depth:OuterDepth,1]
+		[ISet,Brush:Depth:InnerDepth,-1]
+		[Note,"Depth Masking Off",,.1]
+	,]
+	
+	[If,CurrentCycle>=2,
+		[VarSet,CurrentCycle,0]
+		[MVarSet,MP_BDepthCycleMemBlock,0,CurrentCycle]
+	,
+		[MVarSet,MP_BDepthCycleMemBlock,0,CurrentCycle+1]
+	]
+	
+]//Routine DepthToggler
+
+[IButton,???,"Toggles through Concave Depth Masking, Convex Depth Masking, and No Depth Masking for the Selected Brush. (Hotkey for best use!)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	//[IFreeze,
+		[RoutineCall,DepthToggler]
+	//]
+,,1,,,]

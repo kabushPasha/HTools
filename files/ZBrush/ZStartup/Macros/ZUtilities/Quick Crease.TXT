@@ -1,0 +1,37 @@
+﻿/*
+	This macro will automatically set a specified Crease Tollerance and apply the creasing
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarSet,CreaseTollerance,45] //Sets the Crease Tollerance (Default set to 45 Degrees)
+[VarSet,UncreaseFirst,0] //Will automatically uncrease first before creasing if set to 1 (Default set to 0)
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,QuickCrease,
+
+	[ISet,Tool:Geometry:CTolerance,CreaseTollerance]
+	
+	//Uncrease All?
+	[If,UncreaseFirst,
+		[IPress,Tool:Geometry:UnCreaseAll]
+	,
+	]
+	
+	[IPress,Tool:Geometry:Crease]
+	
+]//Routine QuickCrease
+
+
+[IButton,???,"Creases the model with a Set Tollerance (Default is set to 45 Degrees. Edit Macro for Options.)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,QuickCrease]
+,,1,,,]

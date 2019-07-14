@@ -1,0 +1,17 @@
+//ZBRUSH MACRO - Recorded in ZBrush version 4.73
+[IButton,???,"Press to run this macro. Macros can be aborted by pressing the ëescí key.",
+[IShowActions,0]
+[IConfig,4.73]
+[IPress,MyMenu]
+[IShowActions,0]
+[IConfig,4.73]
+[IPress,Tool:Masking:MaskByFeature]
+[IPress,Tool:Masking:Inverse]
+[ISet,Tool:Deformation:Polish By Features,100]
+[ISet,Tool:Deformation:Polish By Features,100]
+[IPress,Tool:Masking:Clear]
+[IShowActions,-1]
+[IPress,MyMenu]
+[IPress,Tool:Geometry:Close Holes]
+[IPress,Tool:Geometry:GroupsLoops]
+]

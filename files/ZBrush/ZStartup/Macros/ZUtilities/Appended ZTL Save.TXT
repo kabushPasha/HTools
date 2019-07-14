@@ -1,0 +1,99 @@
+﻿/*
+	Save out a ZTL file to a specified location and appends a number to it. 
+	Example:  You save the file as 'Car' and it will create Car_01, Car_02  
+	This allows you to simply click a button to save a new appeneded ZTL file
+	Macro will check to make sure the file doesn't already exsist. If it does it will proceed to the next appended number (up to 500)
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,AppendedZTLSave,
+
+	//Create Memory Block for Path Storage
+	[If,[MemGetSize,JD_MacroPathMemBlock],
+	
+		//Do nothing it already exsists
+		[VarSet,CurrentNumber,1]
+	,
+		[FileNameAsk, "ZTL(*.ztl)","EnterPrefix" , "Select location and enter prefix..."]
+		[VarSet,FNGLU,[FileNameGetLastUsed]]
+		[VarSet,FNtest,[StrLength,FNGLU]]
+		[If,FNTest=0,
+			[MessageOk,"Error: Selecting Save Location canceled. Please click 'Save' to select a Save Location."] //Message if a location is not chosen
+			[Exit]
+		,
+			//[Note, "We have a path"]
+		]
+		
+		[VarDef,SavePath,"Empty"]
+		[VarSet,SavePath,[FileNameExtract, [FileNameGetLastUsed], 1+2]]
+		[VarSet,SaveName,[FileNameExtract, [FileNameGetLastUsed], 2]]
+	
+		//Create Memory Point
+		[VarSet,startpoint,0]
+		[MemCreate,JD_MacroPathMemBlock,256]
+		[VarSet,write,SavePath]
+		
+		[VarSet,indx,[MemWriteString,JD_MacroPathMemBlock,write,startpoint,0]]
+		[VarSet,startpoint,startpoint+indx]	
+		[MemResize,JD_MacroPathMemBlock,startpoint]
+		
+		//Store the appended number
+		[VarSet,CurrentNumber,1]
+	]
+	
+	[VarSet,offset,0]
+	[VarSet,LocPath,""]
+	
+	//Memlength will return the full length. Loc Path returns the full path stored above
+	[VarSet,MemLength,[MemReadString, JD_MacroPathMemBlock,LocPath,offset,1]]
+	
+	//Adds a 0 If the number is less then 10
+	[If,CurrentNumber<10,
+		[VarSet,ModNum,CurrentNumber]
+		[VarSet,AppendNum,[StrMerge,"0",ModNum]]
+	,
+		[VarSet,AppendNum,CurrentNumber]
+	]
+	
+	//Check to see if the file is already there; if so keep appending till it can be written.
+	[Loop,500,
+		[If,[FileExists,[StrMerge,LocPath,"_",AppendNum,".ztl"]],
+				
+			//Append new number to switch
+			[VarSet,CurrentNumber,CurrentNumber+1]
+			
+			//Add a 0 if under 10
+			[If,CurrentNumber<10,
+				[VarSet,ModNum,CurrentNumber]
+				[VarSet,AppendNum,[StrMerge,"0",ModNum]]
+			,
+				[VarSet,AppendNum,CurrentNumber]
+			]
+		,
+			[LoopExit]
+		]
+	]//loop
+
+		
+	//Save the file
+	[FileNameSetNext,[StrMerge,LocPath,"_",AppendNum,".ztl"]]
+	[IPress,Tool:Save As]
+
+	
+]//Routine AppendedZTLSave
+
+
+[IButton,???,"Saves out the current tool as a ZTL with an appended number.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,AppendedZTLSave]
+,,1,,,]

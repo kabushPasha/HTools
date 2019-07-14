@@ -1,0 +1,84 @@
+﻿/*
+	This Macro automates the Extract Process
+	Additional options for functionality listed below
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarSet,SetThickness,0] // Setting to 1 will allow you to always use a set thickness value. Setting to 0 will use the thickness set by the tool (Default set to 0)
+[VarSet,Thickness,.05] // Set the thickness value that will be set for the extract (Default set to .05)
+
+[VarSet,UseDouble,0] // Will use the Double option in extract if set to 1 (Default set to 0)
+[VarSet,ClearInitialMask,1] //Automatically clears the initial mask used for the originial extraction. Set to 0 to disable (Default set to 1)
+[VarSet,UseZRemesher,0] //Will automatically use ZRemesher to process the extracted mesh. Set to 0 to disable (Default set to 0)
+[VarSet,SelectNewSubtool,0] // Will automatically select the extracted subtool. Set to 0 to select the inital subtool (Default set to 0)
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,QuickExtract,
+
+	[If,UseDouble,
+		[ISet,"Tool:SubTool:Double",1]
+	,
+		[ISet,"Tool:SubTool:Double",0]
+	]
+
+	[If,SetThickness,
+		[ISet,Tool:SubTool:Thick,Thickness]
+	,
+	]
+
+	[IPress,Tool:SubTool:Extract]
+	[IPress,Tool:SubTool:Accept]
+	
+	//Clear Initial Mask?
+	[If,ClearInitialMask,
+		[IPress,Tool:Masking:Clear]
+	,
+	]
+	
+	[IPress,Tool:SubTool:SelectDown]
+	[IPress,Tool:Masking:Clear]
+	
+	//Auto ZRemesher Check
+	[If, UseZRemesher,
+	
+		//Set ZRemesher Settings
+		[IPress,Tool:Geometry:KeepGroups]
+		[ISet,Tool:Geometry:SmoothGroups,0]
+		[IPress,Tool:Geometry:Divide]
+		
+		[VarSet,isMac, [ZBrushInfo,6]]
+		[If,isMac,
+			//Run ZRemesher
+			[FileNameSetNext,"/users/Shared/ZBrushData/Temp/objIn.goz"][IPress,Tool:Geometry:ZRemesher]						
+		,	
+			//Run ZRemesher
+			[FileNameSetNext,"C:\Users\Public\Documents/ZBrushData/Temp/objIn.goz"][IPress,Tool:Geometry:ZRemesher]		
+		]
+	,]
+	
+	//Select New Subtool?
+	[If,SelectNewSubtool,
+		//Do Nothing
+	,
+		[IPress,Tool:SubTool:SelectUp]
+	]
+
+]//Routine QuickExtract
+
+
+
+[IButton,???,"Automates the Extract process to create a new Extract SubTool from Masking (Edit Macro for Options.)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[IFreeze,
+		[RoutineCall,QuickExtract]
+	]
+,,1,,,]

@@ -1,0 +1,40 @@
+﻿/*
+	Toggles Brush Automasking function Mask By Polygroups On and Off
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarSet,MaskPercentage,100] //Sets the starting value the slider will be set to when clicked. (Default is 100)
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,PolygroupMask,
+
+	//Create Memory Block to store the slider value if the user changes it while it's activated
+	[If,[MemGetSize,MP_MBPSliderMemBlock],,
+		//Create and then set to 0
+		[MVarDef,MP_MBPSliderMemBlock,1,0]
+		[MVarSet,MP_MBPSliderMemBlock,0,MaskPercentage]
+	]
+
+
+	[If, [IGet,"Brush:Auto Masking:Mask By Polygroups"]==0,
+		[ISet,Brush:Auto Masking:Mask By Polygroups,[MVarGet,MP_MBPSliderMemBlock,0]]
+	,
+		//Store Current Mask By Polygroup value then set to 0
+		[MVarSet,MP_MBPSliderMemBlock,0,[IGet,Brush:Auto Masking:Mask By Polygroups]]
+		[ISet,Brush:Auto Masking:Mask By Polygroups,0]
+	]
+
+]//Routine PolygroupMask
+
+
+[IButton,???,"Toggle Button to control the Mask By Polygroups Brush Automasking. (Edit Macro for Options.)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,PolygroupMask]
+,,1,,,]
+

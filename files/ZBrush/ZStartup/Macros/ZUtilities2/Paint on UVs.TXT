@@ -1,0 +1,153 @@
+﻿/* 
+	This macro takes the current UV mapped model and allows you to paint on the flattened version of the model.
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarDef,TransferMapSize,8192] //Sets the texture size used when transfering the painting back to the original model (Default set to 8192)
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,PaintOnUVs,
+
+	// Make sure Model has UVs
+	[If, [IsEnabled,"Tool:UV Map:Delete UV"]==0,
+		[MessageOk,"Error: Current Subtool does not have UV Coordinates."] 
+		[Exit]
+	,//else
+		[If,[MemGetSize,PUV_MemBlockToggle],,
+			[MVarDef,PUV_MemBlockToggle,1,0]
+			[MVarSet,PUV_MemBlockToggle,0,1] //CurrentCycle
+		]
+		
+		[VarSet,Toggle,[MVarGet,PUV_MemBlockToggle,0]]
+		
+		[If,Toggle==1,
+		
+			//[Note,"Toggle Start"]
+			
+			[MVarSet,PUV_MemBlockToggle,0,0]
+			
+			//Create Memory Block for Path Storage
+			[If,[MemGetSize,PUV_MemBlockToolName],
+			
+				//Aready exsists Delete it
+				[MemDelete,PUV_MemBlockToolName]
+				
+				//Get Current Tool Name
+				[VarSet,CurTool,[IGet,Tool:Item Info]]
+			
+				//Create Memory Point
+				[VarSet,startpoint,0]
+				[MemCreate,PUV_MemBlockToolName,256]
+				[VarSet,write,CurTool]
+				
+				[VarSet,indx,[MemWriteString,PUV_MemBlockToolName,write,startpoint,0]]
+				[VarSet,startpoint,startpoint+indx]	
+				[MemResize,PUV_MemBlockToolName,startpoint]
+			,//else
+				//Get Current Tool Name
+				[VarSet,CurTool,[IGet,Tool:Item Info]]
+			
+				//Create Memory Point
+				[VarSet,startpoint,0]
+				[MemCreate,PUV_MemBlockToolName,256]
+				[VarSet,write,CurTool]
+				
+				[VarSet,indx,[MemWriteString,PUV_MemBlockToolName,write,startpoint,0]]
+				[VarSet,startpoint,startpoint+indx]	
+				[MemResize,PUV_MemBlockToolName,startpoint]
+			]
+			
+			[VarSet,isMac, [ZBrushInfo,6]]	//check Mac or PC			
+			[If,isMac,
+				// Export the Tool
+				[FileNameSetNext,"ZBRUSH_ZExportImport\Temp.GoZ"][IPress,Tool:Export]
+				
+				//Select the PolyMesh3D
+				[ISet,Tool:Item Info,41]
+				[IPress,Tool:Make PolyMesh3D]
+				
+				// Import it back in
+				[FileNameSetNext,"ZBRUSH_ZExportImport\Temp.GoZ"][IPress,Tool:Import]
+				
+				// Morph the UVs
+				[IPress,Tool:UV Map:Morph UV]
+				
+				// Export it back out then Re-Import
+				[FileNameSetNext,"ZBRUSH_ZExportImport\Temp.GoZ"][IPress,Tool:Export]
+				[FileNameSetNext,"ZBRUSH_ZExportImport\Temp.GoZ"][IPress,Tool:Import]						
+			,	
+				// Export the Tool
+				[FileNameSetNext,"ZBRUSH_ZExportImport\Temp.GoZ"][IPress,Tool:Export]
+				
+				//Select the PolyMesh3D
+				[ISet,Tool:Item Info,41]
+				[IPress,Tool:Make PolyMesh3D]
+				
+				// Import it back in
+				[FileNameSetNext,"ZBRUSH_ZExportImport\Temp.GoZ"][IPress,Tool:Import]
+				
+				// Morph the UVs
+				[IPress,Tool:UV Map:Morph UV]
+				
+				// Export it back out then Re-Import
+				[FileNameSetNext,"ZBRUSH_ZExportImport\Temp.GoZ"][IPress,Tool:Export]
+				[FileNameSetNext,"ZBRUSH_ZExportImport\Temp.GoZ"][IPress,Tool:Import]
+			]
+			
+			
+			[IPress,Tool:Geometry:WeldPoints]
+			[ISet,Tool:Display Properties:Double,1]
+		
+		,//else
+			[MVarSet,PUV_MemBlockToggle,0,1]
+			
+			//Change texture map size
+			
+			[ISet,Tool:UV Map:UV Map Size,TransferMapSize]
+			[IPress,Tool:Texture Map:New From Polypaint]
+			[IPress,Tool:Texture Map:Clone Txtr]
+			
+			// Get Stored Model Name
+			[VarSet,offset,0]
+			[VarSet,LocPath,""]
+			//Memlength will return the full length. Loc Path returns the full path stored above
+			[VarSet,MemLength,[MemReadString, PUV_MemBlockToolName,LocPath,offset,1]]
+									
+			//Switch back to original tool
+			[ISet,Tool:Item Info,LocPath]
+			
+			//Apply texture to model
+			[VarSet,RGBint,[IGet,Draw:Rgb Intensity]]
+			[ISet,Draw:Rgb Intensity,100]
+			[IPress,Color:FillObject]
+			
+			[ISet,Draw:Rgb Intensity,RGBint]
+			
+			//[IPress,Brush:Standard]
+			[IPress,Tool:Texture Map:New From Polypaint]
+			[IUnPress,Tool:Texture Map:Texture On]
+			
+			//Reset Tool Panel View
+			[IPress, 29915]
+			//Reset Texture Palette
+			[IPress,Texture:R]
+		]
+	]// UVWs?	
+]//Routine PaintOnUVs
+
+
+[IButton,???,"Takes the current UV mapped model and allows you to paint on the flattened version (Edit Macro for Options.)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[IFreeze,
+		[RoutineCall,PaintOnUVs]
+	]
+,,1,,,]

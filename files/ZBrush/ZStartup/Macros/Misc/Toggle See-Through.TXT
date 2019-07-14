@@ -1,0 +1,38 @@
+﻿/*
+	Toggles See-Through option On and Off instead of using a slider
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarSet,Opacity,75] //Sets the starting percentage the slider will be set to when clicked. (Default is 75)
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,SeeThrough,
+
+	//Create Memory Block to store the Opacity slider if the user changes it while it's activated
+	[If,[MemGetSize,MP_OpacitySliderMemBlock],,
+		//Create and then set to 0
+		[MVarDef,MP_OpacitySliderMemBlock,1,0]
+		[MVarSet,MP_OpacitySliderMemBlock,0,Opacity]
+	]
+
+	[If, [IGet,"See-through"]==0,
+		[ISet, See-through ,[MVarGet,MP_OpacitySliderMemBlock,0]]
+	,
+		//Store Current See-through value then set to 0
+		[MVarSet,MP_OpacitySliderMemBlock,0,[IGet, See-through ]]
+		[ISet, See-through ,0]
+	]
+
+]//Routine SeeThrough
+
+
+[IButton,???,"Toggle Button to control the See-Through option. (Edit Macro for Options.)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,SeeThrough]
+,,1,,,]

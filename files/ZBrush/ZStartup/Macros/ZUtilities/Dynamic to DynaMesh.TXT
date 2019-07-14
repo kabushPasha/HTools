@@ -1,0 +1,69 @@
+﻿/*
+	This macro will automatically convert a Dynamic Subdivision Subtool to a DynaMesh Model
+	Added functionality can be added by changing the options below
+	Blur and Project automatically turned off to speed up process
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarSet,PolygroupGeoIslands,0] // Runs an Autogroups to give each geometry island a new Polygroup before processing. Set to 0 to disable (Default set to 0)
+[VarSet,DefaultDynaRes,512] //Sets the default DynaMesh res to apply to the model (Default set to 512)
+[VarSet,UseDynaMeshGroups,0] //Will turn on the DynaMesh Groups function allowing for the Polygroups to be held. Set to 0 to disable. (Default set to 0)
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,ConvertDynamicToMesh,
+
+	[If,[IGet,Tool:Geometry:s.Dynamic],
+	
+		[If,[IGet,Tool:Geometry:DynaMesh],
+			[IUnPress,Tool:Geometry:DynaMesh]
+		,
+		]
+	
+		//Polygroup geo islands?
+		[If,PolygroupGeoIslands,
+			[IPress,Tool:Polygroups:Auto Groups]
+		,
+		]
+		
+		//Convert to Traditional Geo
+		[IPress,Tool:Geometry:s.Apply]
+		
+		//Clear Lower Sdivs
+		[IPress,Tool:Geometry:Del Lower]
+		[IPress,Tool:Geometry:Del Higher]
+			
+		[ISet,Tool:Geometry:Resolution,DefaultDynaRes]
+		[ISet,Tool:Geometry:Blur,0]
+		[ISet,Tool:Geometry:Project,0]
+			
+		//Activate Dynamesh Groups?
+		[If, UseDynaMeshGroups,
+			[ISet,Tool:Geometry:Groups,1]
+		,
+			[ISet,Tool:Geometry:Groups,0]
+		]
+		
+		[IPress,Tool:Geometry:DynaMesh]
+	,//else
+		[MessageOk,"Error: Current Subtool does not have Dynamic Subdivision Active."] 
+		[Exit]
+	]
+
+]//Routine ConvertDynamicToMesh
+
+
+[IButton,???,"Automatically converts the Dynamic Subdivision Active Subtool to a DynaMesh (Edit Macro for Options.)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[IFreeze,
+		[RoutineCall,ConvertDynamicToMesh]
+	]
+,,1,,,]

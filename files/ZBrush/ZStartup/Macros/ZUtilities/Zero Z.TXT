@@ -1,0 +1,26 @@
+﻿/*
+	Zeros out the Z Position on the selected Subtool
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,ZeroZ,
+
+	[ISet,Tool:Geometry:Z Position,0]
+	
+]//Routine ZeroY
+
+
+[IButton,???,"Zeros out the Z Position on the selected Subtool.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,ZeroZ]
+,,1/3,,,]

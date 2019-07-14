@@ -1,0 +1,115 @@
+﻿/* 
+	This macro converts any visible subtool Arrays to geometry.
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarDef,DisableDynamic,1] // Turns off Dynamic Subdivisions before converting the array. Set to 0 to process the Dynamic Subdivision (Default set to 1)
+[VarDef,ReApplyDynamic,1] // Will ReApply the Dynamic Subdivisions after the Array is converted. Set to 0 to leave the Dynamic Subdivision off after the Array is processed (Default set to 1)
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[VarDef,gSubNum,0]
+
+[RoutineDef,ArrayToGeoVisible,
+	
+	//Process Selected tool (since Eyeball icon may be inactive but mesh would still be visible.)
+	[If,DisableDynamic==1,
+		//Store Current Dynamic Setting
+		[VarSet,DynOn,[IGet,Tool:Geometry:s.Dynamic]]
+		//Turn off Dynamic
+		[IUnPress,Tool:Geometry:s.Dynamic]
+	,
+		[VarSet,DynOn,0]	
+	]
+			
+	//Convert Array to Geo
+	[IPress,Tool:Geometry:Convert BPR To Geo]
+	
+	//Re Apply Dynamic if it was active before the Array conversion?
+	[If,ReApplyDynamic==1,
+		[ISet,Tool:Geometry:s.Dynamic,DynOn]
+	,]
+		
+	//Store Current Subtool location
+	[RoutineCall,gFindSubNumTop]
+	
+	//Process all other Visible Subtools
+	[VarSet,ToolNumber,[SubToolGetCount]]
+	
+	//If there is only one Subtool Exit
+	[If,ToolNumber=1,
+		[Exit]
+	,]
+	
+	[SubToolSelect,0]	
+	[Loop,ToolNumber +1,
+		[VarSet,subTName,[IGetTitle,Tool:ItemInfo]]
+		[VarSet,subTName,[StrExtract,subTName,0,[StrLength,subTName]-2]]			
+		[VarSet,subToolPath,[StrMerge,"Tool:Sub Tool:",subTName]]
+		
+		[If,[IModGet,subToolPath]>=16,
+			[If,DisableDynamic==1,
+				//Store Current Dynamic Setting
+				[VarSet,DynOn,[IGet,Tool:Geometry:s.Dynamic]]
+				//Turn off Dynamic
+				[IUnPress,Tool:Geometry:s.Dynamic]
+			,
+				[VarSet,DynOn,0]	
+			]
+			
+			//Convert Array to Geo
+			[IPress,Tool:Geometry:Convert BPR To Geo]
+	
+			//Re Apply Dynamic if it was active before the Array conversion?
+			[If,ReApplyDynamic==1,
+				[ISet,Tool:Geometry:s.Dynamic,DynOn]
+			,]
+		,]
+		
+		[IPress,Tool:SubTool:SelectDown]
+	]//loop
+	
+	//Return to Top
+	[SubToolSelect,0]
+	
+	//Return back to original Subtool
+	[RoutineCall,gReturnSubNumFromTop]
+	
+]//Routine ArrayToGeoVisible
+
+//Counts the number of Subtools from the selected one to the Top Subtool. Used to return back after processing
+[RoutineDef,gFindSubNumTop,
+	[VarSet,gSubNum,1]
+	[VarSet,totalST,[StrExtract,[IGetTitle,Preferences:Misc:SubTools Count],10,256]]
+	[Loop,totalST,
+		[If,[IsEnabled,Tool:SubTool:SelectUp],
+			[IPress,Tool:SubTool:SelectUp]
+			[VarSet,gSubNum,gSubNum+1]
+		,
+			[LoopExit]
+		]
+	]
+]//Routine gFindSubNumTop
+
+//Returns to the Subtool postion starting from the Top Subtool
+[RoutineDef,gReturnSubNumFromTop,
+	[Loop,gSubNum-1,
+		[IPress,Tool:SubTool:SelectDown]
+	]
+]//Routine gReturnSubNumFromTop
+
+
+[IButton,???,"Converts any visible subtool Arrays to Geometry (Edit Macro for Options.)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[IFreeze,
+		[RoutineCall,ArrayToGeoVisible]
+	]
+,,1,,,]

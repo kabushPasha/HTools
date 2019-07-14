@@ -1,0 +1,52 @@
+﻿/* 
+	Creates a Stencil Mask from the selected Subtool.
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+[VarDef,aContrast]
+[VarDef,aIntensity]
+[VarDef,aName,""]
+
+[RoutineDef,MaskBySubtool,
+	
+	//Isolate the selected Subtool
+	[IPress,"Transform:Solo"]
+		
+	//Store current Alpha, Intensity, and Contrast values
+	[VarSet,aName,[IGetTitle,"Alpha: Current Alpha"]]
+	[VarSet,aIntensity,[IGet,"Alpha:Modify:Intensity"]]
+	[VarSet,aConstrast,[IGet,"Alpha:Modify:Contrast"]]
+	
+	//Grab the Depth from the current Subtool
+	[IPress,"Alpha:Transfer:GrabDoc"]
+	
+	//Turn the Depth into a solid mask
+	[ISet,"Alpha:Modify:Intensity",1]	
+	[ISet,"Alpha:Modify:Contrast",5]
+	
+	//Convert the Alpha to a Stencil
+	[IPress,"Alpha:Transfer:Make St"]
+	[IPress,"Stencil:Stretch"]
+	
+	// Revert Alpha, Intensity, and Contrast Changes
+	[IUnPress,"Transform:Solo"]
+	[IPress,[StrMerge,"Alpha:",aName]]
+	[ISet,"Alpha:Modify:Intensity",aIntensity]	
+	[ISet,"Alpha:Modify:Contrast",aContrast]
+	
+	[Note,"A Stencil Mask has been created from the current Subtool. \n To disable the Stencil Mask turn off 'Stencil:Stencil On'.",,,,,410]
+	
+]//Routine MaskBySubtool
+
+[IButton,???,"Creates a Stencil Mask from the selected Subtool.",
+	[IShowActions,0]
+	[IConfig,4.8]
+	//[IFreeze,
+		[RoutineCall,MaskBySubtool]
+	//]
+,,1,,,]

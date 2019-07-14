@@ -1,0 +1,23 @@
+﻿/*
+	Zeros out the X Position on the selected Subtool
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,ZeroX,
+
+	[ISet,Tool:Geometry:X Position,0]
+	
+]//Routine ZeroX
+
+
+[IButton,???,"Zeros out the X Position on the selected Subtool.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,ZeroX]
+,,1/3,,,]

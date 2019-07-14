@@ -1,0 +1,46 @@
+﻿/*
+	This Macro will Merge the visible subtools and automatically append the new mesh back to your exsisting tool
+	Any options set for UV or Weld will be retained as long as they are turned on
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,MergeAppend,
+
+	//Store Current Tool
+	[VarSet,CurTool,[IGet,Tool:Item Info]]
+	
+	//Merge Visible
+	[IPress,Tool:SubTool:MergeVisible]
+	
+	//Get new Tool Name
+	[ISet, Tool:Item Info,[IGetMax,Tool:Item Info]]
+	[VarSet,PMesh3D,[IGetTitle,Tool:Current Tool]]
+	
+	//Change back to Orig Tool
+	[ISet,Tool:Item Info,CurTool]
+
+	//Append PolyMesh3D
+	[IPress,Tool:SubTool:Append]
+	[IPress,[StrMerge,"PopUp:",PMesh3D]]
+	[IKeyPress,SHIFT,[IPress,Tool:SubTool:SelectDown]]
+
+]//Routine MergeAppend
+
+[IButton,???,"Merges the visible subtools and automatically appends it to your exsiting tool.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[IFreeze,
+		[RoutineCall,MergeAppend]
+	]
+,,1,,,]
+

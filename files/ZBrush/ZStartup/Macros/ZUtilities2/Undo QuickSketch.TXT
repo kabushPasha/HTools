@@ -1,0 +1,51 @@
+﻿/* 
+	This macro reverts ZBrush back from the pressing of QuickSketch
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+
+[RoutineDef,UndoQuickSketch,
+	
+	[IUnPress,Transform:Activate Symmetry]
+	[IPress,Brush:Standard]
+	
+	[IColorSet,0,0,0]
+	[IPress,Color:SwitchColor]
+	[IColorSet,255,255,255]
+	
+	[ISet,Draw:Rgb Intensity,25]
+	[ISet,Draw:Draw Size,25]
+	
+	[IUnPress,Transform: Edit]
+	[IPress,Layer:Clear]
+	
+	//Return to first MatCap Material
+	[ISet,28516,1]
+	
+	//Select PolyMesh3D Star
+	[ISet,Tool:Item Info,41]
+	[CanvasStroke,(ZObjStrokeV02n58=H456V2E9H456V2EAH456V2F9H456V302H455V30FH453V334H451V344H451V369H451V379H451V388H451V3AEH44FV3BBH44DV3DEH44BV3EBH44BV3F3H447V40BH447V40EH446V415H448V419H449V41BH449V41FH449V425H448V42AH448V42FH447V439H447V43CH447V445H447V447H449V44FH449V452H449V456H449V45CH44AV45FH44AV464H44AV465H44AV467H44AV469H44AV46AH44AV46BH44AV46CH44BV46EH44BV477H44BV47BH44BV480H447V48DH445V493H43DV4A6H43CV4ACH43AV4BFH43AV4C7H43AV4D0H438V4E2H438V4E7H439V4F2H439V4F4H439V4F5H439V4F6H439V4F6)]
+	[IPress,Transform: Edit]
+
+	
+]//Routine UndoQuickSketch
+
+
+
+[IButton,???,"Reverts ZBrush back from an Accidental QuickSketch Click.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[IFreeze,
+		[RoutineCall,UndoQuickSketch]
+	]
+,,1,,,]

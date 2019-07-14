@@ -1,0 +1,35 @@
+﻿/* 
+	Applies the Polish Deformation multiple times. Great for creating beveled DynaMesh Boxes
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarDef,PolishCount,4] //Sets the number of times sharpen will be applied after the initial blurring (Default Set to 4)
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+
+[RoutineDef,MultiPolish,
+	
+	[IModSet,Tool:Deformation:Polish,0]
+
+	[Loop,PolishCount,
+		[ISet,Tool:Deformation:Polish,100]
+	]
+	
+]//Routine MultiPolish
+
+
+[IButton,???,"Applies the Polish Deformation multiple times (Edit Macro for Options.)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[IFreeze,
+		[RoutineCall,MultiPolish]
+	]
+,,1,,,]

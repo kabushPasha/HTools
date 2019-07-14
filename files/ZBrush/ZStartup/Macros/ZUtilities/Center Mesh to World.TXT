@@ -1,0 +1,28 @@
+﻿/*
+	Generates a button to center the selected Subtool's position to 0,0,0
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,CenterMeshXYZ,
+
+	[ISet,Tool:Geometry:X Position,0]
+	[ISet,Tool:Geometry:Y Position,0]
+	[ISet,Tool:Geometry:Z Position,0]
+
+]//Routine CenterMeshXYZ
+
+
+[IButton,???,"Center the selected Subtool's postion to 0,0,0.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,CenterMeshXYZ]
+,,1,,,]

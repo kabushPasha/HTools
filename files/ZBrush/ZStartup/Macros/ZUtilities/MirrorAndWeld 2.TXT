@@ -1,0 +1,172 @@
+﻿/*
+	This Macro will prevent the "Resulting mesh does not contain any polygons" error , and the 'FloorGrid Elv sider' when using Mirror and weld.
+	If there is geometry present on the positive axis it will always mirror from postive to negative (Like the default functionality of Mirror and Weld.)
+	The axis used to process the Mirror and Weld is determined by the Symmetry selected in [Transform:Activate Symmetry]
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,MirrorWeld2,
+
+	//Del Subdivisions
+	[IPress,Tool:Geometry:Del Lower]
+	[IPress,Tool:Geometry:Del Higher]
+	
+	//Store Grid Elevation
+	[VarSet,GridElevation,[IGet,Draw:Elv]]
+	
+	//Store Symmetry On or Off Setting
+	[VarSet,SymmetryActive,[IGet,Transform:Activate Symmetry]]
+	
+	//Activate Symmetry to check values
+	[IPress,Transform:Activate Symmetry]
+	
+	[VarSet,XMod,0]
+	[VarSet,YMod,0]
+	[VarSet,ZMod,0]
+	[VarSet,XMirror,0]
+	[VarSet,YMirror,0]
+	[VarSet,ZMirror,0]
+	
+	//If Local is active Just Mirror and Weld like normal
+	[If,[IGet,Transform:LSym],
+				
+		//Get ModSetValues for Mirroring
+		[If,[IGet,Transform:>X<],
+			[VarSet,XMod,1]
+		,
+			[VarSet,XMod,0]
+		]
+		[If,[IGet,Transform:>Y<],
+			[VarSet,YMod,2]
+			[ISet,Draw:Elv,0]
+		,
+			[VarSet,YMod,0]
+		]
+		[If,[IGet,Transform:>Z<],
+			[VarSet,ZMod,4]
+		,
+			[VarSet,ZMod,0]
+		]
+		
+	,//If Local Symmetry is not active
+		
+		//Check X
+		[If,[IGet,Transform:>X<],
+			//Store ModSet Value for Mirror and Weld
+			[VarSet,XMod,1]
+		
+			//Is Model on the correct side for Mirroring?
+			[VarSet,xOffset,[IGet,"Tool:Geometry:X Position"]]
+			[VarSet,xFullSize,[IGet,"Tool:Geometry:X Size"]]
+			[VarSet,xHalfSize,[IGet,"Tool:Geometry:X Size"]/2]
+			[VarSet,xNeg,xOffset - xHalfSize]
+			[VarSet,xPos,xOffset + xHalfSize]
+		
+			[If,xPos > xFullSize,
+				//Store ModeSet Value For Mirror
+				[VarSet,XMirror,1]
+			
+			,
+				//Store ModeSet Value For Mirror
+				[VarSet,XMirror,0]
+			]
+		,
+			//Store ModSet Value for Mirror and Weld
+			[VarSet,XMod,0]
+		]
+		
+		//Check Y
+		[If,[IGet,Transform:>Y<],
+			//Store ModSet Value for Mirror and Weld
+			[VarSet,YMod,2]
+			
+			//Store and Change Floor Elevation
+			[ISet,Draw:Elv,0]
+		
+			//Is Model on the correct side for Mirroring?
+			[VarSet,yOffset,[IGet,"Tool:Geometry:Y Position"]]
+			[VarSet,yFullSize,[IGet,"Tool:Geometry:Y Size"]]
+			[VarSet,yHalfSize,[IGet,"Tool:Geometry:Y Size"]/2]
+			[VarSet,yNeg,yOffset - yHalfSize]
+			[VarSet,yPos,yOffset + yHalfSize]
+		
+			[If,yPos > yFullSize,
+				//Store ModeSet Value For Mirror
+				[VarSet,YMirror,2]
+			
+			,
+				//Store ModeSet Value For Mirror
+				[VarSet,YMirror,0]
+			]
+		,
+			//Store ModSet Value for Mirror and Weld
+			[VarSet,YMod,0]
+		]
+		
+		//Check Z
+		[If,[IGet,Transform:>Z<],
+			//Store ModSet Value for Mirror and Weld
+			[VarSet,ZMod,4]
+		
+			//Is Model on the correct side for Mirroring?
+			[VarSet,zOffset,[IGet,"Tool:Geometry:Z Position"]]
+			[VarSet,zFullSize,[IGet,"Tool:Geometry:Z Size"]]
+			[VarSet,zHalfSize,[IGet,"Tool:Geometry:Z Size"]/2]
+			[VarSet,zNeg,zOffset - zHalfSize]
+			[VarSet,zPos,zOffset + zHalfSize]
+		
+			[If,zPos > zFullSize,
+				//Store ModeSet Value For Mirror
+				[VarSet,ZMirror,4]
+			
+			,
+				//Store ModeSet Value For Mirror
+				[VarSet,ZMirror,0]
+			]
+		,
+			//Store ModSet Value for Mirror and Weld
+			[VarSet,ZMod,0]
+		]
+		
+	]//local symmetry
+	
+	//Compile all Mirror Values
+	[VarSet,MirrorModSet,XMirror + YMirror + ZMirror]
+	[VarSet,MandWModSet,XMod + YMod + ZMod]
+	
+	//Mirror if necessary
+	[If,MirrorModSet,
+		
+		[IModSet,Tool:Deformation:Mirror,MirrorModSet]
+		[IPress,Tool:Deformation:Mirror]
+	,
+	]
+		
+	[IModSet,Tool:Geometry:Mirror And Weld,MandWModSet]
+	[IPress,Tool:Geometry:Mirror And Weld]
+	
+	//Return Grid Elevation back
+	[ISet,Draw:Elv,GridElevation]
+	
+	//Return Symmetry Setting Back
+	[ISet,Transform:Activate Symmetry,SymmetryActive]
+	
+]//Routine MirrorWeld2
+
+
+[IButton,???,"Applies the Mirror and Weld function to the current Subtool making sure that it always mirrors.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[IFreeze,
+		[RoutineCall,MirrorWeld2]
+	]
+,,1,,,]

@@ -1,0 +1,46 @@
+﻿/* 
+	Appends a QCube as a new Subtool and Unifies it.
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarDef,CubeResolution,2] //Sets the number of divisions the QCube will have in the X, Y, and Z sides. (Max of 100. Default set to 2.)
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+
+[RoutineDef,AppendQCube,
+
+		//Toggle Edit Mode to make sure the PolyMesh3D's name is updated
+		[ISet,"Transform: Edit",0]
+		[ISet,"Transform: Edit",1]
+
+		[IPress,Tool:SubTool:Append]
+		[IPress,PopUp:PolyMesh3D]
+		[IKeyPress,SHIFT,[IPress,Tool:SubTool:SelectDown]]
+		
+		//Set resolution for the QCube
+		[ISet,Tool:Initialize:X Res,CubeResolution]
+		[ISet,Tool:Initialize:Y Res,CubeResolution]
+		[ISet,Tool:Initialize:Z Res,CubeResolution]
+		
+		//Create the QCube
+		[IPress,Tool:Initialize:QCube]
+		[IPress,Tool:Deformation:Unify]
+
+		//Reset Undo's for the New QCube
+		[IPress,Edit:Tool:DelUH]
+		
+]//Routine AppendQCube
+
+
+[IButton,???,"Appends a QCube as a new Subtool and Unifies it. (Edit Macro for Options.)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	//[IFreeze,
+		[RoutineCall,Append QCube]
+	//]
+,,1,,,]

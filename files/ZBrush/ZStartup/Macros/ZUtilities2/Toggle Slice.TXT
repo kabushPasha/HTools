@@ -1,0 +1,77 @@
+﻿/* 
+	This macro creates a toggable button that will cycle through Line, Rectangle, Square, Circle Slicing, and Select Rect
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,SliceToggler,
+
+	//Create Memory Block to store which cycle the macro is on
+	[If,[MemGetSize,MP_SliceCycleMemBlock],,
+		//Create and then set to 0
+		[MVarDef,MP_SliceCycleMemBlock,1,0]
+		[MVarSet,MP_SliceCycleMemBlock,0,0] //CurrentCycle
+	]
+	[VarSet,CurrentCycle,[MVarGet,MP_SliceCycleMemBlock,0]]
+	
+	//Line Slice
+	[If,CurrentCycle==0,
+		[IKeyPress,SHIFT+CTRL,[IPress,Brush:SliceCurve]]
+		[Note,"Line Slice Selected",,.1]
+	,]
+	
+	//Rectangle Slice
+	[If,CurrentCycle==1,
+		[IKeyPress,SHIFT+CTRL,[IPress,Brush:SliceRect]]
+		[IKeyPress,SHIFT+CTRL,[ISet,Stroke:Square,0]]
+		[IKeyPress,SHIFT+CTRL,[ISet,Stroke:Center,0]]
+		[Note,"Rectangle Slice Selected",,.1]
+	,]
+	
+	//Perfect Square Slice
+	[If,CurrentCycle==2,
+		[IKeyPress,SHIFT+CTRL,[IPress,Brush:SliceRect]]
+		[IKeyPress,SHIFT+CTRL,[ISet,Stroke:Square,1]]
+		[IKeyPress,SHIFT+CTRL,[ISet,Stroke:Center,1]]
+		[Note,"Square Slice Selected",,.1]
+	,]
+	
+	//Circle Slice
+	[If,CurrentCycle==3,
+		[IKeyPress,SHIFT+CTRL,[IPress,Brush:SliceCirc]]
+		[IKeyPress,SHIFT+CTRL,[ISet,Stroke:Square,1]]
+		[IKeyPress,SHIFT+CTRL,[ISet,Stroke:Center,1]]
+		[Note,"Circle Slice Selected",,.1]
+	,]
+	
+	//Select Rect
+	[If,CurrentCycle==4,
+		[IKeyPress,SHIFT+CTRL,[IPress,Brush:SelectRect]]
+		[Note,"Select Rect Selected",,.1]
+	,]
+	
+	[If,CurrentCycle>=4,
+		[VarSet,CurrentCycle,0]
+		[MVarSet,MP_SliceCycleMemBlock,0,CurrentCycle]
+	,
+		[MVarSet,MP_SliceCycleMemBlock,0,CurrentCycle+1]
+	]
+	
+]//Routine SliceToggler
+
+[IButton,???,"Toggles through Slice Line, Slice Rectangle, Slice Square, Slice Circle, and Select Rect. (Hotkey for best use!)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	//[IFreeze,
+		[RoutineCall,SliceToggler]
+	//]
+,,1,,,]

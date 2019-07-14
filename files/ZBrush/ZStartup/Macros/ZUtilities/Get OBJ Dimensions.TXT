@@ -1,0 +1,124 @@
+﻿/*
+	Calculates the size the model will be in mm when exported as an OBJ file
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+//Uses Routines: gTwoDec, gThreeDec
+[RoutineDef,OBJDimensions,
+	
+	[If,[IGet,Tool:Export:Scale]==0,
+		[VarSet,xPortScale,1]
+	,
+		[VarSet,xPortScale,[IGet,Tool:Export:Scale]]	
+	]
+		
+	[VarSet,SizeX,[IGet,Tool:Geometry:X Size]]
+	[VarSet,SizeY,[IGet,Tool:Geometry:Y Size]]
+	[VarSet,SizeZ,[IGet,Tool:Geometry:Z Size]]
+	
+	[VarSet,XDimension,xPortScale * SizeX]
+	[VarSet,YDimension,xPortScale * SizeY]
+	[VarSet,ZDimension,xPortScale * SizeZ]
+	
+	[VarSet,XDimensionIn,XDimension / 25.4]
+	[VarSet,YDimensionIn,YDimension / 25.4]
+	[VarSet,ZDimensionIn,ZDimension / 25.4]
+
+	[VarSet,DecXDimension,0]
+	[VarSet,DecYDimension,0]
+	[VarSet,DecZDimension,0]
+	[RoutineCall,gTwoDec,XDimension,DecXDimension]
+	[RoutineCall,gTwoDec,YDimension,DecYDimension]
+	[RoutineCall,gTwoDec,ZDimension,DecZDimension]
+	
+	[VarSet,DecXDimensionIn,0]
+	[VarSet,DecYDimensionIn,0]
+	[VarSet,DecZDimensionIn,0]
+	[RoutineCall,gThreeDec,XDimensionIn,DecXDimensionIn]
+	[RoutineCall,gThreeDec,YDimensionIn,DecYDimensionIn]
+	[RoutineCall,gThreeDec,ZDimensionIn,DecZDimensionIn]
+	
+	[Note,"\Cff9923Current Subtool exported out as an *.OBJ file will measure: \n\n",,-1]
+	[Note,[StrMerge,"X - \Cffffff",DecXDimension," mm (",DecXDimensionIn," in)\Cff9923\n"],,-1]
+	[Note,[StrMerge,"Y - \Cffffff",DecYDimension," mm (",DecYDimensionIn," in)\Cff9923\n"],,-1]
+	[Note,[StrMerge,"Z - \Cffffff",DecZDimension," mm (",DecZDimensionIn," in)\Cff9923"]]
+
+]//Routine OBJDimensions
+
+//Convert to 3 decimals
+[RoutineDef, gThreeDec,
+
+	//Rounds Up
+	[VarSet, rval, val+0.0005]
+	  
+	//Gives Whole Number before decimal
+	[VarSet, ival, INT(rval)]
+	
+	//Gets the Value after the decimal
+	[VarSet, fval, INT(FRAC(rval)*1000.0)]
+	
+	//Adds back 0s if less then 100 and less then 10. Example 005 turns to 5
+	[If,fval<10,
+		[VarSet,fvalString,[StrMerge,"00",fval]]
+	,
+		[If,fval<100,
+			[VarSet,fvalString,[StrMerge,"0",fval]]
+		,
+			[VarSet,fvalString,fval]
+		]
+	]
+	
+	//Generates the final output
+	[VarDef,valstr,""]
+	[VarSet, valstr, [StrMerge,ival,".",fvalString]]
+	
+	//01.34 Trim everything after the 4th location
+	//Force only 5 characters
+	[VarSet, valstr,[StrExtract, valstr,0,5]]
+	  
+, val, valstr]//Routine gThreeDec
+
+//Convert to 2 decimals
+[RoutineDef, gTwoDec,
+
+	//Rounds Up
+	[VarSet, rval, val+0.005]
+	  
+	//Gives Whole Number before decimal
+	[VarSet, ival, INT(rval)]
+	
+	//Gets the Value after the decimal
+	[VarSet, fval, INT(FRAC(rval)*100.0)]
+	
+	//Adds back a 0 if less then 10. Example 05 turns to 5
+	[If,fval<10,
+		[VarSet,fvalString,[StrMerge,"0",fval]]
+	,
+		[VarSet,fvalString,fval]
+	]
+	
+	//Generates the final output
+	[VarDef,valstr,""]
+	[VarSet, valstr, [StrMerge,ival,".",fvalString]]
+	
+	//01.34 Trim everything after the 4th location
+	//Force only 5 characters
+	[VarSet, valstr,[StrExtract, valstr,0,4]]
+	  
+, val, valstr]//Routine gTwoDec
+
+
+[IButton,???,"Calculates the size the selected Subtool will be in (mm) when exported as an OBJ file.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,OBJDimensions]
+,,1,,,]

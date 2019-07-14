@@ -1,0 +1,42 @@
+﻿/* 
+	Toggles the Left Tray Open or Closed
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,LeftTrayToggle,
+
+	[If,[IHPos,1000,1]>50,
+		//Tray is Open keep using IClicks till it Closes
+		[Loop,5,
+			[If,[IHPos,1000,1]>50,
+				[IClick,1000]
+			,
+				[LoopExit]
+			]
+		]
+	,
+		//Tray is Closed Keep using IClicks till it Opens
+		[Loop,5,
+			[If,[IHPos,1000,1]<50,
+				[IClick,1000]
+			,
+				[LoopExit]
+			]
+		]
+	]
+	
+]//Routine LeftTrayToggle
+
+[IButton,???,"Toggles the Left Tray Open or Closed.",
+	[IShowActions,0]
+	[IConfig,4.8]
+	//[IFreeze,
+		[RoutineCall,LeftTrayToggle]
+	//]
+,,1/2,,,]

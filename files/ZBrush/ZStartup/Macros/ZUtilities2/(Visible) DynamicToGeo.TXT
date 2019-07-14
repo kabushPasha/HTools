@@ -1,0 +1,86 @@
+﻿/* 
+	This macro converts any visible subtool Dynamic Subdivisions to Traditional Subdivisions.
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[VarDef,gSubNum,0]
+
+[RoutineDef,DynamicToGeoVisible,
+
+	//Process Selected tool (since Eyeball icon may be inactive but mesh would still be visible.)
+			
+	//Apply Dynamic Subdiv
+	[IPress,Tool:Geometry:s.Apply]
+	
+	//Store Current Subtool location
+	[RoutineCall,gFindSubNumTop]
+	
+	//Process all other Visible Subtools
+	[VarSet,ToolNumber,[SubToolGetCount]]
+	
+	//If there is only one Subtool Exit
+	[If,ToolNumber=1,
+		[Exit]
+	,]
+	
+	[SubToolSelect,0]	
+	[Loop,ToolNumber +1,
+		[VarSet,subTName,[IGetTitle,Tool:ItemInfo]]
+		[VarSet,subTName,[StrExtract,subTName,0,[StrLength,subTName]-2]]			
+		[VarSet,subToolPath,[StrMerge,"Tool:Sub Tool:",#subTName]]
+		
+		[If,[IModGet,#subToolPath]>=16,
+			//Apply Dynamic Subdiv
+			[IPress,Tool:Geometry:s.Apply]
+		,]
+		
+		[IPress,Tool:SubTool:SelectDown]
+	]//loop
+	
+	//Return to Top
+	[SubToolSelect,0]
+	
+	//Return back to original Subtool
+	[RoutineCall,gReturnSubNumFromTop]
+	
+]//Routine DynamicToGeoVisible
+
+//Counts the number of Subtools from the selected one to the Top Subtool. Used to return back after processing
+[RoutineDef,gFindSubNumTop,
+	[VarSet,gSubNum,1]
+	[VarSet,totalST,[StrExtract,[IGetTitle,Preferences:Misc:SubTools Count],10,256]]
+	[Loop,totalST,
+		[If,[IsEnabled,Tool:SubTool:SelectUp],
+			[IPress,Tool:SubTool:SelectUp]
+			[VarSet,gSubNum,gSubNum+1]
+		,
+			[LoopExit]
+		]
+	]
+]//Routine gFindSubNumTop
+
+//Returns to the Subtool postion starting from the Top Subtool
+[RoutineDef,gReturnSubNumFromTop,
+	[Loop,gSubNum-1,
+		[IPress,Tool:SubTool:SelectDown]
+	]
+]//Routine gReturnSubNumFromTop
+
+
+[IButton,???,"Converts any visible subtool Dynamic Subdivisions to Traditional Subdivisions.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[IFreeze,
+		[RoutineCall,DynamicToGeoVisible]
+	]
+,,1,,,]

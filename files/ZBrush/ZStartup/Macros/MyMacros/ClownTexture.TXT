@@ -1,0 +1,14 @@
+//ZBRUSH MACRO - Recorded in ZBrush version 4.73
+[IButton,???,"Press to run this macro. Macros can be aborted by pressing the ëescí key.",
+[IShowActions,0]
+[IConfig,4.73]
+[IUnPress,Transform: Pf]
+[IPress,Transform: Pf]
+[IPress,Tool:Geometry:Unweld Groups Border]
+[IPress,Tool:Polypaint:Polypaint From Polygroups]
+[IPress,Tool:Texture Map:New From Polypaint]
+[IPress,Tool:Texture Map:TextureMap]
+[IPress,Tool:Texture Map:Clone Txtr]
+[IUnPress,Tool:Texture Map:Texture On]
+[IUnPress,Tool:Polypaint:Colorize]
+]

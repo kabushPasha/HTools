@@ -1,0 +1,49 @@
+﻿/* 
+	Applys round corners to a Rectangular Mask.
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarDef,SharpenAmmount,4] //Sets the number of times sharpen will be applied after the initial blurring (Default Set to 4)
+[VarDef,EdgeLoopMaskedBorder,0] //Automatically applys the EdgeLoopMasked Border functionality. This will delete any Subdivsions on the mesh. (Default Set to 0)
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+
+[RoutineDef,RoundCornerMask,
+	
+	[IPress,Tool:Masking:BlurMask]
+	
+	[Loop,SharpenAmmount,
+		[MergeUndo]
+		[IPress,Tool:Masking:SharpenMask]
+	]
+	
+	//Auto apply EdgeloopMasked Border?
+	[If,EdgeLoopMaskedBorder==1,
+		[MergeUndo]
+		[IPress,Tool:Visibility:ShowPt]
+		[MergeUndo]
+		[IPress,Tool:Geometry:Del Lower]
+		[MergeUndo]
+		[IPress,Tool:Geometry:Del Higher]
+		[MergeUndo]
+		[IPress,Tool:Geometry:Edgeloop Masked Border]
+		[MergeUndo]
+		[IPress,Tool:Masking:Clear]
+		[MergeUndo]
+	,]
+	
+]//Routine RoundCornerMask
+
+
+[IButton,???,"Applys round corners to a Rectangular Mask (Edit Macro for Options.)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[IFreeze,
+		[RoutineCall,RoundCornerMask]
+	]
+,,1,,,]

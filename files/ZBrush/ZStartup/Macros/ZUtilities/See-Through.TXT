@@ -1,0 +1,32 @@
+﻿/*
+	Generates a toggle button instead of a slider to control the See-Through option
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarSet,Opacity,75] //Sets the percentage the slider will be set to when clicked. Default is 75
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,SeeThrough,
+
+	[If, [IGet,"See-through"]==0,
+		[ISet, See-through ,Opacity]
+	,
+		[ISet, See-through ,0]
+	]
+
+]//Routine SeeThrough
+
+
+[IButton,???,"Toggle Button to control the See-Through option. (Edit Macro for Options.)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,SeeThrough]
+,,1,,,]

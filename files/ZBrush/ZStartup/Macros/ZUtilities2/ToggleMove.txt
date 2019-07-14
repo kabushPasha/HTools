@@ -1,0 +1,39 @@
+
+[RoutineDef,MoveToggler,
+
+	//Create Memory Block to store which cycle the macro is on
+	[If,[MemGetSize,MP_MoveCycleMemBlock],,
+		[MVarDef,MP_MoveCycleMemBlock,1,0]
+		[MVarSet,MP_MoveCycleMemBlock,0,0]
+	]
+	[VarSet,CurrentCycle,[MVarGet,MP_MoveCycleMemBlock,0]]
+	
+	//Pen and Rectangle Mask
+	[If,CurrentCycle==0,
+		[IKeyPress,CTRL,[IPress,Brush:MaskPen]]
+		[Note,"Move inside",,.1]
+	,]
+	
+	//Perfect Square Mask
+	[If,CurrentCycle==1,
+		[IKeyPress,CTRL,[IPress,Brush:MaskRect]]
+		[Note,"Move outside",,.1]
+	,]
+	
+	[If,CurrentCycle>=2,
+		[VarSet,CurrentCycle,0]
+		[MVarSet,MP_MoveCycleMemBlock,0,CurrentCycle]
+	,
+		[MVarSet,MP_MoveCycleMemBlock,0,CurrentCycle+1]
+	]
+	
+]
+
+
+[IButton,???,"Toggles through Move brushes",
+	[IShowActions,0]
+	[IConfig,4.73]
+	//[IFreeze,
+		[RoutineCall,MaskToggler]
+	//]
+,,1,,,]

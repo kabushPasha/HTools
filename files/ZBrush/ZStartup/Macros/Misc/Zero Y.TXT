@@ -1,0 +1,23 @@
+﻿/*
+	Zeros out the Y Position on the selected Subtool
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,ZeroY,
+
+	[ISet,Tool:Geometry:Y Position,0]
+	
+]//Routine ZeroY
+
+
+[IButton,???,"Zeros out the Y Position on the selected Subtool.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,ZeroY]
+,,1/3,,,]

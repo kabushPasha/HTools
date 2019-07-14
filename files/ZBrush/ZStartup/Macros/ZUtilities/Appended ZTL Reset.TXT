@@ -1,0 +1,36 @@
+﻿/*
+	This macro is for use with the Appended ZTL Save macro but is not required for using the Appended ZTL Save Macro.
+	The macro will reset the save location and allow you to pick a new location to save the file
+	This macro will not appear to have any function without the Appended ZTL Save Macro loaded.
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,ResetZTLSave,
+	
+	//See if there is already a path saved
+	[If,[MemGetSize,JD_MacroPathMemBlock],
+		[MemDelete,JD_MacroPathMemBlock]
+		[Note,"Appended Save ZTL Macro Reset. Please click Appended Save ZTL to select a new Save Location."]
+	,
+		//Do nothing
+		[Note,"Please click Appended Save ZTL to select a Save Location."]
+	]
+		
+]//Routine ResetZTLSave
+
+
+[IButton,???,"Resets the Appended Save ZTL Name and Location. For use only with the Appended ZTL Save Macro.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,ResetZTLSave]
+,,1,,,]

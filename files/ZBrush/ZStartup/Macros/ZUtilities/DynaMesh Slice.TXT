@@ -1,0 +1,43 @@
+﻿/*
+	This macro automates the process of using Slice and Groups with Dynamesh.
+	To use: Slice a DynaMesh model with the slice brush then press the button.
+	The DynaMesh will respect the new Polygroups created from the slice and keep the seperate.
+	Project will automatically be disabled for DynaMesh
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef, DynaMeshSlice,
+
+	//Check to see if the adaptive skin option exsists
+	[If, [IGet,Tool:Geometry:DynaMesh],
+
+		[IUnPress,Tool:Geometry:DynaMesh]
+		[ISet,Tool:Geometry:Groups,1]
+		[ISet,Tool:Geometry:Project,0]
+		[IPress,Tool:Geometry:DynaMesh]
+		[IPress,Tool:Polygroups:Auto Groups]
+		
+	,
+		[MessageOk,"Error: Current Subtool is not a DynaMesh. Please Activate DynaMesh and run the Macro Again."] 
+		[Exit]
+	]
+	
+]//Routine DynaMeshSlice
+
+
+[IButton,???,"Automates the process of using Slice with DynaMesh.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[IFreeze,
+		[RoutineCall,DynaMeshSlice]
+	]
+,,1,,,]

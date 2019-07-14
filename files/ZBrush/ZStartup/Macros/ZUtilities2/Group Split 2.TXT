@@ -1,0 +1,59 @@
+﻿/* 
+	This macro Group Splits the selected Subdivision Subtool to new Subtools reconstructing the subdivisions.
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,GroupSplit2,
+
+	//Get Subtool Count
+	[VarSet,ToolStart,[SubToolGetCount]]
+	
+	//Get Tool SubDivs
+	[VarSet,ToolSdivs,[IGet,Tool:Geometry:SDiv]]
+	
+	[IPress,Tool:Geometry:Del Lower]
+	[IPress,Tool:SubTool:Groups Split]
+	[VarSet,ToolAfterSplit,[SubToolGetCount]]
+	[VarSet,LoopSplits,ToolAfterSplit - ToolStart]
+	
+	[Loop,LoopSplits +1,
+	
+		//Reconstruct Subdivsions
+		[Loop,ToolSdivs -1,
+			[IPress,Tool:Geometry:Reconstruct Subdiv]
+		]//loop
+		
+		//Fix Cage for Polyframe Visiblity
+		[IPress,Tool:Geometry:Cage]
+		[IPress,Edit:Tool:Undo ]
+		[Loop,ToolSdivs -1,
+			[IPress,Tool:Geometry:Higher Res]
+		]//loop
+		
+		[IPress,Tool:SubTool:SelectDown]		
+	
+	]//loop
+
+	//Select Top Split Subtool
+	[Loop,LoopSplits +1,
+		[IPress,Tool:SubTool:SelectUp]
+	]//loop
+	
+]//Routine GroupSplit2
+
+
+[IButton,???,"Group Splits the selected Subdivision Subtool to new Subtools reconstructing the subdivisions.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,GroupSplit2]
+,,1,,,]

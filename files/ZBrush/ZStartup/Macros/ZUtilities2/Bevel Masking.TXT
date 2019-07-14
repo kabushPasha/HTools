@@ -1,0 +1,46 @@
+﻿/* 
+	Bevels a Rectangular Mask (soft edges)
+	Optional Functionality to create a new polygroup from the masking.
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarDef,SharpenAmmount,4] //Sets the number of times sharpen will be applied after the initial blurring (Default Set to 4)
+[VarDef,EdgeLoopMaskedBorder,0] //Automatically applys the EdgeLoopMasked Border functionality. (Default Set to 0)
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+
+[RoutineDef,BevelMask,
+	
+	[IPress,Tool:Masking:BlurMask]
+	
+	[Loop,SharpenAmmount,
+		[IPress,Tool:Masking:SharpenMask]
+	]
+	
+	//Auto apply EdgeloopMasked Border?
+	[If,EdgeLoopMaskedBorder==1,
+		[IPress,Tool:Visibility:ShowPt]
+		[IPress,Tool:Geometry:Del Lower]
+		[IPress,Tool:Geometry:Del Higher]
+		[IPress,Tool:Geometry:Edgeloop Masked Border]
+		[IPress,Tool:Masking:Clear]
+	,]
+	
+]//Routine BevelMask
+
+
+[IButton,???,"Bevels a Rectangular Mask (Edit Macro for Options.)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[IFreeze,
+		[RoutineCall,BevelMask]
+	]
+,,1,,,]

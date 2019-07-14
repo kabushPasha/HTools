@@ -1,0 +1,7 @@
+//ZBRUSH MACRO - Recorded in ZBrush version 3.09
+[IButton,???,"Press to run this macro. Macros can be aborted by pressing the ‘esc’ key.",
+[IShowActions,0]
+[IConfig,3.09]
+[IPress,Transform:Draw Pointer]
+[IPress,Brush:Move]
+]

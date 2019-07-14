@@ -1,0 +1,223 @@
+﻿/* 
+	This macro generates a DynaMesh Shell with a set thickness in mm.
+	In order for this Macro to work you need to have a DynaMesh Model with a Subtractive Geometry island present.
+	More info here: http://docs.pixologic.com/user-guide/3d-modeling/modeling-basics/creating-meshes/dynamesh/methods/
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+	Math for the shelling figured out by Mitch Zais (Invertex) I just automated it
+	http://invertex.xyz/DynameshThicknessCalculator/ 
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+[VarDef,DesiredThick,.5] // Sets the Thickness in mm that the shell will be created at. (Default set to .5)
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[VarDef,DecXDimension,0]
+[VarDef,DecYDimension,0]
+[VarDef,DecZDimension,0]
+[VarDef,DecXDimensionIn,0]
+[VarDef,DecYDimensionIn,0]
+[VarDef,DecZDimensionIn,0]
+
+[RoutineDef,PreciseShell,
+	
+	//Formula (Thickness/output scale)*.5 * Dynamesh Res
+	[VarSet,DynaRes,[IGet,Tool:Geometry:Resolution]]
+	[VarSet,ExScale,[IGet,Tool:Export:Scale]]
+	
+	//Fix Export Scale if it's at 0
+	[If, ExScale==0,
+		[VarSet,ExScale,1]
+	,]
+	[VarSet,ShellValue,(DesiredThick/ExScale) * .5 * DynaRes]
+	
+	[If, ShellValue>128,
+		//Calculate Largest Formula ((128/Dynamesh Res) /.5)* output scale
+		[VarSet,LargeThick,((128/DynaRes) /.5)* ExScale]
+		
+		[RoutineCall,OBJDimensions]
+		[Note,[StrMerge,"\n\Cff9923Thickness value of \Cffffff",DesiredThick," mm\Cff9923 is too large to process.\n\n"],,-1]
+		[Note,[StrMerge,"\Cff9923Largest thickness possible for current Subtool is \Cffffff",LargeThick," mm.\Cff9923\n"],,-1]
+		[Note,"\Cff9923(Edit the Macro to change the default thickness value.) \n\n",,-1]
+		[Note,"\Cff9923Current Subtool measures: \n\n",,-1]
+		[Note,[StrMerge,"X - \Cffffff",DecXDimension," mm (",DecXDimensionIn," in)\Cff9923\n"],,-1]
+		[Note,[StrMerge,"Y - \Cffffff",DecYDimension," mm (",DecYDimensionIn," in)\Cff9923\n"],,-1]
+		[Note,[StrMerge,"Z - \Cffffff",DecZDimension," mm (",DecZDimensionIn," in)\Cff9923\n"]]
+		[Exit]
+	,]
+	
+	[If, ShellValue<2,
+		//Calculate Smallest Formula ((2/Dynamesh Res) /.5)* output scale
+		[VarSet,SmallThick,((2/DynaRes) /.5)* ExScale]
+		
+		[RoutineCall,OBJDimensions]
+		[Note,[StrMerge,"\n\Cff9923Thickness value of \Cffffff",DesiredThick," mm\Cff9923 is too small to process.\n\n"],,-1]
+		[Note,[StrMerge,"\Cff9923Smallest thickness possible for current Subtool is \Cffffff",SmallThick," mm\Cff9923\n"],,-1]
+		[Note,"\Cff9923(Edit the Macro to change the default thickness value.) \n\n",,-1]
+		[Note,"\Cff9923Current Subtool measures: \n\n",,-1]
+		[Note,[StrMerge,"X - \Cffffff",DecXDimension," mm (",DecXDimensionIn," in)\Cff9923\n"],,-1]
+		[Note,[StrMerge,"Y - \Cffffff",DecYDimension," mm (",DecYDimensionIn," in)\Cff9923\n"],,-1]
+		[Note,[StrMerge,"Z - \Cffffff",DecZDimension," mm (",DecZDimensionIn," in)\Cff9923\n"]]
+		[Exit]
+	,]
+	
+	//Display Size and Selected Thickness
+	[RoutineCall,OBJDimensions]	
+	[Loop,1000,
+		[Note,[StrMerge,"\n\Cff9923Thickness value is set to \Cffffff",DesiredThick," mm\Cff9923\n"],,-1]
+		[Note,"\Cff9923(Edit the Macro to change the default thickness value.) \n\n",,-1]
+		[Note,"\Cff9923Current Subtool measures: \n",,-1]
+		[Note,[StrMerge,"X - \Cffffff",DecXDimension," mm (",DecXDimensionIn," in)\Cff9923\n"],,-1]
+		[Note,[StrMerge,"Y - \Cffffff",DecYDimension," mm (",DecYDimensionIn," in)\Cff9923\n"],,-1]
+		[Note,[StrMerge,"Z - \Cffffff",DecZDimension," mm (",DecZDimensionIn," in)\Cff9923\n\n"],,-1]
+		[Note,"\Cff9923Continue?\n\n",,-1]
+		/*1*/[NoteIButton,OK/*text*/,/*image*/,/*pressed?*/,0/*disabled?*/,10 /*HPos*/,170/*VPos*/,79/*HSize*/,23/*VSize*/, /*color*/,/*text color*/,.8/*opacity*/, 1/*text opacity*/,/*image opacity*/]
+		/*2*/[NoteIButton,CANCEL/*text*/,/*image*/,/*pressed?*/,0/*disabled?*/,100 /*HPos*/,170/*VPos*/,79/*HSize*/,23/*VSize*/, /*color*/,/*text color*/,.8/*opacity*/, 1/*text opacity*/,/*image opacity*/]
+		[VarSet,result,[Note,""]]
+	
+		[If,result==1,
+			[LoopExit]
+		,]
+		[If,result==2,
+			[Exit]
+		,]
+	]//loop
+		
+	[ISet,Tool:Geometry:Thickness,ShellValue]
+	
+	//Store DynaMesh Settings
+	[VarSet,DynaProject,[IGet,Tool:Geometry:Project]]
+	[VarSet,DynaPolish,[IGet,Tool:Geometry:Polish]]
+	[VarSet,DynaGroups,[IGet,Tool:Geometry:Groups]]
+	
+	[If,[IGet,Tool:Geometry:DynaMesh],
+	
+		//Disable Dynamesh Settings
+		[IUnPress,Tool:Geometry:Project]
+		[IUnPress,Tool:Geometry:Polish]
+		[IUnPress,Tool:Geometry:Groups]
+		[IPress,Tool:Masking:Clear]
+		[IPress,Tool:Geometry:Create Shell]
+		
+		//Return DynaMesh Settings
+		[ISet,Tool:Geometry:Project,DynaProject]
+		[ISet,Tool:Geometry:Polish,DynaPolish]
+		[ISet,Tool:Geometry:Groups,DynaGroups]
+	,
+		[MessageOk,"Error: Current Subtool does not have DynaMesh Active.  Subtool must have DynaMesh active to use the Create Shell function."]
+		[Exit]
+	]
+
+]//Routine PreciseShell
+
+//Uses Routines: gTwoDec, gThreeDec
+[RoutineDef,OBJDimensions,
+	
+	[If,[IGet,Tool:Export:Scale]==0,
+		[VarSet,xPortScale,1]
+	,
+		[VarSet,xPortScale,[IGet,Tool:Export:Scale]]	
+	]
+		
+	[VarSet,SizeX,[IGet,Tool:Geometry:X Size]]
+	[VarSet,SizeY,[IGet,Tool:Geometry:Y Size]]
+	[VarSet,SizeZ,[IGet,Tool:Geometry:Z Size]]
+	
+	[VarSet,XDimension,xPortScale * SizeX]
+	[VarSet,YDimension,xPortScale * SizeY]
+	[VarSet,ZDimension,xPortScale * SizeZ]
+	
+	[VarSet,XDimensionIn,XDimension / 25.4]
+	[VarSet,YDimensionIn,YDimension / 25.4]
+	[VarSet,ZDimensionIn,ZDimension / 25.4]
+
+	[VarSet,DecXDimension,0]
+	[VarSet,DecYDimension,0]
+	[VarSet,DecZDimension,0]
+	[RoutineCall,gTwoDec,XDimension,DecXDimension]
+	[RoutineCall,gTwoDec,YDimension,DecYDimension]
+	[RoutineCall,gTwoDec,ZDimension,DecZDimension]
+	
+	[VarSet,DecXDimensionIn,0]
+	[VarSet,DecYDimensionIn,0]
+	[VarSet,DecZDimensionIn,0]
+	[RoutineCall,gThreeDec,XDimensionIn,DecXDimensionIn]
+	[RoutineCall,gThreeDec,YDimensionIn,DecYDimensionIn]
+	[RoutineCall,gThreeDec,ZDimensionIn,DecZDimensionIn]
+	
+]//Routine OBJDimensions
+
+//Convert to 3 decimals
+[RoutineDef, gThreeDec,
+
+	//Rounds Up
+	[VarSet, rval, val+0.0005]
+	  
+	//Gives Whole Number before decimal
+	[VarSet, ival, INT(rval)]
+	
+	//Gets the Value after the decimal
+	[VarSet, fval, INT(FRAC(rval)*1000.0)]
+	
+	//Adds back 0s if less then 100 and less then 10. Example 005 turns to 5
+	[If,fval<10,
+		[VarSet,fvalString,[StrMerge,"00",fval]]
+	,
+		[If,fval<100,
+			[VarSet,fvalString,[StrMerge,"0",fval]]
+		,
+			[VarSet,fvalString,fval]
+		]
+	]
+	
+	//Generates the final output
+	[VarDef,valstr,""]
+	[VarSet, valstr, [StrMerge,ival,".",fvalString]]
+	
+	//01.34 Trim everything after the 4th location
+	//Force only 5 characters
+	[VarSet, valstr,[StrExtract, valstr,0,5]]
+	  
+, val, valstr]//Routine gThreeDec
+
+//Convert to 2 decimals
+[RoutineDef, gTwoDec,
+
+	//Rounds Up
+	[VarSet, rval, val+0.005]
+	  
+	//Gives Whole Number before decimal
+	[VarSet, ival, INT(rval)]
+	
+	//Gets the Value after the decimal
+	[VarSet, fval, INT(FRAC(rval)*100.0)]
+	
+	//Adds back a 0 if less then 10. Example 05 turns to 5
+	[If,fval<10,
+		[VarSet,fvalString,[StrMerge,"0",fval]]
+	,
+		[VarSet,fvalString,fval]
+	]
+	
+	//Generates the final output
+	[VarDef,valstr,""]
+	[VarSet, valstr, [StrMerge,ival,".",fvalString]]
+	
+	//01.34 Trim everything after the 4th location
+	//Force only 5 characters
+	[VarSet, valstr,[StrExtract, valstr,0,4]]
+	  
+, val, valstr]//Routine gTwoDec
+
+
+[IButton,???,"Generates a DynaMesh Shell with a set thickness in mm (Edit Macro for Options.)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,PreciseShell]
+,,1,,,]

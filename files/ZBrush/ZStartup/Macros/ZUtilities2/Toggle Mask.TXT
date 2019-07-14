@@ -1,0 +1,75 @@
+﻿/* 
+	This macro creates a toggable button that will cycle through the different masking brushes
+	2016 Joseph Drust - www.JosephDrust.com
+	Feel free to use this code in other Macros or ZScripts!
+	Thanks to Marcus Burgess for the continuing ZScripting help over the years :)
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,MaskToggler,
+
+	//Create Memory Block to store which cycle the macro is on
+	[If,[MemGetSize,MP_MaskCycleMemBlock],,
+		//Create and then set to 0
+		[MVarDef,MP_MaskCycleMemBlock,1,0]
+		[MVarSet,MP_MaskCycleMemBlock,0,0] //CurrentCycle
+	]
+	[VarSet,CurrentCycle,[MVarGet,MP_MaskCycleMemBlock,0]]
+	
+	//Pen and Rectangle Mask
+	[If,CurrentCycle==0,
+		[IKeyPress,CTRL,[IPress,Brush:MaskPen]]
+		[Note,"Pen and Rectangle Mask Selected",,.1]
+	,]
+	
+	//Perfect Square Mask
+	[If,CurrentCycle==1,
+		[IKeyPress,CTRL,[IPress,Brush:MaskRect]]
+		[IKeyPress,CTRL,[ISet,Stroke:Square,1]]
+		[IKeyPress,CTRL,[ISet,Stroke:Center,1]]
+		[Note,"Square Mask Selected",,.1]
+	,]
+	
+	//Circle Mask
+	[If,CurrentCycle==2,
+		[IKeyPress,CTRL,[IPress,Brush:MaskCircle]]
+		[IKeyPress,CTRL,[ISet,Stroke:Square,1]]
+		[IKeyPress,CTRL,[ISet,Stroke:Center,1]]
+		[Note,"Circle Mask Selected",,.1]
+	,]
+	
+	//Lasso Mask
+	[If,CurrentCycle==3,
+		[IKeyPress,CTRL,[IPress,Brush:MaskLasso]]
+		[Note,"Lasso Mask Selected",,.1]
+	,]
+	
+	//Line Mask
+	[If,CurrentCycle==4,
+		[IKeyPress,CTRL,[IPress,Brush:MaskCurve]]
+		[Note,"Line Mask Selected",,.1]
+	,]
+	
+	[If,CurrentCycle>=4,
+		[VarSet,CurrentCycle,0]
+		[MVarSet,MP_MaskCycleMemBlock,0,CurrentCycle]
+	,
+		[MVarSet,MP_MaskCycleMemBlock,0,CurrentCycle+1]
+	]
+	
+]//Routine MaskToggler
+
+[IButton,???,"Toggles through Mask Pen, Mask Perfect Square, Mask Circle, Mask Lasso, and Mask Line. (Hotkey for best use!)",
+	[IShowActions,0]
+	[IConfig,4.73]
+	//[IFreeze,
+		[RoutineCall,MaskToggler]
+	//]
+,,1,,,]

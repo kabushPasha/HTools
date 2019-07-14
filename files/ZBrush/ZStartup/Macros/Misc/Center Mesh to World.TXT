@@ -1,0 +1,27 @@
+﻿/*
+	Center the selected Subtool's position to 0,0,0.
+*/
+
+/////////////////////////////////////////
+// User Changable Options ///////////////
+/////////////////////////////////////////
+
+/////////////////////////////////////////
+/////////////////////////////////////////
+
+[RoutineDef,CenterMeshXYZ,
+
+	[ISet,Tool:Geometry:X Position,0]
+	[MergeUndo]
+	[ISet,Tool:Geometry:Y Position,0]
+	[MergeUndo]
+	[ISet,Tool:Geometry:Z Position,0]
+
+]//Routine CenterMeshXYZ
+
+
+[IButton,???,"Center the selected Subtool's postion to 0,0,0.",
+	[IShowActions,0]
+	[IConfig,4.73]
+	[RoutineCall,CenterMeshXYZ]
+,,1,,,]
