@@ -16,6 +16,8 @@
     "FLOW V": 1,
     "ILM Cluster": 1,
     "MAXIMUM_CLICKS": 42,
+    "Mat to Group": 2,
+    "Names to Group": 1,
     "Other: 1D: Worley F1": 3,
     "Other: 1D: Worley F2": 2,
     "Other: 1D: Worley Seed": 4,
