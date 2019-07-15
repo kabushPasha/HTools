@@ -77,12 +77,6 @@
         }
     },
     "Utility": {
-        "Mat to Group": {
-            "addcode": "setprimgroup(0,s@shopmaterial_path, @primnum,1);"
-        },
-        "Names to Group": {
-            "addcode": "setprimgroup(0,s@name, @primnum,1);"
-        },
         "Remove Primless Points": {
             "addcode": "if(len(pointprims(0,@ptnum))==0)\n    removepoint(0,@ptnum);"
         },
