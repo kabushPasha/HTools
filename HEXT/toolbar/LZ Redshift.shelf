@@ -392,6 +392,9 @@ hou.hscript('colorsettings -l "'+ mega +'/Assets/LUTS/Rec.709_for_ACEScg_Houdini
 
   <tool name="batchProxy" label="Batch Proxy" icon="hicon:/SVGIcons.index?SOP_filecache.svg">
     <script scriptType="python"><![CDATA[import subprocess
+import hou
+
+hou.hipFile.save()
 
 threads = 5
 
@@ -410,7 +413,7 @@ for n in hou.selectedNodes():
             cmd += 'hou.parm("' + n.path() + '/f3").set(' +str(threads)+ ');'
         
             cmd += 'hou.parm("' + n.path() + '/execute").pressButton();'
-            cmd += 'import time;time.sleep(60)'
+            #cmd += 'import time;time.sleep(60)'
             #print cmd
             subprocess.Popen([hython,file,'-c',cmd])
             
