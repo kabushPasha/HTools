@@ -220,6 +220,9 @@
         }
     },
     "Samplers": {
+        "sample direction uniform": {
+            "addcode": "vector dir = sample_direction_uniform(rand(@ptnum));\n\n\n"
+        },
         "sample_circle_edge": {
             "code": "vector2 dir =  sample_circle_edge_uniform(rand(@ptnum));\nv@N = set(dir.x,0,dir.y);\nv@up = {0,1,0};"
         },
