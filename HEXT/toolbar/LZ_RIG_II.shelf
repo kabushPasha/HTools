@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="lz_rig_II" label="LZ RIG II">
+    <memberTool name="set to bones group"/>
+    <memberTool name="Basic Capture0"/>
+  </toolshelf>
+
+  <tool name="set to bones group" label="set to bones group" icon="hicon:/SVGIcons.index?SOP_grouptransfer.svg">
+    <helpText><![CDATA["""adds all selected bones to user specified node group, ctrl+click removes nodes from ALL groups"""]]></helpText>
+    <script scriptType="python"><![CDATA[if kwargs['ctrlclick'] == False:
+    user_input = hou.ui.readInput("Bone group name",buttons=('OK',),initial_contents="bones" )
+    for bone in hou.selectedNodes():
+        #if bone.type().name() == 'bone':
+        nodeGroup = bone.parent().addNodeGroup(user_input[1])
+        nodeGroup.addNode(bone)
+        bone.setColor(hou.Color(1,0.8,0))
+else:
+    for bone in hou.selectedNodes():
+        #if bone.type().name() == 'bone':
+        nodeGroups = bone.parent().nodeGroups()
+        for g in nodeGroups:
+            if bone in g.nodes():
+                g.removeNode(bone)            
+        bone.setColor(hou.Color(1,0.976,0.666))]]></script>
+  </tool>
+
+  <tool name="Basic Capture0" label="Basic Capture" icon="hicon:/SVGIcons.index?SOP_bonecapturebiharmonic.svg">
+    <toolMenuContext name="network">
+      <contextOpType>Sop/null</contextOpType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputitem = None
+inputindex = -1
+inputitem = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if kwargs.has_key("outputnodename") and kwargs.has_key("inputindex"):
+        outputitem = pane_node.item(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if kwargs.has_key("inputnodename") and kwargs.has_key("outputindex"):
+        inputitem = pane_node.item(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if kwargs.has_key("autoplace"):
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+        if inputitem is None:
+            inputitem = pane.currentNode()
+            outputindex = 0
+    if kwargs.has_key("nodepositionx") and             kwargs.has_key("nodepositiony"):
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+
+    if not autoplace and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputitem is None:
+            pos = pane.selectPosition(inputitem, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputitem, outputindex,
+                                      outputitem, inputindex)
+
+    if pos is not None:
+        if kwargs.has_key("node_bbox"):
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if not child_type.has_key('stash'):
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_furball_rig_skin_IN1 (Sop/null)
+set _obj_furball_rig_skin_IN1 = `run("opadd -e -n -v null IN1")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_furball_rig_skin_IN1
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_IN1
+opexprlanguage -s hscript $_obj_furball_rig_skin_IN1
+opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_IN1
+opset -p on $_obj_furball_rig_skin_IN1
+opcf $arg1
+
+# Node $_obj_furball_rig_skin_solidembed1 (Sop/solidembed::2.0)
+set _obj_furball_rig_skin_solidembed1 = `run("opadd -e -n -v solidembed::2.0 solidembed1")`
+oplocate -x `$arg2 + 1.1561699999999995` -y `$arg3 + -1.0326400000000007` $_obj_furball_rig_skin_solidembed1
+opparm $_obj_furball_rig_skin_solidembed1 voxeloffset ( 2 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_solidembed1
+opexprlanguage -s hscript $_obj_furball_rig_skin_solidembed1
+opuserdata -n '___Version___' -v '' $_obj_furball_rig_skin_solidembed1
+opuserdata -n '___toolcount___' -v '2' $_obj_furball_rig_skin_solidembed1
+opuserdata -n '___toolid___' -v 'dop_fracturedsolidobject' $_obj_furball_rig_skin_solidembed1
+opset -p on $_obj_furball_rig_skin_solidembed1
+opcf $arg1
+
+# Node $_obj_furball_rig_skin_bonecapture_lines1 (Sop/bonecapturelines)
+set _obj_furball_rig_skin_bonecapture_lines1 = `run("opadd -e -n -v bonecapturelines bonecapture_lines1")`
+oplocate -x `$arg2 + 2.446035945945944` -y `$arg3 + 0.0049999989569187164` $_obj_furball_rig_skin_bonecapture_lines1
+opspareds '    parm {         name    "rootpath"         baseparm         label   "Hierarchy"         export  all     }     parm {         name    "extraregions"         baseparm         label   "Extra Regions"         export  none     }     parm {         name    "resample"         baseparm         label   "Resample Segments"         export  none     }     parm {         name    "maxaxisfraction"         baseparm         label   "Max Axis Fraction"         export  none     }     parm {         name    "maxlength"         baseparm         label   "Max Segment Length"         export  none     }     parm {         name    "excludeshortbones"         baseparm         label   "Exclude Short Bones"         export  none     }     parm {         name    "excludethreshold"         baseparm         label   "Exclude Threshold"         export  none     }     parm {         name    "usebonelink"         baseparm         label   "Use Bone Link"         export  none     }     groupcollapsible {         name    "captureoptions2"         label   "Capture Options"         grouptag { "group_type" "collapsible" }          parm {             name    "usecaptpose"             baseparm             label   "Use Capture Pose"             export  none         }         parm {             name    "captframe"             baseparm             label   "Capture Frame"             export  none         }         parm {             name    "cookat"             baseparm             label   "Cook at"             export  none         }         parm {             name    "forcecook"             baseparm             label   "Force Cook"             export  all         }     }      groupcollapsible {         name    "hierarchyoptions2"         label   "Hierarchy Options"         grouptag { "group_type" "collapsible" }          parm {             name    "captureregionsop"             baseparm             label   "Region SOP"             export  none         }         parm {             name    "dosubnets"             baseparm             label   "Traverse into Subnets"             export  none         }         parm {             name    "relativeskel"             baseparm             label   "Create Relative Skeleton Root Path"             export  none         }     }      parm {         name    "autorigs_nodegroups"         label   "Auto Rig Node Groups"         type    string         default { "" }     }     parm {         name    "fusethreshold"         baseparm         label   "Fuse Threshold"         export  none     } ' $_obj_furball_rig_skin_bonecapture_lines1
+chblockbegin
+chadd -t 0 0 $_obj_furball_rig_skin_bonecapture_lines1 extraregions
+chkey -t 0 -v 0 -m 0 -a 0.33333333333333331 -A 0.33333333333333331 -T a  -F '\nasset = hou.node("/obj/test_spine")\nasset = hou.pwd().parent().parent()\npaths = []\nfor g in parm("autorigs_nodegroups").eval().split():\n    print asset.nodeGroup(g)\n    for n in asset.nodeGroup(g).nodes():\n        paths.append(n.path())\nreturn \' \'.join(paths) \n        ' -l p $_obj_furball_rig_skin_bonecapture_lines1/extraregions
+chblockend
+opparm -V 17.5.258 $_obj_furball_rig_skin_bonecapture_lines1 extraregions ( extraregions ) usebonelink ( on ) usecaptpose ( off ) captureoptions2 ( 1 ) autorigs_nodegroups ( bones )
+chautoscope $_obj_furball_rig_skin_bonecapture_lines1 +extraregions
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_bonecapture_lines1
+opexprlanguage -s hscript $_obj_furball_rig_skin_bonecapture_lines1
+opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_bonecapture_lines1
+opset -p on $_obj_furball_rig_skin_bonecapture_lines1
+opcf $arg1
+
+# Node $_obj_furball_rig_skin_deform1 (Sop/deform)
+set _obj_furball_rig_skin_deform1 = `run("opadd -e -n -v deform deform1")`
+oplocate -x `$arg2 + 0.19041999999999959` -y `$arg3 + -3.5065062162162182` $_obj_furball_rig_skin_deform1
+opparm -V 17.5.258 $_obj_furball_rig_skin_deform1 donormal ( on )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_deform1
+opexprlanguage -s hscript $_obj_furball_rig_skin_deform1
+opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_deform1
+opset -p on $_obj_furball_rig_skin_deform1
+opcf $arg1
+
+# Node $_obj_furball_rig_skin_Capture1 (Sop/bonecapturebiharmonic)
+set _obj_furball_rig_skin_Capture1 = `run("opadd -e -n -v bonecapturebiharmonic Capture1")`
+oplocate -x `$arg2 + 0.19041999999999959` -y `$arg3 + -1.9412400000000005` $_obj_furball_rig_skin_Capture1
+opset -d on -r on -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_Capture1
+opexprlanguage -s hscript $_obj_furball_rig_skin_Capture1
+opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_Capture1
+opset -p on $_obj_furball_rig_skin_Capture1
+opcf $arg1
+
+# Node $_obj_furball_rig_skin_stash3 (Sop/stash)
+set _obj_furball_rig_skin_stash3 = `run("opadd -e -n -v stash stash3")`
+oplocate -x `$arg2 + 0.19041999999999959` -y `$arg3 + -2.7388616335425509` $_obj_furball_rig_skin_stash3
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_stash3
+opexprlanguage -s hscript $_obj_furball_rig_skin_stash3
+opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_stash3
+opset -p on $_obj_furball_rig_skin_stash3
+
+opcf $arg1
+opcf $arg1
+opwire -n $_obj_furball_rig_skin_IN1 -0 $_obj_furball_rig_skin_solidembed1
+opwire -n $_obj_furball_rig_skin_bonecapture_lines1 -1 $_obj_furball_rig_skin_solidembed1
+opcf $arg1
+opcf $arg1
+opwire -n $_obj_furball_rig_skin_stash3 -0 $_obj_furball_rig_skin_deform1
+opcf $arg1
+opwire -n $_obj_furball_rig_skin_IN1 -0 $_obj_furball_rig_skin_Capture1
+opwire -n $_obj_furball_rig_skin_solidembed1 -1 $_obj_furball_rig_skin_Capture1
+opcf $arg1
+opwire -n $_obj_furball_rig_skin_Capture1 -0 $_obj_furball_rig_skin_stash3
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_furball_rig_skin_deform1
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_furball_rig_skin_IN1
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+</shelfDocument>
