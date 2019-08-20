@@ -7,7 +7,10 @@
 
   <toolshelf name="lz_rig_II" label="LZ RIG II">
     <memberTool name="set to bones group"/>
-    <memberTool name="Basic Capture0"/>
+    <memberTool name="object_bones"/>
+    <memberTool name="object_bonesfromcurve"/>
+    <memberTool name="Basic Capture"/>
+    <memberTool name="Select all of same type"/>
   </toolshelf>
 
   <tool name="set to bones group" label="set to bones group" icon="hicon:/SVGIcons.index?SOP_grouptransfer.svg">
@@ -29,9 +32,9 @@ else:
         bone.setColor(hou.Color(1,0.976,0.666))]]></script>
   </tool>
 
-  <tool name="Basic Capture0" label="Basic Capture" icon="hicon:/SVGIcons.index?SOP_bonecapturebiharmonic.svg">
+  <tool name="Basic Capture" label="Basic Capture" icon="hicon:/SVGIcons.index?SOP_bonecapturebiharmonic.svg">
     <toolMenuContext name="network">
-      <contextOpType>Sop/null</contextOpType>
+      <contextOpType>Sop/solidembed::2.0</contextOpType>
     </toolMenuContext>
     <script scriptType="python"><![CDATA[
 import sys
@@ -140,82 +143,103 @@ endif
 set saved_path = `execute("oppwf")`
 opcf $arg1
 
-# Node $_obj_furball_rig_skin_IN1 (Sop/null)
-set _obj_furball_rig_skin_IN1 = `run("opadd -e -n -v null IN1")`
-oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_furball_rig_skin_IN1
-opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_IN1
-opexprlanguage -s hscript $_obj_furball_rig_skin_IN1
-opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_IN1
-opset -p on $_obj_furball_rig_skin_IN1
+# Node $_obj_furball_rig_skin_solidembed (Sop/solidembed::2.0)
+set _obj_furball_rig_skin_solidembed = `run("opadd -e -n -v solidembed::2.0 solidembed")`
+oplocate -x `$arg2 + 1.1561657657657658` -y `$arg3 + -1.0326412983403777` $_obj_furball_rig_skin_solidembed
+opparm $_obj_furball_rig_skin_solidembed voxeloffset ( 2 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_solidembed
+opexprlanguage -s hscript $_obj_furball_rig_skin_solidembed
+opuserdata -n '___Version___' -v '' $_obj_furball_rig_skin_solidembed
+opuserdata -n '___toolcount___' -v '2' $_obj_furball_rig_skin_solidembed
+opuserdata -n '___toolid___' -v 'dop_fracturedsolidobject' $_obj_furball_rig_skin_solidembed
+opset -p on $_obj_furball_rig_skin_solidembed
 opcf $arg1
 
-# Node $_obj_furball_rig_skin_solidembed1 (Sop/solidembed::2.0)
-set _obj_furball_rig_skin_solidembed1 = `run("opadd -e -n -v solidembed::2.0 solidembed1")`
-oplocate -x `$arg2 + 1.1561699999999995` -y `$arg3 + -1.0326400000000007` $_obj_furball_rig_skin_solidembed1
-opparm $_obj_furball_rig_skin_solidembed1 voxeloffset ( 2 )
-opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_solidembed1
-opexprlanguage -s hscript $_obj_furball_rig_skin_solidembed1
-opuserdata -n '___Version___' -v '' $_obj_furball_rig_skin_solidembed1
-opuserdata -n '___toolcount___' -v '2' $_obj_furball_rig_skin_solidembed1
-opuserdata -n '___toolid___' -v 'dop_fracturedsolidobject' $_obj_furball_rig_skin_solidembed1
-opset -p on $_obj_furball_rig_skin_solidembed1
-opcf $arg1
-
-# Node $_obj_furball_rig_skin_bonecapture_lines1 (Sop/bonecapturelines)
-set _obj_furball_rig_skin_bonecapture_lines1 = `run("opadd -e -n -v bonecapturelines bonecapture_lines1")`
-oplocate -x `$arg2 + 2.446035945945944` -y `$arg3 + 0.0049999989569187164` $_obj_furball_rig_skin_bonecapture_lines1
-opspareds '    parm {         name    "rootpath"         baseparm         label   "Hierarchy"         export  all     }     parm {         name    "extraregions"         baseparm         label   "Extra Regions"         export  none     }     parm {         name    "resample"         baseparm         label   "Resample Segments"         export  none     }     parm {         name    "maxaxisfraction"         baseparm         label   "Max Axis Fraction"         export  none     }     parm {         name    "maxlength"         baseparm         label   "Max Segment Length"         export  none     }     parm {         name    "excludeshortbones"         baseparm         label   "Exclude Short Bones"         export  none     }     parm {         name    "excludethreshold"         baseparm         label   "Exclude Threshold"         export  none     }     parm {         name    "usebonelink"         baseparm         label   "Use Bone Link"         export  none     }     groupcollapsible {         name    "captureoptions2"         label   "Capture Options"         grouptag { "group_type" "collapsible" }          parm {             name    "usecaptpose"             baseparm             label   "Use Capture Pose"             export  none         }         parm {             name    "captframe"             baseparm             label   "Capture Frame"             export  none         }         parm {             name    "cookat"             baseparm             label   "Cook at"             export  none         }         parm {             name    "forcecook"             baseparm             label   "Force Cook"             export  all         }     }      groupcollapsible {         name    "hierarchyoptions2"         label   "Hierarchy Options"         grouptag { "group_type" "collapsible" }          parm {             name    "captureregionsop"             baseparm             label   "Region SOP"             export  none         }         parm {             name    "dosubnets"             baseparm             label   "Traverse into Subnets"             export  none         }         parm {             name    "relativeskel"             baseparm             label   "Create Relative Skeleton Root Path"             export  none         }     }      parm {         name    "autorigs_nodegroups"         label   "Auto Rig Node Groups"         type    string         default { "" }     }     parm {         name    "fusethreshold"         baseparm         label   "Fuse Threshold"         export  none     } ' $_obj_furball_rig_skin_bonecapture_lines1
+# Node $_obj_furball_rig_skin_skin (Sop/filecache)
+set _obj_furball_rig_skin_skin = `run("opadd -e -n -v filecache skin")`
+oplocate -x `$arg2 + 2.8040936936936944` -y `$arg3 + -2.8804378257678969` $_obj_furball_rig_skin_skin
+opspareds '    parm {         name    "loadfromdisk"         baseparm         label   "Load from Disk     "         joinnext         export  none     }     parm {         name    "reload"         baseparm         label   "Reload Geometry"         export  none     }     parm {         name    "filemode"         baseparm         label   "File Mode"         export  none     }     parm {         name    "v"         label   "Version"         type    integer         default { "0" }         range   { 0! 30 }         parmtag { "script_action" "import os.path,glob,math\\nn = kwargs[\\"node\\"]\\nfile = n.parm(\\"file\\").eval()\\nfolder = os.path.dirname(file)\\n\\nlist_of_files = glob.glob(folder + \'/*.bgeo.sc\')\\nlatest_file = max(list_of_files, key=os.path.getctime)\\nfirst_file = min(list_of_files, key=os.path.getctime)\\n\\nstart_time = os.path.getctime(first_file)\\nend_time = os.path.getctime(latest_file)\\nmin = int(math.floor((end_time-start_time)/60))\\nsec = int(math.floor((end_time-start_time)%60))\\n\\ntime_str =  str(min) + \\"m\\" + str(sec) + \\"s\\"\\n\\n# put time in the note\\nv = n.parm(\\"v\\").eval()\\nnote = n.parm(\\"note\\" + str(v)).eval()\\n\\nif note.endswith(\\")\\"):\\n    note = note.split(\\"(\\")[0]\\nif not note.endswith(\\" \\"):\\n    note += \\" \\"\\n    \\nnote += \\"(\\" + time_str + \\")\\"        \\nn.parm(\\"note\\" + str(v)).set(note)\\n" }     }     parm {         name    "note0"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 0 }"     }     parm {         name    "note1"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 1 }"     }     parm {         name    "note2"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 2 }"     }     parm {         name    "note3"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 3 }"     }     parm {         name    "note4"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 4 }"     }     parm {         name    "note5"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 5 }"     }     parm {         name    "note6"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 6 }"     }     parm {         name    "note7"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 7 }"     }     parm {         name    "note8"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 8 }"     }     parm {         name    "note9"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 9 }"     }     parm {         name    "note10"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 10 }"     }     parm {         name    "note11"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 11 }"     }     parm {         name    "note12"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 12 }"     }     parm {         name    "note13"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 13 }"     }     parm {         name    "note14"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 14 }"     }     parm {         name    "note15"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 15 }"     }     parm {         name    "note16"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 16 }"     }     parm {         name    "note17"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 17 }"     }     parm {         name    "note18"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 18 }"     }     parm {         name    "note19"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 19 }"     }     parm {         name    "note20"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 20 }"     }     parm {         name    "note21"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 21 }"     }     parm {         name    "note22"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 22 }"     }     parm {         name    "note23"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 23 }"     }     parm {         name    "note24"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 24 }"     }     parm {         name    "note25"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 25 }"     }     parm {         name    "note26"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 26 }"     }     parm {         name    "note27"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 27 }"     }     parm {         name    "note28"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 28 }"     }     parm {         name    "note29"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 29 }"     }     parm {         name    "note30"         label   "Note"         type    string         default { "" }         hidewhen "{ v != 30 }"     }     parm {         name    "type"         label   "Type"         type    ordinal         joinnext         default { "0" }         menu {             "c" "Cache"             "s" "Stash"         }         parmtag { "script_callback" "n = hou.pwd();s = n.parm(\\"type\\").eval();n.parm(\\"trange\\").set(1-s);path = \'$JOB/Cache/Stash/`chs(\\"os\\")`/v.`chs(\\"v\\")`.bgeo.sc\' if s else \'$JOB/Cache/Sim/`chs(\\"os\\")`/v.`chs(\\"v\\")`/$F.bgeo.sc\'; n.parm(\\"file\\").set(path)" }         parmtag { "script_callback_language" "python" }     }     parm {         name    "open_cache_folder"         label   "Open Cache Folder"         type    button         joinnext         default { "0" }         parmtag { "script_callback" "import subprocess;path = hou.expandString(\\"$JOB/Cache/Sim\\");subprocess.Popen(\'explorer \\"\' + path.replace(\\"/\\",\\"\\\\\\\\\\") + \'\\"\');" }         parmtag { "script_callback_language" "python" }     }     parm {         name    "clearNotes"         label   "Clear Notes"         type    button         joinnext         default { "0" }         parmtag { "script_callback" "[ hou.pwd().parm(\\"note\\"+str(x)).set(\\"\\") for x in range(31) ]" }         parmtag { "script_callback_language" "python" }     }     parm {         name    "os"         label   "Load Other Version"         type    ordinal         nolabel         default { "0" }         menu {             [ "menu = [hou.expandString(\\"$OS\\"),\\"This Node: \\" + hou.expandString(\\"$OS\\")]" ]             [ "" ]             [ "inputs = hou.pwd().inputs()" ]             [ "if len(inputs) > 0:" ]             [ "    menu += [inputs[0].name(),\\"First Input: \\" + inputs[0].name()]" ]             [ "return menu" ]             language python         }     }     parm {         name    "file"         baseparm         label   "Geometry File"         export  none     }     group {         name    "folder2"         label   "Save to File"          parm {             name    "execute"             baseparm             label   "Save to Disk"             joinnext             export  none         }         parm {             name    "executebackground"             baseparm             label   "Save to Disk in Background"             joinnext             export  none         }         parm {             name    "renderdialog"             baseparm             label   "Controls..."             export  none         }         parm {             name    "trange"             baseparm             label   "Valid Frame Range"             export  none         }         parm {             name    "f"             baseparm             label   "Start/End/Inc"             export  none         }         parm {             name    "substeps"             baseparm             label   "Substeps"             export  none         }         parm {             name    "take"             baseparm             label   "Render With Take"             export  none         }         parm {             name    "xformtype"             baseparm             label   "Transform"             export  none         }         parm {             name    "mkpath"             baseparm             label   "Create Intermediate Directories"             export  none         }         parm {             name    "initsim"             baseparm             label   "Initialize Simulation OPs"             export  none         }         parm {             name    "alfprogress"             baseparm             label   "Alfred Style Progress"             export  none         }         parm {             name    "saveretry"             baseparm             label   "Save Retries"             export  none         }         parm {             name    "savebackground"             baseparm             label   "Save in Background"             export  none         }         parm {             name    "tprerender"             baseparm             label   "Pre-Render Script"             nolabel             joinnext             export  none         }         parm {             name    "prerender"             baseparm             label   "Pre-Render Script"             joinnext             export  none         }         parm {             name    "lprerender"             baseparm             label   "Pre-Render Script Language"             nolabel             export  none         }         parm {             name    "tpreframe"             baseparm             label   "Pre-Frame Script"             nolabel             joinnext             export  none         }         parm {             name    "preframe"             baseparm             label   "Pre-Frame Script"             joinnext             export  none         }         parm {             name    "lpreframe"             baseparm             label   "Pre-Frame Script Language"             nolabel             export  none         }         parm {             name    "tpostframe"             baseparm             label   "Post-Frame Script"             nolabel             joinnext             export  none         }         parm {             name    "postframe"             baseparm             label   "Post-Frame Script"             joinnext             export  none         }         parm {             name    "lpostframe"             baseparm             label   "Post-Frame Script Language"             nolabel             export  none         }         parm {             name    "tpostrender"             baseparm             label   "Post-Render Script"             nolabel             joinnext             export  none         }         parm {             name    "postrender"             baseparm             label   "Post-Render Script"             joinnext             export  none         }         parm {             name    "lpostrender"             baseparm             label   "Post-Render Script Language"             nolabel             export  none         }     }      group {         name    "folder2_1"         label   "Save Filter"          parm {             name    "deleteattributes"             baseparm             label   "Delete Attributes"             export  none         }         parm {             name    "deletegroups"             baseparm             label   "Delete Groups"             export  none         }         multiparm {             name    "numcasts"             label    "Number of Casts"             baseparm             default 0             parmtag { "autoscope" "0000000000000000" }              parm {                 name    "class#"                 baseparm                 label   "Class"                 export  none             }             parm {                 name    "attribs#"                 baseparm                 label   "Attributes"                 export  none             }             parm {                 name    "precision#"                 baseparm                 label   "Precision"                 export  none             }         }      }      group {         name    "folder2_2"         label   "Load from File"          parm {             name    "missingframe"             baseparm             label   "Missing Frame"             export  none         }         parm {             name    "loadtype"             baseparm             label   "Load"             export  none         }         parm {             name    "packedviewedit"             baseparm             label   "Display Packed As"             export  none         }         parm {             name    "viewportlod"             baseparm             label   "Display As"             export  none         }         parm {             name    "packexpanded"             baseparm             label   "Pack Using Expanded/Absolute File Path"             export  none         }         parm {             name    "delayload"             baseparm             label   "Delay Load Geometry"             export  none         }         parm {             name    "cachesize"             baseparm             label   "Cache Frames"             export  none         }         parm {             name    "prefetch"             baseparm             label   "Pre-fetch Geometry"             export  none         }     }  ' $_obj_furball_rig_skin_skin
+opparm $_obj_furball_rig_skin_skin  numcasts ( 0 )
 chblockbegin
-chadd -t 0 0 $_obj_furball_rig_skin_bonecapture_lines1 extraregions
-chkey -t 0 -v 0 -m 0 -a 0.33333333333333331 -A 0.33333333333333331 -T a  -F '\nasset = hou.node("/obj/test_spine")\nasset = hou.pwd().parent().parent()\npaths = []\nfor g in parm("autorigs_nodegroups").eval().split():\n    print asset.nodeGroup(g)\n    for n in asset.nodeGroup(g).nodes():\n        paths.append(n.path())\nreturn \' \'.join(paths) \n        ' -l p $_obj_furball_rig_skin_bonecapture_lines1/extraregions
+chadd -t 0 0 $_obj_furball_rig_skin_skin f1
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '$FSTART' $_obj_furball_rig_skin_skin/f1
+chadd -t 0 0 $_obj_furball_rig_skin_skin f2
+chkey -t 0 -v 0 -m 0 -a 0 -A 0 -T a  -F '$FEND' $_obj_furball_rig_skin_skin/f2
 chblockend
-opparm -V 17.5.258 $_obj_furball_rig_skin_bonecapture_lines1 extraregions ( extraregions ) usebonelink ( on ) usecaptpose ( off ) captureoptions2 ( 1 ) autorigs_nodegroups ( bones )
-chautoscope $_obj_furball_rig_skin_bonecapture_lines1 +extraregions
-opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_bonecapture_lines1
-opexprlanguage -s hscript $_obj_furball_rig_skin_bonecapture_lines1
-opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_bonecapture_lines1
-opset -p on $_obj_furball_rig_skin_bonecapture_lines1
+opparm $_obj_furball_rig_skin_skin loadfromdisk ( on ) file ( '$JOB/Cache/Stash/`chs("os")`/v.`chs("v")`.bgeo.sc' ) trange ( off ) lpostrender ( python ) packexpanded ( off ) type ( s )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_skin
+opexprlanguage -s hscript $_obj_furball_rig_skin_skin
+opuserdata -n '___Version___' -v '' $_obj_furball_rig_skin_skin
+opset -p on $_obj_furball_rig_skin_skin
 opcf $arg1
 
-# Node $_obj_furball_rig_skin_deform1 (Sop/deform)
-set _obj_furball_rig_skin_deform1 = `run("opadd -e -n -v deform deform1")`
-oplocate -x `$arg2 + 0.19041999999999959` -y `$arg3 + -3.5065062162162182` $_obj_furball_rig_skin_deform1
-opparm -V 17.5.258 $_obj_furball_rig_skin_deform1 donormal ( on )
-opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_deform1
-opexprlanguage -s hscript $_obj_furball_rig_skin_deform1
-opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_deform1
-opset -p on $_obj_furball_rig_skin_deform1
+# Node $_obj_furball_rig_skin_IN (Sop/null)
+set _obj_furball_rig_skin_IN = `run("opadd -e -n -v null IN")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_furball_rig_skin_IN
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_IN
+opexprlanguage -s hscript $_obj_furball_rig_skin_IN
+opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_IN
+opset -p on $_obj_furball_rig_skin_IN
 opcf $arg1
 
-# Node $_obj_furball_rig_skin_Capture1 (Sop/bonecapturebiharmonic)
-set _obj_furball_rig_skin_Capture1 = `run("opadd -e -n -v bonecapturebiharmonic Capture1")`
-oplocate -x `$arg2 + 0.19041999999999959` -y `$arg3 + -1.9412400000000005` $_obj_furball_rig_skin_Capture1
-opset -d on -r on -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_Capture1
-opexprlanguage -s hscript $_obj_furball_rig_skin_Capture1
-opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_Capture1
-opset -p on $_obj_furball_rig_skin_Capture1
+# Node $_obj_furball_rig_skin_Capture (Sop/bonecapturebiharmonic)
+set _obj_furball_rig_skin_Capture = `run("opadd -e -n -v bonecapturebiharmonic Capture")`
+oplocate -x `$arg2 + 0.19041441441441442` -y `$arg3 + -1.9412378388809173` $_obj_furball_rig_skin_Capture
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_Capture
+opexprlanguage -s hscript $_obj_furball_rig_skin_Capture
+opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_Capture
+opset -p on $_obj_furball_rig_skin_Capture
 opcf $arg1
 
-# Node $_obj_furball_rig_skin_stash3 (Sop/stash)
-set _obj_furball_rig_skin_stash3 = `run("opadd -e -n -v stash stash3")`
-oplocate -x `$arg2 + 0.19041999999999959` -y `$arg3 + -2.7388616335425509` $_obj_furball_rig_skin_stash3
-opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_stash3
-opexprlanguage -s hscript $_obj_furball_rig_skin_stash3
-opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_stash3
-opset -p on $_obj_furball_rig_skin_stash3
+# Node $_obj_furball_rig_skin_bonecapture_lines (Sop/bonecapturelines)
+set _obj_furball_rig_skin_bonecapture_lines = `run("opadd -e -n -v bonecapturelines bonecapture_lines")`
+oplocate -x `$arg2 + 2.8040936936936944` -y `$arg3 + 0.0049999989569187164` $_obj_furball_rig_skin_bonecapture_lines
+opspareds '    parm {         name    "rootpath"         baseparm         label   "Hierarchy"         export  all     }     parm {         name    "extraregions"         baseparm         label   "Extra Regions"         export  none     }     parm {         name    "resample"         baseparm         label   "Resample Segments"         export  none     }     parm {         name    "maxaxisfraction"         baseparm         label   "Max Axis Fraction"         export  none     }     parm {         name    "maxlength"         baseparm         label   "Max Segment Length"         export  none     }     parm {         name    "excludeshortbones"         baseparm         label   "Exclude Short Bones"         export  none     }     parm {         name    "excludethreshold"         baseparm         label   "Exclude Threshold"         export  none     }     parm {         name    "usebonelink"         baseparm         label   "Use Bone Link"         export  none     }     groupcollapsible {         name    "captureoptions2"         label   "Capture Options"         grouptag { "group_type" "collapsible" }          parm {             name    "usecaptpose"             baseparm             label   "Use Capture Pose"             export  none         }         parm {             name    "captframe"             baseparm             label   "Capture Frame"             export  none         }         parm {             name    "cookat"             baseparm             label   "Cook at"             export  none         }         parm {             name    "forcecook"             baseparm             label   "Force Cook"             export  all         }     }      groupcollapsible {         name    "hierarchyoptions2"         label   "Hierarchy Options"         grouptag { "group_type" "collapsible" }          parm {             name    "captureregionsop"             baseparm             label   "Region SOP"             export  none         }         parm {             name    "dosubnets"             baseparm             label   "Traverse into Subnets"             export  none         }         parm {             name    "relativeskel"             baseparm             label   "Create Relative Skeleton Root Path"             export  none         }     }      parm {         name    "autorigs_nodegroups"         label   "Auto Rig Node Groups"         type    string         default { "" }     }     parm {         name    "fusethreshold"         baseparm         label   "Fuse Threshold"         export  none     } ' $_obj_furball_rig_skin_bonecapture_lines
+chblockbegin
+chadd -t 0 0 $_obj_furball_rig_skin_bonecapture_lines extraregions
+chkey -t 0 -v 0 -m 0 -a 0.33333333333333331 -A 0.33333333333333331 -T a  -F '\nasset = hou.node("/obj/test_spine")\nasset = hou.pwd().parent().parent()\npaths = []\nfor g in parm("autorigs_nodegroups").eval().split():\n    print asset.nodeGroup(g)\n    for n in asset.nodeGroup(g).nodes():\n        paths.append(n.path())\nreturn \' \'.join(paths) \n        ' -l p $_obj_furball_rig_skin_bonecapture_lines/extraregions
+chblockend
+opparm -V 17.5.258 $_obj_furball_rig_skin_bonecapture_lines extraregions ( extraregions ) usebonelink ( on ) usecaptpose ( off ) captureoptions2 ( 1 ) autorigs_nodegroups ( bones )
+chautoscope $_obj_furball_rig_skin_bonecapture_lines +extraregions
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_bonecapture_lines
+opexprlanguage -s hscript $_obj_furball_rig_skin_bonecapture_lines
+opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_bonecapture_lines
+opset -p on $_obj_furball_rig_skin_bonecapture_lines
+opcf $arg1
+
+# Node $_obj_furball_rig_skin_deform (Sop/deform)
+set _obj_furball_rig_skin_deform = `run("opadd -e -n -v deform deform")`
+oplocate -x `$arg2 + 0.19041441441441442` -y `$arg3 + -3.8918000010430815` $_obj_furball_rig_skin_deform
+opparm -V 17.5.258 $_obj_furball_rig_skin_deform donormal ( on )
+opset -d on -r on -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_deform
+opexprlanguage -s hscript $_obj_furball_rig_skin_deform
+opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_deform
+opset -p on $_obj_furball_rig_skin_deform
+opcf $arg1
+
+# Node $_obj_furball_rig_skin_skin_stash (Sop/stash)
+set _obj_furball_rig_skin_skin_stash = `run("opadd -e -n -v stash skin_stash")`
+oplocate -x `$arg2 + 0.19041441441441442` -y `$arg3 + -2.8354378388809187` $_obj_furball_rig_skin_skin_stash
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_furball_rig_skin_skin_stash
+opexprlanguage -s hscript $_obj_furball_rig_skin_skin_stash
+opuserdata -n '___Version___' -v '17.5.258' $_obj_furball_rig_skin_skin_stash
+opset -p on $_obj_furball_rig_skin_skin_stash
 
 opcf $arg1
+opwire -n $_obj_furball_rig_skin_IN -0 $_obj_furball_rig_skin_solidembed
+opwire -n $_obj_furball_rig_skin_bonecapture_lines -1 $_obj_furball_rig_skin_solidembed
 opcf $arg1
-opwire -n $_obj_furball_rig_skin_IN1 -0 $_obj_furball_rig_skin_solidembed1
-opwire -n $_obj_furball_rig_skin_bonecapture_lines1 -1 $_obj_furball_rig_skin_solidembed1
+opwire -n $_obj_furball_rig_skin_Capture -0 $_obj_furball_rig_skin_skin
+opcf $arg1
+opwire -n $_obj_furball_rig_skin_Rs_quickMat1 -0 $_obj_furball_rig_skin_IN
+opcf $arg1
+opwire -n $_obj_furball_rig_skin_IN -0 $_obj_furball_rig_skin_Capture
+opwire -n $_obj_furball_rig_skin_solidembed -1 $_obj_furball_rig_skin_Capture
 opcf $arg1
 opcf $arg1
-opwire -n $_obj_furball_rig_skin_stash3 -0 $_obj_furball_rig_skin_deform1
+opwire -n $_obj_furball_rig_skin_skin -0 $_obj_furball_rig_skin_deform
 opcf $arg1
-opwire -n $_obj_furball_rig_skin_IN1 -0 $_obj_furball_rig_skin_Capture1
-opwire -n $_obj_furball_rig_skin_solidembed1 -1 $_obj_furball_rig_skin_Capture1
-opcf $arg1
-opwire -n $_obj_furball_rig_skin_Capture1 -0 $_obj_furball_rig_skin_stash3
+opwire -n $_obj_furball_rig_skin_Capture -0 $_obj_furball_rig_skin_skin_stash
 
 set oidx = 0
 if ($argc >= 9 && "$arg9" != "") then
@@ -223,11 +247,11 @@ if ($argc >= 9 && "$arg9" != "") then
 endif
 
 if ($argc >= 5 && "$arg4" != "") then
-    set output = $_obj_furball_rig_skin_deform1
+    set output = $_obj_furball_rig_skin_deform
     opwire -n $output -$arg5 $arg4
 endif
 if ($argc >= 6 && "$arg6" != "") then
-    set input = $_obj_furball_rig_skin_IN1
+    set input = $_obj_furball_rig_skin_IN
     if ($arg8) then
         opwire -n -i $arg6 -0 $input
     else
@@ -237,6 +261,18 @@ endif
 opcf $saved_path
 '''
 hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+
+  <tool name="Select all of same type" label="Select all of same type" icon="hicon:/SVGIcons.index?SHELF_footprints.svg">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    type = n.type().name()
+    for child in n.parent().children():
+        if child.type().name() == type:
+            child.setSelected(True)
+
+
+
 ]]></script>
   </tool>
 </shelfDocument>
