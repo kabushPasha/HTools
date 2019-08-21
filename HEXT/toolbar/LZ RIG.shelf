@@ -17,7 +17,6 @@
     <memberTool name="update Bones On Curve Length"/>
     <memberTool name="Create Fetch"/>
     <memberTool name="Xray"/>
-    <memberTool name="Rename"/>
     <memberTool name="sop_capture"/>
     <memberTool name="Add Controls On Curve"/>
     <memberTool name="extract_world_transform_to_null"/>
@@ -455,31 +454,6 @@ for n in nodes:
     <helpText><![CDATA["""Click to turn Xray ON, Ctrl+Click to turn Xray OFF """]]></helpText>
     <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
     n.useXray(kwargs['ctrlclick'] == False)
-]]></script>
-  </tool>
-
-  <tool name="Rename" label="Rename" icon="hicon:/SVGIcons.index?BUTTONS_edit.svg">
-    <helpText><![CDATA["""Normal: rename all selected nodes in selection order
-Bones: Select Root node, renames all nodes after root with bone_ prefix and root with root_ prefix
-(you need to select only the root)"""]]></helpText>
-    <script scriptType="python"><![CDATA[user_input = hou.ui.readInput("Bone group name",buttons=('Normal','Bones'))
-name = user_input[1].replace(" ","_")
-
-if user_input[0] == 0:
-    for node in hou.selectedNodes():
-        node.setName(name,True)
-
-        
-if user_input[0] == 1:
-    root = hou.selectedNodes()[0]
-    root.setName(name + "_root",True)
-    bone = root.outputs()[0]
-    bone.setName(name + "_bone0",True)
-    
-    while bone.outputs() is not ():
-        bone = bone.outputs()[0]
-        bone.setName(name + "_bone0",True)
-        
 ]]></script>
   </tool>
 

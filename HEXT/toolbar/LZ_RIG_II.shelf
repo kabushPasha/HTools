@@ -11,6 +11,7 @@
     <memberTool name="object_bonesfromcurve"/>
     <memberTool name="Basic Capture"/>
     <memberTool name="Select all of same type"/>
+    <memberTool name="Rename"/>
   </toolshelf>
 
   <tool name="set to bones group" label="set to bones group" icon="hicon:/SVGIcons.index?SOP_grouptransfer.svg">
@@ -273,6 +274,31 @@ hou.hscript(h_preamble + h_extra_args + h_cmd)
 
 
 
+]]></script>
+  </tool>
+
+  <tool name="Rename" label="Rename" icon="hicon:/SVGIcons.index?BUTTONS_edit.svg">
+    <helpText><![CDATA["""Normal: rename all selected nodes in selection order
+Bones: Select Root node, renames all nodes after root with bone_ prefix and root with root_ prefix
+(you need to select only the root)"""]]></helpText>
+    <script scriptType="python"><![CDATA[user_input = hou.ui.readInput("Bone group name",buttons=('Normal','Bones'))
+name = user_input[1].replace(" ","_")
+
+if user_input[0] == 0:
+    for node in hou.selectedNodes():
+        node.setName(name,True)
+
+        
+if user_input[0] == 1:
+    root = hou.selectedNodes()[0]
+    root.setName(name + "_root",True)
+    bone = root.outputs()[0]
+    bone.setName(name + "_bone0",True)
+    
+    while bone.outputs() is not ():
+        bone = bone.outputs()[0]
+        bone.setName(name + "_bone0",True)
+        
 ]]></script>
   </tool>
 </shelfDocument>
