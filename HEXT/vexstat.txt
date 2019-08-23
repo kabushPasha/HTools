@@ -54,7 +54,7 @@
     "qconvert": 5,
     "qrotate": 12,
     "quaternion": 3,
-    "re_replace": 19,
+    "re_replace": 20,
     "re_split ": 2,
     "relbbox ": 2,
     "removepoint ": 16,
@@ -73,5 +73,5 @@
     "volumegradient": 1,
     "volumesample": 15,
     "volumesampleV": 1,
-    "xyzdist": 12
+    "xyzdist": 13
 }
