@@ -34,10 +34,15 @@ newnode.setName("RS_Cam",1)
 newnode.parm("resx").set(1920)
 newnode.parm("resy").set(1080)
 
-#newnode = hou.selectedNodes()[0]
+ptg = newnode.parmTemplateGroup()
+# Add Comment Folder
+comment_folder = hou.FolderParmTemplate("Comment","Comment")
+comment = hou.StringParmTemplate("vcomment", "Viewport Comment", 1)
+comment.setTags({"editor": "1"})
+comment_folder.addParmTemplate(comment)
+ptg.addParmTemplate(comment_folder)
 
 # Add custom Focal actions
-ptg = newnode.parmTemplateGroup()
 # focal point
 pt = hou.FloatParmTemplate("f", "Focus point",3)
 pt.setTags({"script_action": "n = kwargs[\"node\"]\n\nimport toolutils\nsv = toolutils.sceneViewer()\nsv.setSnappingMode(hou.snappingMode.Prim)\npos = sv.selectPositions(number_of_positions=1)\n\nif pos[0].length() > 0:\n    n.parmTuple(\"f\").set(pos[0])\nsv.setSnappingMode(hou.snappingMode.Off)"})
@@ -48,6 +53,7 @@ pt.setTags({"script_action": "n = kwargs[\'node\']\nn.parm(\'RS_campro_dofDistan
 pt.setDefaultExpressionLanguage([hou.scriptLanguage.Python])
 pt.setDefaultExpression(["(hou.pwd().worldTransform().extractTranslates()-hou.Vector3(hou.pwd().parmTuple('f').eval())).length()"])
 ptg.addParmTemplate(pt)
+
 
 
 

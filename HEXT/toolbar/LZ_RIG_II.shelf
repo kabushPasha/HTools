@@ -12,6 +12,7 @@
     <memberTool name="Basic Capture"/>
     <memberTool name="Select all of same type"/>
     <memberTool name="Rename"/>
+    <memberTool name="update Bones On Curve Length"/>
   </toolshelf>
 
   <tool name="set to bones group" label="set to bones group" icon="hicon:/SVGIcons.index?SOP_grouptransfer.svg">
@@ -300,5 +301,80 @@ if user_input[0] == 1:
         bone.setName(name + "_bone0",True)
         
 ]]></script>
+  </tool>
+
+  <tool name="update Bones On Curve Length" label="update Bones On Curve Length" icon="hicon:/SVGIcons.index?CHOP_transformchain.svg">
+    <helpText><![CDATA["""Creates a Rest/Stretch blend on each bone and links it to CHOP and to the last Controll
+(select all bones in chain)
+(CV's should have nulls before them)"""]]></helpText>
+    <script scriptType="python"><![CDATA[def fixSpareFolders(node):
+    ptg = node.parmTemplateGroup()
+    folders = ptg.entries()
+    for folder in folders:
+        folder.setFolderType(hou.folderType.Simple)
+        ptg.replace(folder.name(),folder)
+    node.setParmTemplateGroup(ptg) 
+
+# function starts here
+ik = hou.selectedNodes()[0].node(hou.selectedNodes()[0].parm('solver').eval())
+curve = ik.node(ik.parm('curvepath').eval())
+
+nodes = hou.selectedNodes()
+
+# create blend controll on CHOP
+chop = nodes[0].node(nodes[0].parm('solver').eval()).parent()
+ptg = chop.parmTemplateGroup()
+ptg.clear()
+parm = hou.FloatParmTemplate('stretch','Stretch Blend',1,[0],min=0, max=1,min_is_strict=True, max_is_strict=True)
+ptg.addParmTemplate(parm)
+chop.setParmTemplateGroup(ptg) 
+
+# create blend Controll on Null
+ncvs = curve.node('points_merge').parm('numobj').eval()
+path = curve.node('points_merge').parm('objpath' + str(ncvs)).eval()
+ctrl = curve.node('points_merge').node(path).parent().inputs()[0]
+
+ptg = ctrl.parmTemplateGroup()
+ptg.clear()
+parm = hou.FloatParmTemplate('stretch','Stretch Blend',1,[0],min=0, max=1,min_is_strict=True, max_is_strict=True)
+ptg.addParmTemplate(parm)
+ctrl.setParmTemplateGroup(ptg) 
+fixSpareFolders(ctrl)
+
+chop.parm('stretch').setExpression('ch("' + chop.relativePathTo(ctrl) + '/stretch")')
+
+for n in nodes:
+    ptg = n.parmTemplateGroup()
+    ptg.clear()
+    
+    parm = hou.FloatParmTemplate("rest_length","Rest Length",1,[hou.hscriptExpression('arclen("' + curve.path() + '", 0, 0, 1)/' + str(len(nodes)))])
+    ptg.addParmTemplate(parm)
+    parm = hou.FloatParmTemplate("stretched_length","Stretched Length",1,[hou.hscriptExpression('arclen("' + curve.path() + '", 0, 0, 1)/' + str(len(nodes)))])
+    parm.setDefaultExpression(('arclen("' + n.relativePathTo(curve) + '", 0, 0, 1)/' + str(len(nodes)),))
+    ptg.addParmTemplate(parm)    
+    parm = hou.FloatParmTemplate('stretch','Stretch Blend',1,[0],min=0, max=1,min_is_strict=True, max_is_strict=True)
+    parm.setDefaultExpression(('ch("' + n.relativePathTo(chop) + '/stretch")',))
+    ptg.addParmTemplate(parm)
+    
+    n.setParmTemplateGroup(ptg) 
+    fixSpareFolders(n)
+    
+    n.parm('length').setExpression('ch("stretched_length")*ch("stretch") + ch("rest_length")*(1-ch("stretch"))')
+    
+    
+    
+    
+#   old version    
+#    if kwargs['ctrlclick'] == False:
+#        n.parm('length').setExpression('arclen("' + n.relativePathTo(curve) + '", 0, 0, 1)/' + str(len(nodes)))
+#    else:
+#        n.parm('length').deleteAllKeyframes()
+#        n.parm('length').set(hou.hscriptExpression('arclen("' + curve.path() + '", 0, 0, 1)/' + str(len(nodes))))
+    
+    
+    
+    
+    
+    ]]></script>
   </tool>
 </shelfDocument>
