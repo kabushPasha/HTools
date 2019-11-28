@@ -69,11 +69,17 @@
         "UpN to Orient": {
             "addcode": "p@orient = quaternion(maketransform(v@N,v@up));  "
         },
+        "orient random rotate": {
+            "addcode": "vector dir = sample_direction_uniform(rand(@ptnum));\np@orient = qmultiply(quaternion(chf(\"ang\"),dir),p@orient);\n\n\n\n\n"
+        },
         "orient to N": {
             "addcode": "v@N = qrotate(p@orient,{0,0,1});\nv@up = qrotate(p@orient,{0,1,0});"
         },
         "orient to N and up": {
             "addcode": "v@N = qrotate(p@orient,{0,0,1});\nv@up = qrotate(p@orient,{0,1,0});"
+        },
+        "packed random rotate": {
+            "addcode": "matrix3 t = primintrinsic(0,'transform',@primnum);\nvector4 orient = quaternion(t);\n\nvector dir = sample_direction_uniform(rand(@ptnum));\norient = qmultiply(quaternion(chf(\"ang\"),dir),orient);\n\nt = qconvert(orient);\nsetprimintrinsic (0,'transform',@primnum,t);\n\n\n\n\n"
         }
     },
     "Utility": {
