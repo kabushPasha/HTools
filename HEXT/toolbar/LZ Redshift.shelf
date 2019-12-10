@@ -105,7 +105,9 @@ newnode.setDisplayFlag(False)]]></script>
   </tool>
 
   <tool name="LZ RS Setup" label="LZ RS Setup" icon="ROP_Redshift_ROP">
-    <script scriptType="python"><![CDATA[def CreateCanoeRenderTab(n):
+    <script scriptType="python"><![CDATA[import lzutil
+
+def CreateCanoeRenderTab(n):
     ptg = n.parmTemplateGroup()
     
     folder = hou.FolderParmTemplate("shortcuts","CANOE")
@@ -159,7 +161,6 @@ if rs is None:
     ipr = __import__('roptoolutils').createRenderNode('Redshift_IPR')
     
     rs.parm('RS_renderAOVsToMPlay').set(1)
-    #rs.parm('RS_outputEnable').set(0)
     
     rs.parm('MotionBlurDeformationEnabled').set(1)  
     rs.parm('RS_mbPoints').set(1)
@@ -207,8 +208,7 @@ if rs is None:
     rs.parm("RS_objects_candidate").set("RS_*")
     rs.parm("RS_addDefaultLight").set(0)
     
-    CreateCanoeRenderTab(rs)
-    
+    CreateCanoeRenderTab(rs)    
     
 # Check if we have parms and render view already
 has_render_panel = 0
@@ -222,20 +222,9 @@ for panel in floatingPanels:
     
 # Open Parms Window
 if has_rs_parms == 0:
-    d = hou.ui.curDesktop()
-    
-    import ctypes
-    user32 = ctypes.windll.user32
-    sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
-    #pos goes from bottom to top, from left to rigth
     dy = [0.05,0.65];
     dx = [0.57,0.85];
-    
-    pos = (sz[0] + int(sz[0]*dx[0]),int(sz[1]*(1 - dy[1] - dy[0])))
-    size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
-    
-    panel = d.createFloatingPanel(hou.paneTabType.Parm,pos,size)
-    panel.setName('Render_Settings')
+    panel = lzutil.createFloatingPanel(hou.paneTabType.Parm,'Render_Settings',dx,dy)
     pane = panel.panes()[0]
     tab = pane.tabs()[0]
     tab.setCurrentNode(rs)
@@ -243,7 +232,7 @@ if has_rs_parms == 0:
 
 #create RenderView
 if has_render_panel == 0:
-    exec(hou.shelves.tool('Render View').script())
+    lzutil.createRenderView()
     
     
 ]]></script>

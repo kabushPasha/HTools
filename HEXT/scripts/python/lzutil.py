@@ -490,4 +490,34 @@ def installMyShelves():
 		shelves = [lz_rs] + shelves
 		ss2.setShelves(shelves)
 
+def createFloatingPanel(panel_type,panel_name,dx,dy):
+    from PySide2.QtWidgets  import  QApplication
+
+    d = hou.ui.curDesktop()
+    screen = QApplication.screens()[-1]
+    geo = screen.geometry()
+    x = geo.x()
+    y = geo.y()
+    w = geo.width()
+    h = geo.height()
+
+    pos  = [int(x+dx[0]*w)              , int(h*(1 - dy[1] - dy[0])) ]
+    size = [int(w*(dx[1] - dx[0]))      , int(h*(dy[1] - dy[0]))]
+
+
+    panel = d.createFloatingPanel(panel_type,pos,size)
+    panel.setPosition(pos)
+    panel.setName(panel_name)
+    
+    return panel
+
+def createRenderView():
+	dy = [0.05,0.65]
+	dx = [0.025,0.55]
+	panel_type = hou.paneTabType.IPRViewer
+	panel_name = 'RenderView'
+	return createFloatingPanel(panel_type,panel_name,dx,dy)
+
+
+
 
