@@ -20,6 +20,7 @@
     <memberTool name="matte_grid"/>
     <memberTool name="spheres"/>
     <memberTool name="add_reflection_sphere"/>
+    <memberTool name="submit_RS_render_Deadline"/>
   </toolshelf>
 
   <tool name="rs_cam_from_view" label="Rs camera from view" icon="hicon:/SVGIcons.index?OBJ_camera.svg">
@@ -138,6 +139,12 @@ def CreateCanoeRenderTab(n):
     
     Tesselation_Toggle = hou.ToggleParmTemplate("TessellationDisplacementEnable2", "Enable Tessellation And Displacement", default_value=True, default_expression='on', default_expression_language=hou.scriptLanguage.Hscript)
     folder.addParmTemplate(Tesselation_Toggle)
+    
+    # Code for parameter template
+    DeadlineRender_btn = hou.ButtonParmTemplate("submit_to_deadline", "Deadline Render")
+    DeadlineRender_btn.setScriptCallback("import lzutil;lzutil.submitRS2Deadline(hou.pwd())")
+    DeadlineRender_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+    folder.addParmTemplate(DeadlineRender_btn)
     
     before = "RS_rrs2"
     ptg.insertAfter(before,folder)
@@ -626,5 +633,12 @@ if hdri.type().name() == 'rslightdome::2.0':
     
     
     ]]></script>
+  </tool>
+
+  <tool name="submit_RS_render_Deadline" label="RS Render Deadline" icon="hicon:/SVGIcons.index?TOP_deadlinescheduler.svg">
+    <script scriptType="python"><![CDATA[import lzutil
+for n in hou.selectedNodes():
+    if n.type().name() == 'Redshift_ROP':
+        lzutil.submitRS2Deadline(n)]]></script>
   </tool>
 </shelfDocument>
