@@ -331,7 +331,8 @@ ptg.addParmTemplate(freeze_btn)
 
 newnode.setParmTemplateGroup(ptg)
 
-newnode.parm("hdr_img").set(newnode.parm("hdr_img").menuItems()[0])
+if len(newnode.parm("hdr_img").menuItems()) > 0:
+    newnode.parm("hdr_img").set(newnode.parm("hdr_img").menuItems()[0])
 
 # Set Backplate
 newnode.parm("tex1").set("S:/HTools/HEXT/Assets/red.tif")
