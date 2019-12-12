@@ -825,7 +825,7 @@ size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
 
 panel = d.createFloatingPanel(hou.paneTabType.PythonPanel,pos,size)
 pypanel = panel.paneTabs()[0]
-pypanel.setActiveInterface(hou.pypanel.interfaceByName("Canoe_Assets_interface"))]]></script>
+pypanel.setActiveInterface(hou.pypanel.interfaceByName("lz_canoe_assets_v2"))]]></script>
   </tool>
 
   <tool name="load expresions" label="Load Expressions" icon="PLASMA_App">

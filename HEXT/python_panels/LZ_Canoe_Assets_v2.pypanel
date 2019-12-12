@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="lz_canoe_assets_v2" label="LZ Canoe Assets v2" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[from hutil.Qt import QtWidgets,QtGui,QtCore
+from collections import OrderedDict
+from glob import glob
+import os
+import toolutils
+import lzutil
+import re
+import json
+
+# add MMBClick to remove tab
+# add top bar?
+# add hotkeys?
+# hide the top thing
+# make it as an asset?
+
+regex = r"(\D)(\d\d\d\d)(\D)"
+
+class QCustomTabWidget (QtWidgets.QTabWidget):
+    def __init__ (self, parent = None):
+        super(QCustomTabWidget, self).__init__(parent)
+        self.setTabsClosable(True)
+        self.tabCloseRequested.connect(self.closeTab)
+
+    def closeTab (self, currentIndex):        
+        currentQWidget = self.widget(currentIndex)
+        if  self.tabText(currentIndex) != "ROOT":
+            currentQWidget.deleteLater()
+            self.removeTab(currentIndex)
+        
+    #def mouseReleaseEvent(self, event):
+    #    print "MOUSE RELEASE"l
+    #    if event.button() == QtCore.Qt.MouseButton.MidButton:
+    #        print "close"
+    #    super(QCustomTabWidget,self).mouseReleaseEvent(event)
+            
+        
+class myTreeView(QtWidgets.QTreeView):
+    def __init__(self, app):
+        super(myTreeView,self).__init__(None)
+        self.app = app
+        
+    def mouseReleaseEvent(self, event):
+        if event.button() == QtCore.Qt.MouseButton.MidButton:
+            point =  event.pos()            
+            index = self.indexAt(point)           
+        
+            if not index.isValid():
+                return
+                
+            model = self.model()
+            file_path = model.filePath(index)
+            self.app.CreateNewTab(file_path,index.data())
+            
+        super(myTreeView,self).mouseReleaseEvent(event)
+
+
+class CanoeAssets(QtWidgets.QWidget):
+    def __init__(self):               
+        super(CanoeAssets, self).__init__() 
+        self.setStyleSheet("background-color: hsv(0,0,45);")
+        
+        self.json_filename = "S:/LZ_RS_CanoeAssets.json"
+        
+        self.mainLayout = QtWidgets.QGridLayout()    
+        self.tabs = QCustomTabWidget()   
+                
+        self.CreateNewTab(save_tabs = False)
+        self.LoadTabHistory()
+        
+        self.mainLayout.addWidget(self.tabs)        
+        self.setLayout(self.mainLayout)   
+    
+        
+    def add_tab(self,tab,tab_name):
+        self.tabs.addTab(tab,tab_name)  
+       
+    def CreateNewTab(self,root_path = '',tab_name = "ROOT", save_tabs = True):
+        model = QtWidgets.QFileSystemModel()
+        model.setNameFilters(['*.rs','*.obj',"*.bgeo.sc","*.abc","*.fbx"]) 
+        model.setRootPath(root_path)
+        model.setNameFilterDisables(0)        
+        tree = myTreeView(self)
+        tree.setModel(model)
+        tree.setRootIndex(model.index(root_path))
+        tree.setAnimated(False)
+        tree.setIndentation(20)
+        tree.setSortingEnabled(True)
+        tree.hideColumn(1)
+        tree.hideColumn(2)
+        tree.hideColumn(3)        
+        tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        tree.customContextMenuRequested.connect(self.treeContextMenu)        
+        self.add_tab(tree,tab_name)  
+        if save_tabs:
+            self.saveLoadedTabs()
+    
+    def saveLoadedTabs(self):
+        tabs_dict = OrderedDict()
+        for i in range(0,self.tabs.count()):
+            tab_name =  self.tabs.tabText(i)
+            model = self.tabs.widget(i).model()
+            root_path = model.rootPath()
+            tabs_dict[tab_name] = root_path
+            
+        filename = self.json_filename
+        with open(filename, 'w') as jsonfile:
+            json.dump(tabs_dict, jsonfile,sort_keys=False)
+        print filename
+
+    def LoadTabHistory(self):
+        filename = self.json_filename
+        if os.path.isfile(self.json_filename):
+            with open(filename, 'r') as jsonfile:    
+                tab_history = json.load(jsonfile,object_pairs_hook=OrderedDict)
+            for key in tab_history:
+                if tab_history[key] != "":
+                    self.CreateNewTab(tab_history[key],key,save_tabs = False)   
+                
+                
+        
+    def treeContextMenu(self,point):
+        current_tree = self.tabs.currentWidget()
+        index = current_tree.indexAt(point)
+       
+        if not index.isValid():
+            return
+        
+        name = index.data()
+        model = current_tree.model()
+        file_path = model.filePath(index)
+        
+        # We build the menu.
+        menu = QtWidgets.QMenu()        
+        
+        openInNewTab_action = 0
+        loadAsset_action = 0
+        loadAssetAnim_action = 0        
+        
+        if os.path.isdir(file_path):
+            openInNewTab_action = menu.addAction("Open in new tab")
+        if os.path.isfile(file_path):
+            loadAsset_action = menu.addAction("Load Asset")
+            
+            #check for regex
+            #(\D)(\d\d\d\d)(\D)  \1<UDIM>\3
+            #filename = re.sub(n.parm("udim_regex1").eval(),n.parm("udim_regex2").eval(),filename)
+            if re.search(regex,file_path) is not None:
+                loadAssetAnim_action = menu.addAction("Load Animation")                
+            
+        menu.addSeparator()
+
+        action = menu.exec_(current_tree.mapToGlobal(point))   
+        
+        if action == openInNewTab_action:
+            self.CreateNewTab(file_path,name)   
+        elif action == loadAsset_action:
+            ext = os.path.splitext(os.path.basename(file_path))[-1]
+            if ext == ".rs": 
+                loadRsAssetSimple(file_path)
+        elif action == loadAssetAnim_action:            
+            loadRsAssetSimple(file_path,True)
+            
+            
+
+# Function To Load Assets and sequences
+def loadRsAssetSimple(path = "",animated = False):
+    if os.path.isfile(path) or animated :
+        obj_node = hou.node("/obj")
+        # pick folder name as naem
+        name = os.path.basename(os.path.dirname(path))         
+       
+        holder = obj_node.createNode("geo","RS_Proxy_" + name)    
+        holder.moveToGoodPosition()
+        filesize  = os.path.getsize(path) * 1e-6
+        
+        if animated:
+            holder.parm("RS_objprop_proxy_prevAnimated").set(1)
+            path = re.sub(regex,r'\1$F4\3',path)
+        
+        holder.parm("RS_objprop_proxy_enable").set(1)
+        holder.parm("RS_objprop_proxy_file").set(path)
+        holder.parm("RS_objprop_inst_ignorePivot").set(1)
+        
+        print filesize
+        if filesize < 50 :    
+            holder.parm("RS_objprop_proxy_preview").set(2)
+        
+        # load preview geometry
+        if os.path.isfile(path.replace(".rs",".bgeo.sc")):
+            file = holder.createNode('file')
+            file.parm("file").set( path.replace(".rs",".bgeo.sc"))
+            # make it packed
+            file.parm("loadtype").set(4)
+            file.parm("viewportlod").set(0)
+        else:
+            holder.createNode('redshift_proxySOP')  
+    else:
+        print ("NO asset found:")
+        print (path)  
+            
+            
+        
+def onCreateInterface():
+    return CanoeAssets()]]></script>
+    <includeInToolbarMenu menu_position="412" create_separator="false"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>
