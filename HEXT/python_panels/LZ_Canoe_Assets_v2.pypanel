@@ -8,7 +8,7 @@
   <interface name="lz_canoe_assets_v2" label="LZ Canoe Assets v2" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
     <script><![CDATA[from hutil.Qt import QtWidgets,QtGui,QtCore
 from collections import OrderedDict
-from glob import glob
+import glob
 import os
 import toolutils
 import lzutil
@@ -125,7 +125,7 @@ class CanoeAssets(QtWidgets.QWidget):
                     self.CreateNewTab(tab_history[key],key,save_tabs = False)   
                 
                 
-        
+    # CONTEXT MENU FOR THE TREE    
     def treeContextMenu(self,point):
         current_tree = self.tabs.currentWidget()
         index = current_tree.indexAt(point)
@@ -142,10 +142,12 @@ class CanoeAssets(QtWidgets.QWidget):
         
         openInNewTab_action = 0
         loadAsset_action = 0
-        loadAssetAnim_action = 0        
+        loadAssetAnim_action = 0   
+        loadAssetFolder_action = 0
         
         if os.path.isdir(file_path):
             openInNewTab_action = menu.addAction("Open in new tab")
+            loadAssetFolder_action = menu.addAction("Load RS Asset")
         if os.path.isfile(file_path):
             loadAsset_action = menu.addAction("Load Asset")
             
@@ -160,7 +162,9 @@ class CanoeAssets(QtWidgets.QWidget):
         action = menu.exec_(current_tree.mapToGlobal(point))   
         
         if action == openInNewTab_action:
-            self.CreateNewTab(file_path,name)   
+            self.CreateNewTab(file_path,name)  
+        elif action == loadAssetFolder_action:
+            loadRsAssetFromFolder(file_path)
         elif action == loadAsset_action:
             ext = os.path.splitext(os.path.basename(file_path))[-1]
             if ext == ".rs": 
@@ -168,45 +172,115 @@ class CanoeAssets(QtWidgets.QWidget):
         elif action == loadAssetAnim_action:            
             loadRsAssetSimple(file_path,True)
             
-            
 
+def has_regex(file_path):
+    return re.search(regex,file_path) is not None            
+    
+def regex_replace(path,replace = "$F4"):
+    return re.sub(regex,r'\1'+replace+r'\3',path)
+
+
+def loadAllRsAssetFromFolder(path = ""):
+    assets = glob.glob(path + "/*.rs")
+    for asset in assets:
+        asset = asset.replace("\\","/")
+        loadRsAssetSimple(asset)
+        
+def loadRsAssetFromFolder(path = ""):
+    assets = glob.glob(path + "/*.rs")
+    if len(assets) == 1:
+        # load single asset
+        loadRsAssetSimple(assets[0])
+    elif len(assets) > 1:
+        # check if assets are versioned
+        asset_dict = dict()
+
+        for asset in assets:
+            asset = asset.replace("\\","/")
+            replaced_path = regex_replace(asset,r'__version__')
+            if replaced_path in asset_dict:
+                asset_dict[replaced_path]["versions"] += 1
+            else:
+                asset_dict[replaced_path] = dict()
+                asset_dict[replaced_path]["versions"] = 1
+                asset_dict[replaced_path]["base_path"] = asset
+        
+        for asset in asset_dict:
+            loadRsAssetSimple(asset_dict[asset]["base_path"], versions = asset_dict[asset]["versions"] )
+                    
+            
+        
+        
 # Function To Load Assets and sequences
-def loadRsAssetSimple(path = "",animated = False):
-    if os.path.isfile(path) or animated :
-        obj_node = hou.node("/obj")
-        # pick folder name as naem
-        name = os.path.basename(os.path.dirname(path))         
-       
-        holder = obj_node.createNode("geo","RS_Proxy_" + name)    
-        holder.moveToGoodPosition()
+def loadRsAssetSimple(path = "",animated = False,versions = 1):
+    # Check if file on disk
+    if not (animated or versions > 1):
+        if not os.path.isfile(path):
+            print ("File not found: \n" + path)
+            return    
+    
+    # Create Holder Node
+    obj_node = hou.node("/obj")
+    name = os.path.basename(os.path.dirname(path)) 
+    holder = obj_node.createNode("geo","RS_Proxy_" + name)    
+    holder.moveToGoodPosition()        
+    
+    fixed_path = path
+    if animated:
+        holder.parm("RS_objprop_proxy_prevAnimated").set(1)
+        fixed_path = re.sub(regex,r'\1$F4\3',path)
+    if versions > 1:
+        # create versions spare parm
+        version_parm = hou.IntParmTemplate("asset_version", "Asset Version", 1, default_value=([1]), min=1, max=int(versions),min_is_strict=True, max_is_strict=True)
+        ptg = holder.parmTemplateGroup()
+        ptg.addParmTemplate(version_parm)
+        holder.setParmTemplateGroup(ptg)
+        fixed_path = regex_replace(path,r'`padzero(4,ch("asset_version"))`')
+    
+    holder.parm("RS_objprop_proxy_enable").set(1)
+    holder.parm("RS_objprop_proxy_file").set(fixed_path)
+    holder.parm("RS_objprop_inst_ignorePivot").set(1)
+    
+    # def check Filesize (only if the file exists)
+    if os.path.isfile(path):
         filesize  = os.path.getsize(path) * 1e-6
-        
-        if animated:
-            holder.parm("RS_objprop_proxy_prevAnimated").set(1)
-            path = re.sub(regex,r'\1$F4\3',path)
-        
-        holder.parm("RS_objprop_proxy_enable").set(1)
-        holder.parm("RS_objprop_proxy_file").set(path)
-        holder.parm("RS_objprop_inst_ignorePivot").set(1)
-        
-        print filesize
         if filesize < 50 :    
             holder.parm("RS_objprop_proxy_preview").set(2)
-        
-        # load preview geometry
-        if os.path.isfile(path.replace(".rs",".bgeo.sc")):
-            file = holder.createNode('file')
-            file.parm("file").set( path.replace(".rs",".bgeo.sc"))
-            # make it packed
-            file.parm("loadtype").set(4)
-            file.parm("viewportlod").set(0)
-        else:
-            holder.createNode('redshift_proxySOP')  
+    
+            
+    # Create Preview Geometry
+    load_proxy = holder.createNode("attribwrangle","load_proxy")
+    load_proxy.parm("class").set(0)
+    load_proxy.parm("snippet").set('int pt = addpoint(0,@P);\nstring instancefile = chs("file");\nsetpointattrib(0,\'instancefile\',pt,instancefile);')
+
+    rs_file_parm = hou.StringParmTemplate("file", "File", 1, string_type=hou.stringParmType.FileReference)
+    addParm(load_proxy,rs_file_parm)
+    
+    load_proxy.parm("file").set('`chs("../RS_objprop_proxy_file")`')
+    load_proxy.setDisplayFlag(True) 
+    
+    LZ_RS_InstanceProxies = load_proxy.createOutputNode('LZ_RS_InstanceProxies')
+    LZ_RS_InstanceProxies.setDisplayFlag(1)
+    
+    
+            
+    '''
+    # load preview geometry
+    if os.path.isfile(path.replace(".rs",".bgeo.sc")):
+        file = holder.createNode('file')
+        file.parm("file").set( path.replace(".rs",".bgeo.sc"))
+        # make it packed
+        file.parm("loadtype").set(4)
+        file.parm("viewportlod").set(0)
     else:
-        print ("NO asset found:")
-        print (path)  
-            
-            
+        holder.createNode('redshift_proxySOP')  
+   '''      
+
+def addParm(n,parm):
+    ptg = n.parmTemplateGroup()
+    ptg.addParmTemplate(parm) 
+    n.setParmTemplateGroup(ptg)
+   
         
 def onCreateInterface():
     return CanoeAssets()]]></script>
