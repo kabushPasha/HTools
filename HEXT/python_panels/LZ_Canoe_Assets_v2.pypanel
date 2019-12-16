@@ -23,6 +23,13 @@ import json
 
 regex = r"(\D)(\d\d\d\d)(\D)"
 
+#------------------------ Custom Classes --------------------------------------#
+
+class my_QScrollArea(QtWidgets.QScrollArea):
+    def __init__ (self, file_path ,parent = None):
+        super(my_QScrollArea, self).__init__(parent)
+        self.file_path = file_path
+
 class QCustomTabWidget (QtWidgets.QTabWidget):
     def __init__ (self, parent = None):
         super(QCustomTabWidget, self).__init__(parent)
@@ -34,6 +41,7 @@ class QCustomTabWidget (QtWidgets.QTabWidget):
         if  self.tabText(currentIndex) != "ROOT":
             currentQWidget.deleteLater()
             self.removeTab(currentIndex)
+            self.parent().saveLoadedTabs()
         
     #def mouseReleaseEvent(self, event):
     #    print "MOUSE RELEASE"l
@@ -61,7 +69,8 @@ class myTreeView(QtWidgets.QTreeView):
             
         super(myTreeView,self).mouseReleaseEvent(event)
 
-
+# ------------------------------ Custom Classes End ---------------------------#
+        
 class CanoeAssets(QtWidgets.QWidget):
     def __init__(self):               
         super(CanoeAssets, self).__init__() 
@@ -106,10 +115,19 @@ class CanoeAssets(QtWidgets.QWidget):
         tabs_dict = OrderedDict()
         for i in range(0,self.tabs.count()):
             tab_name =  self.tabs.tabText(i)
-            model = self.tabs.widget(i).model()
-            root_path = model.rootPath()
-            tabs_dict[tab_name] = root_path
+            tabs_dict[i]['name'] = tab_name
             
+            if type(self.tabs.widget(i)) is my_QScrollArea:
+                #tabs_dict[tab_name] = self.tabs.widget(i).file_path 
+                tabs_dict[i]['path'] = self.tabs.widget(i).file_path   
+                tabs_dict[i]['type'] = "gal"
+            elif type(self.tabs.widget(i)) is myTreeView:            
+                model = self.tabs.widget(i).model()
+                root_path = model.rootPath()
+                #tabs_dict[tab_name] = root_path
+                tabs_dict[i]['path'] = root_path
+                tabs_dict[i]['type'] = "tree"
+                
         filename = self.json_filename
         with open(filename, 'w') as jsonfile:
             json.dump(tabs_dict, jsonfile,sort_keys=False)
@@ -141,16 +159,19 @@ class CanoeAssets(QtWidgets.QWidget):
         menu = QtWidgets.QMenu()        
         
         openInNewTab_action = 0
+        openGalleryInNewTab = 0
         loadAsset_action = 0
         loadAssetAnim_action = 0   
         loadAssetFolder_action = 0
         loadRsAnimCaches = 0
-        
+                
         if os.path.isdir(file_path):
             openInNewTab_action = menu.addAction("Open in new tab")
+            openGalleryInNewTab = menu.addAction("Open gallery in new tab")
             menu.addSeparator()
             loadAssetFolder_action = menu.addAction("Load RS Asset")
             loadRsAnimCaches = menu.addAction("Load RS Anim Caches")
+            
         if os.path.isfile(file_path):
             loadAsset_action = menu.addAction("Load Asset")
             
@@ -176,8 +197,54 @@ class CanoeAssets(QtWidgets.QWidget):
                 loadRsAssetSimple(file_path)
         elif action == loadAssetAnim_action:            
             loadRsAssetSimple(file_path,True)
-            
+        elif action == openGalleryInNewTab:
+            self.openGalleryInNewTab(file_path,name)
 
+    def openGalleryInNewTab(self,file_path,name):
+        #scrollArea = QtWidgets.QScrollArea()  
+        scrollArea = my_QScrollArea(file_path)  
+        scrollArea.setWidgetResizable(True)
+        scrollWidget = QtWidgets.QWidget()
+        scrollArea.setWidget(scrollWidget) 
+        scrollLayout = QtWidgets.QGridLayout()
+        
+        files = glob.glob(file_path + "\*\*.rs")
+        filterFilesByParentFolders(files)
+        files = filterFilesByParentFolders(files)
+        
+        i = 0
+        rows = 4
+        for rs_file in files:
+            button_size = 150
+            assetWidget = QtWidgets.QPushButton(os.path.basename(os.path.dirname(rs_file)))
+            assetWidget.setFixedSize(button_size,button_size)               
+            # check for preview
+            previewPath = os.path.dirname(rs_file) + "\\preview.jpg"
+            if os.path.isfile(previewPath):
+                assetWidget.setIcon(QtGui.QIcon(QtGui.QPixmap(previewPath)))
+                assetWidget.setIconSize(QtCore.QSize(button_size, button_size))
+                assetWidget.setText("")
+            # connect clicked action
+            assetWidget.clicked.connect(lambda _file=os.path.dirname(rs_file):loadRsAssetFromFolder(_file))
+            # add to layout
+            scrollLayout.addWidget(assetWidget,i/rows,i%rows)
+            i+=1   
+                
+        scrollWidget.setLayout(scrollLayout)
+        self.add_tab(scrollArea,name)  
+        self.saveLoadedTabs()
+        
+###=========================== CANOE ASSETS CLASS END ==============================###        
+
+def filterFilesByParentFolders(files):
+    parents = []
+    out_files = []
+    for file in files:
+        if os.path.dirname(file) not in parents:
+            parents += [os.path.dirname(file)]
+            out_files += [file]    
+    return out_files
+    
 def has_regex(file_path):
     return re.search(regex,file_path) is not None            
     
