@@ -205,6 +205,7 @@ class CanoeAssets(QtWidgets.QWidget):
                 loadAssetAnim_action = menu.addAction("Load Animation")                
             
         menu.addSeparator()
+        copyPath_action = menu.addAction("Copy Path")        
 
         action = menu.exec_(current_tree.mapToGlobal(point))   
         
@@ -222,6 +223,8 @@ class CanoeAssets(QtWidgets.QWidget):
             loadRsAssetSimple(file_path,True)
         elif action == openGalleryInNewTab:
             self.openGalleryInNewTab(file_path,name)
+        elif action == copyPath_action:
+            lzutil.copyToClipboard(file_path)
 
     def openGalleryInNewTab(self,file_path,name,save_tabs = True):
         #scrollArea = QtWidgets.QScrollArea()  
