@@ -31,6 +31,7 @@
     <memberTool name="NodeParms"/>
     <memberTool name="wrangle"/>
     <memberTool name="box_new"/>
+    <memberTool name="change_asset_version"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -1045,5 +1046,13 @@ sv.setSnappingMode(hou.snappingMode.Off)
 box.setSelected(True,True)
 box.setDisplayFlag(True)
 sv.enterCurrentNodeState()   ]]></script>
+  </tool>
+
+  <tool name="change_asset_version" label="Change Asset Version" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    p = n.parm("asset_version")
+    if p is not None:
+        p.set( (p.eval() + 1) % p.parmTemplate().maxValue())
+    ]]></script>
   </tool>
 </shelfDocument>
