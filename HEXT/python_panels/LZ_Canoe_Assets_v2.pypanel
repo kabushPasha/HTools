@@ -112,35 +112,40 @@ class CanoeAssets(QtWidgets.QWidget):
             self.saveLoadedTabs()
     
     def saveLoadedTabs(self):
-        tabs_dict = OrderedDict()
+        tabs = []
         for i in range(0,self.tabs.count()):
             tab_name =  self.tabs.tabText(i)
-            tabs_dict[i]['name'] = tab_name
+            tab_dict = dict()
+            tab_dict['name'] = tab_name
             
             if type(self.tabs.widget(i)) is my_QScrollArea:
                 #tabs_dict[tab_name] = self.tabs.widget(i).file_path 
-                tabs_dict[i]['path'] = self.tabs.widget(i).file_path   
-                tabs_dict[i]['type'] = "gal"
+                tab_dict['path'] = self.tabs.widget(i).file_path
+                tab_dict['type'] = "gal"
             elif type(self.tabs.widget(i)) is myTreeView:            
                 model = self.tabs.widget(i).model()
                 root_path = model.rootPath()
                 #tabs_dict[tab_name] = root_path
-                tabs_dict[i]['path'] = root_path
-                tabs_dict[i]['type'] = "tree"
+                tab_dict['path'] = root_path
+                tab_dict['type'] = "tree"
+                
+            tabs += [tab_dict]
                 
         filename = self.json_filename
         with open(filename, 'w') as jsonfile:
-            json.dump(tabs_dict, jsonfile,sort_keys=False)
-        print filename
+            json.dump(tabs, jsonfile,sort_keys=False)
 
     def LoadTabHistory(self):
         filename = self.json_filename
         if os.path.isfile(self.json_filename):
             with open(filename, 'r') as jsonfile:    
-                tab_history = json.load(jsonfile,object_pairs_hook=OrderedDict)
-            for key in tab_history:
-                if tab_history[key] != "":
-                    self.CreateNewTab(tab_history[key],key,save_tabs = False)   
+                tab_history = json.load(jsonfile)
+            for tab in tab_history:
+                if tab["path"] != "":                   
+                    if tab["type"] == "tree":
+                        self.CreateNewTab(tab["path"],tab["name"],save_tabs = False) 
+                    elif tab["type"] == "gal":
+                        self.openGalleryInNewTab(tab["path"],tab["name"],save_tabs = False)
                 
                 
     # CONTEXT MENU FOR THE TREE    
@@ -200,7 +205,7 @@ class CanoeAssets(QtWidgets.QWidget):
         elif action == openGalleryInNewTab:
             self.openGalleryInNewTab(file_path,name)
 
-    def openGalleryInNewTab(self,file_path,name):
+    def openGalleryInNewTab(self,file_path,name,save_tabs = True):
         #scrollArea = QtWidgets.QScrollArea()  
         scrollArea = my_QScrollArea(file_path)  
         scrollArea.setWidgetResizable(True)
@@ -232,7 +237,8 @@ class CanoeAssets(QtWidgets.QWidget):
                 
         scrollWidget.setLayout(scrollLayout)
         self.add_tab(scrollArea,name)  
-        self.saveLoadedTabs()
+        if save_tabs:
+            self.saveLoadedTabs()
         
 ###=========================== CANOE ASSETS CLASS END ==============================###        
 
