@@ -15,7 +15,6 @@ import lzutil
 import re
 import json
 
-# add MMBClick to remove tab
 # add top bar?
 # add hotkeys?
 # hide the top thing
@@ -30,11 +29,30 @@ class my_QScrollArea(QtWidgets.QScrollArea):
         super(my_QScrollArea, self).__init__(parent)
         self.file_path = file_path
 
+class my_TabBar(QtWidgets.QTabBar):  
+    def __init__ (self, parent = None):
+        super(my_TabBar, self).__init__(parent)
+        self.tabBarDoubleClicked.connect(self.doubleClicked)
+    
+    def doubleClicked(self,index):        
+        text, ok = QtWidgets.QInputDialog.getText(self, 'Tab rename dialog', 'New Tab Name:')  
+        if ok and text != "":
+            self.setTabText(index,text)            
+            self.parent().parent().saveLoadedTabs()
+        
+    def mouseReleaseEvent(self, event):               
+        if event.button() == QtCore.Qt.MouseButton.MidButton:           
+            self.tabCloseRequested.emit(self.tabAt(event.pos()))
+        super(my_TabBar,self).mouseReleaseEvent(event)
+  
+        
 class QCustomTabWidget (QtWidgets.QTabWidget):
     def __init__ (self, parent = None):
         super(QCustomTabWidget, self).__init__(parent)
+        self.setTabBar(my_TabBar())        
         self.setTabsClosable(True)
         self.tabCloseRequested.connect(self.closeTab)
+        self.setMovable(True)
 
     def closeTab (self, currentIndex):        
         currentQWidget = self.widget(currentIndex)
