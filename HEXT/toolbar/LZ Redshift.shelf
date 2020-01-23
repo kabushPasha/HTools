@@ -21,6 +21,7 @@
     <memberTool name="spheres"/>
     <memberTool name="add_reflection_sphere"/>
     <memberTool name="submit_RS_render_Deadline"/>
+    <memberTool name="merge_proxies"/>
   </toolshelf>
 
   <tool name="rs_cam_from_view" label="Rs camera from view" icon="hicon:/SVGIcons.index?OBJ_camera.svg">
@@ -640,5 +641,47 @@ if hdri.type().name() == 'rslightdome::2.0':
 for n in hou.selectedNodes():
     if n.type().name() == 'Redshift_ROP':
         lzutil.submitRS2Deadline(n)]]></script>
+  </tool>
+
+  <tool name="merge_proxies" label="Merge Proxies" icon="hicon:/SVGIcons.index?MISC_satchel.svg">
+    <script scriptType="python"><![CDATA[sel_nodes = hou.selectedNodes()
+
+obj = hou.node("/obj")
+holder = obj.createNode("geo")
+holder.moveToGoodPosition()
+
+merge = holder.createNode("object_merge")
+merge.parm("numobj").set(len(sel_nodes))
+merge.parm("xformtype").set(1)
+
+
+for i,n in enumerate(sel_nodes):
+    dn = n.displayNode()    
+    merge.parm("objpath" + str(i+1)).set(dn.path())
+    
+reverse = merge.createOutputNode("LZ_RS_InstanceProxies")
+reverse.parm("reverse").set(1)
+stash = reverse.createOutputNode("stash")
+stash.parm("stashinput").pressButton()
+preview = stash.createOutputNode("LZ_RS_InstanceProxies")
+
+preview.setDisplayFlag(1)
+stash.setRenderFlag(1)
+
+for n in sel_nodes:
+    n.destroy()
+
+merge.destroy()
+reverse.destroy()
+
+center = preview.geometry().boundingBox().center()
+holder.parmTuple('p').set(center)
+
+
+
+
+
+
+    ]]></script>
   </tool>
 </shelfDocument>
