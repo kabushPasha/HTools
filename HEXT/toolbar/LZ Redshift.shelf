@@ -22,6 +22,7 @@
     <memberTool name="add_reflection_sphere"/>
     <memberTool name="submit_RS_render_Deadline"/>
     <memberTool name="merge_proxies"/>
+    <memberTool name="unpack_proxies"/>
   </toolshelf>
 
   <tool name="rs_cam_from_view" label="Rs camera from view" icon="hicon:/SVGIcons.index?OBJ_camera.svg">
@@ -647,7 +648,7 @@ for n in hou.selectedNodes():
     <script scriptType="python"><![CDATA[sel_nodes = hou.selectedNodes()
 
 obj = hou.node("/obj")
-holder = obj.createNode("geo")
+holder = obj.createNode("geo","RS_Merged")
 holder.moveToGoodPosition()
 
 merge = holder.createNode("object_merge")
@@ -683,5 +684,25 @@ holder.parmTuple('p').set(center)
 
 
     ]]></script>
+  </tool>
+
+  <tool name="unpack_proxies" label="Unpack Proxies" icon="hicon:/SVGIcons.index?MISC_raygun.svg">
+    <script scriptType="python"><![CDATA[import lzutil
+reload(lzutil)
+obj = hou.node("/obj")
+
+for n in hou.selectedNodes():
+    nwt = n.worldTransform()
+    for prim in n.displayNode().geometry().prims():
+        pt = prim.points()[0]
+        proxy_path = pt.attribValue("inst_source")
+        fullt_t = prim.fullTransform()
+        
+        asset = lzutil.loadRsAssetSimple(proxy_path)
+        asset.setWorldTransform(fullt_t * nwt)
+        
+
+
+]]></script>
   </tool>
 </shelfDocument>

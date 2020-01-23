@@ -590,4 +590,83 @@ def submitRS2Deadline(n):
 	job_id = output.split("JobID=")[-1].split("\n")[0]
 	return job_id
 
+#        _____     _____     _____                          _              
+#       |  __ \   / ____|   |  __ \                        (_)             
+#       | |__) | | (___     | |__) |  _ __    ___   __  __  _    ___   ___ 
+#       |  _  /   \___ \    |  ___/  | '__|  / _ \  \ \/ / | |  / _ \ / __|
+#       | | \ \   ____) |   | |      | |    | (_) |  >  <  | | |  __/ \__ \
+#       |_|  \_\ |_____/    |_|      |_|     \___/  /_/\_\ |_|  \___| |___/
+#                                                                          
+
+def addParm(n,parm):
+    ptg = n.parmTemplateGroup()
+    ptg.addParmTemplate(parm) 
+    n.setParmTemplateGroup(ptg)
+
+# Function To Load Assets and sequences
+def loadRsAssetSimple(path = "",animated = False,versions = 1):
+    # Check if file on disk
+    if not (animated or versions > 1):
+        if not os.path.isfile(path):
+            print ("File not found: \n" + path)
+            return    
+    
+    # Create Holder Node
+    obj_node = hou.node("/obj")
+    name = os.path.basename(os.path.dirname(path)) 
+    holder = obj_node.createNode("geo","RS_Proxy_" + name)    
+    holder.moveToGoodPosition()        
+    
+    fixed_path = path
+    if animated:
+        holder.parm("RS_objprop_proxy_prevAnimated").set(1)
+        fixed_path = re.sub(regex,r'\1$F4\3',path)
+    if versions > 1:
+        # create versions spare parm
+        version_parm = hou.IntParmTemplate("asset_version", "Asset Version", 1, default_value=([1]), min=1, max=int(versions),min_is_strict=True, max_is_strict=True)
+        ptg = holder.parmTemplateGroup()
+        ptg.addParmTemplate(version_parm)
+        holder.setParmTemplateGroup(ptg)
+        fixed_path = regex_replace(path,r'`padzero(4,ch("asset_version"))`')
+    
+    holder.parm("RS_objprop_proxy_enable").set(1)
+    holder.parm("RS_objprop_proxy_file").set(fixed_path)
+    holder.parm("RS_objprop_inst_ignorePivot").set(1)
+    
+    # def check Filesize (only if the file exists)
+    if os.path.isfile(path):
+        filesize  = os.path.getsize(path) * 1e-6
+        if filesize < 50 :    
+            holder.parm("RS_objprop_proxy_preview").set(2)    
+            
+    # Create Preview Geometry
+    # if we have animated geo there's no point in createing LZRSLOADPROXIES
+    if not animated:
+        load_proxy = holder.createNode("attribwrangle","load_proxy")
+        load_proxy.parm("class").set(0)
+        load_proxy.parm("snippet").set('int pt = addpoint(0,@P);\nstring instancefile = chs("file");\nsetpointattrib(0,\'instancefile\',pt,instancefile);')
+    
+        rs_file_parm = hou.StringParmTemplate("file", "File", 1, string_type=hou.stringParmType.FileReference)
+        addParm(load_proxy,rs_file_parm)
+        
+        load_proxy.parm("file").set('`chs("../RS_objprop_proxy_file")`')
+        load_proxy.setDisplayFlag(True) 
+        
+        LZ_RS_InstanceProxies = load_proxy.createOutputNode('LZ_RS_InstanceProxies')
+        LZ_RS_InstanceProxies.setDisplayFlag(1)              
+    else:
+        # load preview geometry
+        if os.path.isfile(path.replace(".rs",".bgeo.sc")):
+            file = holder.createNode('file')
+            file.parm("file").set( path.replace(".rs",".bgeo.sc"))
+            # make it packed
+            file.parm("loadtype").set(4)
+            file.parm("viewportlod").set(0)
+        else:
+            holder.createNode('redshift_proxySOP') 
+    
+    return holder
+
+
+
 
