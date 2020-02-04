@@ -650,6 +650,7 @@ for n in hou.selectedNodes():
 obj = hou.node("/obj")
 holder = obj.createNode("geo","RS_Merged")
 holder.moveToGoodPosition()
+holder.parm("RS_objprop_inst_ignorePivot").set(0)
 
 merge = holder.createNode("object_merge")
 merge.parm("numobj").set(len(sel_nodes))
