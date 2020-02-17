@@ -57,6 +57,11 @@
             "addcode": "setprimintrinsic(0,'transform',@ptnum,matrix3(ident()*f@pscale));"
         }
     },
+    "RS_Proxies": {
+        "Random Proxy Version": {
+            "addcode": "string dir,filename;\nsplitpath(s@instancefile,dir,filename);\nint id = floor(rand(@ptnum + chi(\"seed\"))*chi(\"n_versions\")) + 1;\ns@instancefile = s@name = sprintf(dir + '/%04d.rs',id);"
+        }
+    },
     "Random": {
         "int String Array": {
             "addcode": "// pick random number from an array\nint values[] = {};\nforeach(int i;string s;split(chs('values'),' '))\nvalues[i] = atoi(s);\nint result = values[floor(len(values)*rand(@ptnum))];"
@@ -89,8 +94,5 @@
         "maya strip namespaces": {
             "addcode": "string clean_path = \"\";\nstring pieces[] = split(s@path,\"/\");\nforeach(int i;string s;pieces)\n{\n// strip the last Shape staff\nif( i != len(pieces)-1)\n    {\n        //check if we have namespaces\n        string parts[] = split(s,\":\");\n        int nparts = len(parts);\n        if( nparts > 1)\n            clean_path += parts[nparts - 1] + \"/\";\n        else\n            clean_path += s + \"/\";    \n    }\n}\n\ns@path = clean_path;"
         }
-    },
-    "RS_Proxies": {
-	"test":{}
     }
 }

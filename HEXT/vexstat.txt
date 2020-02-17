@@ -24,6 +24,7 @@
     "Other: 1D: Worley F2": 2,
     "Other: 1D: Worley Seed": 5,
     "PadZero4": 5,
+    "Random Proxy Version": 1,
     "Remove Primless Points": 2,
     "Rotate along root": 5,
     "Slide CenterWidth Mask": 6,
