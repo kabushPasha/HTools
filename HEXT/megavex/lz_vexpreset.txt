@@ -71,6 +71,9 @@
         "Copy t from RSInstances to Packeds": {
             "addcode": "v@P = point(1,\"P\",@ptnum);\nvector pivot = point(1,\"pivot\",@ptnum);\nmatrix3 t = qconvert(point(1,\"orient\",@ptnum));\nfloat pscale =  point(1,\"pscale\",@ptnum);\nvector scale =  point(1,\"scale\",@ptnum);\nt *= pscale;\nscale(t,scale);\n\n\nsetprimintrinsic (0,'pivot',@ptnum,pivot);\nsetprimintrinsic (0,'transform',@primnum,t);"
         },
+        "Random Rotate Packed": {
+            "addcode": "\nmatrix3 t = primintrinsic(0,'transform',@primnum);\n\nvector dir = sample_direction_uniform(rand(@ptnum));\nmatrix3 rotator = qconvert(quaternion(chf(\"ang\"),dir));\n\nt *= rotator;\nsetprimintrinsic (0,'transform',@primnum,t);\n\n\n\n\n"
+        },
         "UpN to Orient": {
             "addcode": "p@orient = quaternion(maketransform(v@N,v@up));  "
         },
@@ -82,9 +85,6 @@
         },
         "orient to N and up": {
             "addcode": "v@N = qrotate(p@orient,{0,0,1});\nv@up = qrotate(p@orient,{0,1,0});"
-        },
-        "packed random rotate": {
-            "addcode": "matrix3 t = primintrinsic(0,'transform',@primnum);\nvector4 orient = quaternion(t);\n\nvector dir = sample_direction_uniform(rand(@ptnum));\norient = qmultiply(quaternion(chf(\"ang\"),dir),orient);\n\nt = qconvert(orient);\nsetprimintrinsic (0,'transform',@primnum,t);\n\n\n\n\n"
         }
     },
     "Utility": {
