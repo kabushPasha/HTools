@@ -10,6 +10,9 @@
     "Masking": {
         "Slide CenterWidth Mask": {
             "addcode": "float u = float(vertexprimindex(0,@vtxnum))/(@numvtx -1);\nfloat c = chf(\"center\");\nfloat w = chf(\"width\");\nc = fit01(c,-w,1+w);\nv@Cd = fit(u,c-w,c+w,0,1);\n\n\n\n\n\n\n\n\n\n"
+        },
+        "Y Normal Mask": {
+            "addcode": "f@mask = chramp(\"Y_mask\",0.5+0.5*dot(v@N,{0,1,0}));\nv@Cd = f@mask;\n\n\n\n"
         }
     },
     "Modelling": {
