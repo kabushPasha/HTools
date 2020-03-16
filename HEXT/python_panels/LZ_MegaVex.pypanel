@@ -55,7 +55,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
                    
                 # create label
                 button = QtWidgets.QPushButton(list_key)
-                button.clicked.connect(lambda x=[json_file,list_key]: self.StoreVex(x))
+                button.clicked.connect(lambda state=True,x=[json_file,list_key]: self.StoreVex(x))
                 #fill
                 layout = QtWidgets.QVBoxLayout()                         
                 layout.addWidget(button)

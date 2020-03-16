@@ -33,7 +33,7 @@
     "TURB": 59,
     "TURB V": 76,
     "UpN to Orient": 1,
-    "Y Normal Mask": 1,
+    "Y Normal Mask": 2,
     "addpoint": 23,
     "addprim": 18,
     "center": 2,
