@@ -667,6 +667,12 @@ def loadRsAssetSimple(path = "",animated = False,versions = 1):
     
     return holder
 
+#----------------------------------
 
-
+def getCurrentContextNode():
+    current_node = toolutils.networkEditor().currentNode()
+    if current_node.type().name() == 'geo':
+        return current_node
+    else:
+        return current_node.parent()
 

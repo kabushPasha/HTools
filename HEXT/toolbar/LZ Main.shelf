@@ -32,6 +32,7 @@
     <memberTool name="Render View"/>
     <memberTool name="fileCache finder"/>
     <memberTool name="Export_Nodes"/>
+    <memberTool name="Load_NetBox"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -1051,11 +1052,66 @@ sv.enterCurrentNodeState()   ]]></script>
   </tool>
 
   <tool name="Export_Nodes" label="Export Nodes" icon="hicon:/SVGIcons.index?MISC_grimoire.svg">
-    <script scriptType="python"><![CDATA[nodes = hou.selectedNodes()
+    <script scriptType="python"><![CDATA[import os
+import toolutils
 
-filename = hou.ui.selectFile()
+def getCurrentContextNode():
+    current_node = toolutils.networkEditor().currentNode()
+    if current_node.type().name() == 'geo':
+        return current_node
+    else:
+        return current_node.parent()
 
-contextnode = nodes[0].parent()
-contextnode.saveChildrenToFile(nodes, [], filename)]]></script>
+def save_nodes():
+    nodes = hou.selectedNodes()
+    
+    filename = hou.ui.selectFile()
+    if filename is not "":
+        contextnode = nodes[0].parent()
+        contextnode.saveChildrenToFile(nodes, [], filename)
+        
+def load_nodes():
+    filename = hou.ui.selectFile()
+    n = getCurrentContextNode()
+    if os.path.isfile(filename):
+        n.loadChildrenFromFile(filename)
+        
+
+
+ctrlclick =  kwargs["ctrlclick"]
+if ctrlclick:
+    load_nodes()
+else:
+    save_nodes()
+]]></script>
+  </tool>
+
+  <tool name="Load_NetBox" label="Load NetBox" icon="hicon:/SVGIcons.index?SOP_name.svg">
+    <script scriptType="python"><![CDATA[import lzutil
+import os
+
+def load_netbox():
+    filename = hou.ui.selectFile()
+    n = lzutil.getCurrentContextNode()
+    if os.path.isfile(filename):
+        n.loadItemsFromFile(filename)
+
+
+def save_netbox():
+    for nb in hou.selectedItems():    
+        if isinstance(nb,hou.NetworkBox):        
+            filename = hou.expandString(nb.comment())
+            os.makedirs(os.path.dirname(filename))
+            if filename is not "":
+                items = list(nb.items()) + [nb]
+                nb.parent().saveItemsToFile(items,filename)
+        
+            
+ctrlclick =  kwargs["ctrlclick"]
+if ctrlclick:
+    save_netbox()
+else:
+    load_netbox()            
+            ]]></script>
   </tool>
 </shelfDocument>
