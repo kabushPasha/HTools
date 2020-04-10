@@ -144,7 +144,7 @@ def CreateCanoeRenderTab(n):
     
     # Code for parameter template
     DeadlineRender_btn = hou.ButtonParmTemplate("submit_to_deadline", "Deadline Render")
-    DeadlineRender_btn.setScriptCallback("import lzutil;lzutil.submitRS2Deadline(hou.pwd())")
+    DeadlineRender_btn.setScriptCallback("import lzutil;lzutil.lzDeadline.submitRS2Deadline(hou.pwd())")
     DeadlineRender_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
     folder.addParmTemplate(DeadlineRender_btn)
     
@@ -641,7 +641,7 @@ if hdri.type().name() == 'rslightdome::2.0':
     <script scriptType="python"><![CDATA[import lzutil
 for n in hou.selectedNodes():
     if n.type().name() == 'Redshift_ROP':
-        lzutil.submitRS2Deadline(n)]]></script>
+        lzutil.lzDeadline.submitRS2Deadline(n)]]></script>
   </tool>
 
   <tool name="merge_proxies" label="Merge Proxies" icon="hicon:/SVGIcons.index?MISC_satchel.svg">

@@ -1101,7 +1101,7 @@ def save_netbox():
     for nb in hou.selectedItems():    
         if isinstance(nb,hou.NetworkBox):        
             filename = hou.expandString(nb.comment())
-            os.makedirs(os.path.dirname(filename))
+            #os.makedirs(os.path.dirname(filename))
             if filename is not "":
                 items = list(nb.items()) + [nb]
                 nb.parent().saveItemsToFile(items,filename)
