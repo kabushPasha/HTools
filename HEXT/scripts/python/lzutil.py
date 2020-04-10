@@ -4,12 +4,6 @@ import subprocess
 import socket
 import os
 
-import lzDeadline
-reload(lzDeadline)
-
-#import lzRS_Shelf
-#reload(lzRS_Shelf)
-
 def createTopoHelper(topobuild):
 	n = topobuild
 	ref = n.inputs()[1]

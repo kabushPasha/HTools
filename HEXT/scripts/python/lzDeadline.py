@@ -22,8 +22,10 @@ def submitRS2Deadline(n, one_task_per_gpu = True):
 	#concurrent_tasks = 4
 	concurrent_tasks = 4 if one_task_per_gpu else 1
 	frames = str(frameStart) + "-" + str(frameEnd)
-	task_name = hou.hipFile.basename()
+	#task_name = hou.hipFile.basename()
+	task_name = n.parm("deadline_jobname").eval()
 	start_time = "04/09/2019 16:43"
+	priority = n.parm("deadline_priority").eval()
 
 	# FILL IN
 	plugin_info = """GPUsPerTask={}
@@ -47,11 +49,11 @@ def submitRS2Deadline(n, one_task_per_gpu = True):
 	OutputDirectory0={}
 	OverrideTaskExtraInfoNames=False
 	Plugin=Redshift
-	Priority=50
+	Priority={}
 	Region=
 	ScheduledStartDateTime={}
 	UserName={}
-	""".format(concurrent_tasks,hostname,frames,hostname,task_name,output_dir,start_time,hostname)
+	""".format(concurrent_tasks,hostname,frames,hostname,task_name,output_dir,priority,start_time,hostname)
 
 	deadline_files_dir = os.path.dirname(out_dir)
 	if not os.path.isdir(deadline_files_dir):
