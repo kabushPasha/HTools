@@ -22,6 +22,7 @@
     <memberTool name="load expresions"/>
     <memberTool name="Perfomance Monitor"/>
     <memberTool name="AssetBrowser"/>
+    <memberTool name="Load_NetBox"/>
     <memberTool name="New Flooating Panel"/>
     <memberTool name="NodeParms"/>
     <memberTool name="wrangle"/>
@@ -32,7 +33,6 @@
     <memberTool name="Render View"/>
     <memberTool name="fileCache finder"/>
     <memberTool name="Export_Nodes"/>
-    <memberTool name="Load_NetBox"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -1091,7 +1091,7 @@ else:
 import os
 
 def load_netbox():
-    filename = hou.ui.selectFile()
+    filename = hou.ui.selectFile(start_directory="S:/CloudStation/Assets/Toolkit/Env")
     n = lzutil.getCurrentContextNode()
     if os.path.isfile(filename):
         n.loadItemsFromFile(filename)
