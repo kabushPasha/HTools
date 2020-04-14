@@ -23,6 +23,7 @@
     <memberTool name="submit_RS_render_Deadline"/>
     <memberTool name="merge_proxies"/>
     <memberTool name="unpack_proxies"/>
+    <memberTool name="add_custom_aovs"/>
   </toolshelf>
 
   <tool name="rs_cam_from_view" label="Rs camera from view" icon="hicon:/SVGIcons.index?OBJ_camera.svg">
@@ -551,5 +552,21 @@ for n in hou.selectedNodes():
 
 
 ]]></script>
+  </tool>
+
+  <tool name="add_custom_aovs" label="Add Custom AOV's" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[rs = hou.node("/out/Redshift_ROP1")
+
+def add_custom_AOV(rs,shader):
+    n_aovs = rs.parm('RS_aov').eval()
+    rs.parm('RS_aov').set(n_aovs + 1)
+    
+    rs.parm("RS_aovID_" + str(n_aovs + 1)).set("CUSTOM")
+    rs.parm("RS_aovSuffix_" + str(n_aovs + 1)).set(shader.name())
+    rs.parm("RS_aovCustomShader_" + str(n_aovs + 1)).set(rs.relativePathTo(shader))
+
+for n in hou.selectedNodes():
+    if n.type().name() == "redshift_vopnet":
+        add_custom_AOV(rs,n)]]></script>
   </tool>
 </shelfDocument>
