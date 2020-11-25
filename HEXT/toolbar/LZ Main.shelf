@@ -1093,6 +1093,7 @@ import os
 def load_netbox():
     filename = hou.ui.selectFile(start_directory="S:/CloudStation/Assets/Toolkit/Env")
     n = lzutil.getCurrentContextNode()
+    filename = hou.expandString(filename)
     if os.path.isfile(filename):
         n.loadItemsFromFile(filename)
 
@@ -1111,7 +1112,8 @@ ctrlclick =  kwargs["ctrlclick"]
 if ctrlclick:
     save_netbox()
 else:
-    load_netbox()            
+    load_netbox() 
+
             ]]></script>
   </tool>
 </shelfDocument>
