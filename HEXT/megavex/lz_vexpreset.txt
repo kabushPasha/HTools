@@ -40,6 +40,11 @@
             "addcode": "vector a = {0,-9.8,0};\n@P += v@v*@Time + a*@Time*@Time*0.5;\n\nmatrix3 t = primintrinsic(0,'transform',@ptnum);\nrotate(t,length(v@w)*@Time,normalize(v@w));\nsetprimintrinsic (0,'transform',@ptnum,t);\n\nif(chi(\"correct_ground\"))\n    @P.y = max(@P.y,0);"
         }
     },
+    "Packeds": {
+        "scale packeds": {
+            "addcode": "matrix3 t = primintrinsic(0,'transform',@ptnum);\nt *= chf(\"scale\");\nsetprimintrinsic (0,'transform',@ptnum,t);"
+        }
+    },
     "Particles": {
         "pscale: BirthExplode": {
             "addcode": "float birth = chi('birth_Frame') + rand(@ptnum)*chi('birth_jitter');\nfloat death = birth+chi('life') + rand(@ptnum)*chi('life_jitter');\nf@pscale = 1-2*abs(fit(@Frame,birth,death,0,1)-0.5);"
