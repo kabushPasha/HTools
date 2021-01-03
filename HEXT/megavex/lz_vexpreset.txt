@@ -25,6 +25,12 @@
         "P: StickToUvs": {
             "addcode": "v@P = primuv (1,'P',i@sourceprim,v@sourceprimuv);"
         },
+        "Polar Transforms": {
+            "addcode": "vector pos = v@P;\nvector polar = topolar(pos);\npolar += chv(\"polar_offset\") * polar.z;\nvector P = frompolar(polar);\n@P = P;\n",
+            "lib": [
+                "lzn"
+            ]
+        },
         "Rotated RelBbox": {
             "addcode": "#include <lzn.h>\nvector yax = point(1,\"P\",4) - point(1,\"P\",0);\nvector xax = point(1,\"P\",1) - point(1,\"P\",0);\nvector zax = point(1,\"P\",3) - point(1,\"P\",0);\nvector p = point(1,\"P\",0);\n\nfloat yd,xd,zd;\nyd = length(yax);\nxd = length(xax);\nzd = length(zax);\n\nyax = normalize(yax);\nxax = normalize(xax);\nzax = normalize(zax);\n\nmatrix m = maketransform(zax,yax,p);\n\n@P = @P*invert(m); \nf@bx = @P.x / xd;\nf@by = @P.y / yd;\nf@bz = @P.z / zd;\n@P = @P*m; \n \n@bx = saturate(@bx);\n@by = saturate(@by);\n@bz = saturate(@bz);\n"
         },
@@ -41,6 +47,9 @@
         }
     },
     "Packeds": {
+        "Rotate Packeds": {
+            "addcode": "vector axis = sample_direction_uniform(rand(@ptnum));\nvector4 orient = quaternion(chf(\"angle\"),axis);\nmatrix3 r = qconvert(orient);\n\nmatrix3 t = primintrinsic(0,'transform',@ptnum);\nt *= chf(\"scale\")*r;\nsetprimintrinsic (0,'transform',@ptnum,t);"
+        },
         "scale packeds": {
             "addcode": "matrix3 t = primintrinsic(0,'transform',@ptnum);\nt *= chf(\"scale\");\nsetprimintrinsic (0,'transform',@ptnum,t);"
         }
