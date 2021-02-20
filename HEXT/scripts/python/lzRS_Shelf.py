@@ -125,6 +125,9 @@ def LZ_RS_Setup():
 		rs.parm("RS_objects_candidate").set("RS_*")
 		rs.parm("RS_addDefaultLight").set(0)
 		
+		rs.parm('PrimaryGIEngine').set(3)
+		rs.parm('SecondaryGIEngine').set(3)
+		
 		CreateCanoeRenderTab(rs)    
 		
 	# Check if we have parms and render view already
@@ -170,3 +173,34 @@ def BatchProxy(n,threads = 5,sleep = 5):
 
 			subprocess.Popen([hython,file,'-c',cmd])
 
+
+			
+def addCameraParms(cam,add_comment = False):
+    ptg = cam.parmTemplateGroup()
+    
+    # Add Comment Folder
+    if add_comment:
+        comment_folder = hou.FolderParmTemplate("Comment","Comment")
+        comment = hou.StringParmTemplate("vcomment", "Viewport Comment", 1)
+        comment.setTags({"editor": "1"})
+        comment_folder.addParmTemplate(comment)
+        ptg.addParmTemplate(comment_folder)
+    
+    # Add custom Focal actions
+    # focal point
+    pt = hou.FloatParmTemplate("f", "Focus point",3)
+    pt.setTags({"script_action": "n = kwargs[\"node\"]\n\nimport toolutils\nsv = toolutils.sceneViewer()\nsv.setSnappingMode(hou.snappingMode.Prim)\npos = sv.selectPositions(number_of_positions=1)\n\nif pos[0].length() > 0:\n    n.parmTuple(\"f\").set(pos[0])\nsv.setSnappingMode(hou.snappingMode.Off)"})
+    ptg.addParmTemplate(pt)
+    # focal distance
+    pt = hou.FloatParmTemplate("f2t", "Focal2Target", 1)
+    pt.setTags({"script_action": "n = kwargs[\'node\']\nn.parm(\'RS_campro_dofDistance\').set(n.parm(\"f2t\"))\n"})
+    pt.setDefaultExpressionLanguage([hou.scriptLanguage.Python])
+    pt.setDefaultExpression(["(hou.pwd().worldTransform().extractTranslates()-hou.Vector3(hou.pwd().parmTuple('f').eval())).length()"])
+    ptg.addParmTemplate(pt)
+
+    cam.setParmTemplateGroup(ptg)
+    
+    # use our custom dof
+    cam.parm("RS_campro_dofUseHoudiniCamera").set(0)
+    cam.parm('RS_campro_dofDistance').set(cam.parm("f2t"))
+    cam.parm("RS_campro_dofCoC").set(0.02)
