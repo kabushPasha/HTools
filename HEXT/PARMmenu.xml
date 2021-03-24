@@ -3,36 +3,54 @@
 
 <menuDocument>
   <menu>
-    <scriptItem id="promote_parm">
-      <label>Promote Parm</label>
-      <scriptCode><![CDATA[
+	<subMenu id="lz_parm_submenu">
+	<label>LZ</label>
+	
+		<scriptItem id="promote_parm">
+		  <label>Promote Parm</label>
+		  <scriptCode><![CDATA[
 import lzutil
 p = kwargs['parms'][0]
 lzutil.promoteParm(p)
-]]>
-</scriptCode>
-    </scriptItem>
+	]]>
+	</scriptCode>
+		</scriptItem>
 
-<scriptItem id="hide_parm">
-      <label>Hide Parm</label>
-      <scriptCode><![CDATA[
+	<scriptItem id="hide_parm">
+		  <label>Hide Parm</label>
+		  <scriptCode><![CDATA[
 import lzutil
 p = kwargs['parms'][0]
 p.hide(1)
-]]>
-</scriptCode>
-    </scriptItem>
+	]]>
+	</scriptCode>
+		</scriptItem>
 
-    <scriptItem id="dublicate_parm">
-      <label>Dublicate Parm</label>
-      <scriptCode><![CDATA[
+		<scriptItem id="dublicate_parm">
+		  <label>Dublicate Parm</label>
+		  <scriptCode><![CDATA[
 import lzutil
 p = kwargs['parms'][0]
 lzutil.dublicateParm(p)
-]]>
-</scriptCode>
-    </scriptItem>
+	]]>
+	</scriptCode>
+		</scriptItem>
 
+<!-- Turn our float ramp into color ramp -->
+		<scriptItem id="color_ramp">
+		  <label>Color Ramp</label>
+		  <expression>
+return kwargs.get('parms',None)[0].parmTemplate().type().name() == 'Ramp'
+</expression>
+		  <scriptCode><![CDATA[
+import lzutil
+p = kwargs['parms'][0]
+lzutil.changeRampType(p)
+	]]>
+	</scriptCode>
+		</scriptItem>
 
+		
+	</subMenu>	
   </menu>
 </menuDocument>

@@ -600,3 +600,26 @@ def getCurrentContextNode():
     else:
         return current_node.parent()
 
+		
+	
+#-----------------------------------------
+# PARMS AND MENUS
+def changeRampType(p):
+	n = p.node()
+	ptg = n.parmTemplateGroup()
+	pt = p.parmTemplate()
+	if pt.type().name() == "Ramp":
+		if pt.parmType().name() == "Float":
+			pt.setParmType(hou.rampParmType.Color)
+		else:
+			pt.setParmType(hou.rampParmType.Float)
+			
+		ptg.replace(pt.name(),pt)
+		n.setParmTemplateGroup(ptg)
+			
+			
+
+
+
+
+	
