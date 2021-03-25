@@ -1,4 +1,5 @@
 import hou
+import os
 
 def getAcesConverter():
     # Check If texture Converter Exists
@@ -38,6 +39,15 @@ def convertToAces(in_path,out_path):
 	converter.node("OUT_ACES").parm("execute").pressButton()
 	
 	
-	
-	
-	
+def convertToAces_srgbFolder(file_path):	
+	path = os.path.abspath(file_path)  
+	if not os.path.isdir(os.path.dirname(path) + "/sRGB"):
+		os.mkdir(os.path.dirname(path) + "/sRGB")
+
+	new_path = os.path.dirname(path) + "/sRGB/" + os.path.basename(path)
+	if os.path.isfile(new_path):
+		print os.path.basename(path) + " already converted"
+	else:
+		print "Converting " + path
+		os.rename(path, new_path)
+		convertToAces(new_path,path)
