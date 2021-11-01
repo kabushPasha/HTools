@@ -34,6 +34,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
                 new_list = QtWidgets.QListWidget()
                 items = json_obj[list_key]
                 
+                
                 for key in sorted(items.keys()):
                     list_item = QtWidgets.QListWidgetItem(key)                
                     picName =  key.split(". ")[len(key.split(". "))-1].lower().replace(":","").replace(" ","")
@@ -42,7 +43,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
                     if os.path.isfile(pic_path):
                             list_item.setIcon(QtGui.QIcon(pic_path))
                     # get Colro based on stats 
-                    if stats_json.has_key(key):
+                    if key in stats_json:
                         value  = hou.hmath.fit(stats_json[key],0,stats_json["MAXIMUM_CLICKS"],100, 250)                        
                     else:  
                         value = 100
@@ -82,31 +83,31 @@ class LZ_vex_interface(QtWidgets.QWidget):
     
     def processItem(self,item,n,action):
         # add libs
-        if item.has_key('lib'):
+        if 'lib' in item:
             for lib in item['lib']:
                 lzutil.includeAddSafe(n,lib)
         # add code
-        if item.has_key('code'):                                        
+        if 'code' in item:                                        
             lzutil.copyToClipboard(item['code'])
-        if item.has_key('addcode'):                     
+        if 'addcode' in item:                     
             lzutil.snippetAddCode(n,item['addcode'])                        
         # execute an action
-        if item.has_key('action'):
+        if 'action' in item:
             exec(item['action'])
         # node  
-        if item.has_key('node'):
+        if 'node' in item:
             new_node = n.createOutputNode(item['node'])
             new_node.setSelected(1,1)
             new_node.setDisplayFlag(1)
             new_node.setRenderFlag(1)
         # clipboard
-        if item.has_key('clip'):                        
+        if 'clip' in item:                        
             lzutil.copyToClipboard(item['clip'])
             
         hext = hou.expandString('$HEXT')
         my_json = json.load(open(hext + "/vexstat.txt"))   
         nclicks = 1
-        if my_json.has_key(action):
+        if action in my_json:
             nclicks += my_json[action]        
         my_json[action] = nclicks
         my_json["MAXIMUM_CLICKS"] = max(my_json["MAXIMUM_CLICKS"],nclicks)

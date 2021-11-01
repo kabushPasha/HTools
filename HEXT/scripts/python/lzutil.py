@@ -292,13 +292,13 @@ def installOtlLibsUI():
 	path = hou.expandString('$OTLS') + "\\*/"
 	libs =  glob.glob(path)
 	libs = [e.split("\\")[-2] for e in libs]
-	print libs
+	print( libs )
 
 	answer =  hou.ui.selectFromList(libs)
 	for ans in answer:
 		lib = libs[ans]
 		installOtlLib(lib)
-		print  "\nimport lzutil\nlzutil.installOtlLib('"+lib +"')"
+		print(  "\nimport lzutil\nlzutil.installOtlLib('"+lib +"')")
 		hou.appendSessionModuleSource( "import lzutil\nlzutil.installOtlLib('"+lib +"')" )
 
 def explorer(dir):

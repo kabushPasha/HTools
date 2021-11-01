@@ -13,3 +13,4 @@ HEXT/scripts/python/lzutil.pyc
 HEXT/gallery/backup
 HEXT/otls/backup
 HEXT/megavex/backup
+*.pyc

@@ -1,3 +1,4 @@
+from imp import reload
 import lzutil
 reload(lzutil)
 

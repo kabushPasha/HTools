@@ -679,7 +679,7 @@ if hou.selectedNodes()==():
 n = toolutils.sceneViewer().currentNode()
 #user_input = hou.ui.readInput("Script Name")
 #n.createOutputNode('attribwrangle',user_input[1] if user_input[1]!='' else 'script')
-print n
+print (n)
 if n.type().category().name() == 'Object':
     wr = n.createNode('attribwrangle')
 elif n.type().category().name() == 'Sop':
@@ -754,18 +754,19 @@ for n in hou.selectedNodes():
         script += verbname + "verb.setParms({\n"               
         for key in parms.keys():
             if  parms[key] != newparms[key]:
-                val = str(newparms[key])
-                if isinstance(newparms[key],basestring):
+                val = str(newparms[key])   
+                #if isinstance(newparms[key],basestring)
+                if isinstance(newparms[key],str):
                     val = "'" + val + "'"
                 script += "\t'" + key + "': " + val + ",\n"  
         script += "\t})\n"   
         script += verbname + "verb.execute(geo, [geo])"
         
     else:
-        print "[WARNING] " + n.type().name() + " has no verb"
+        print( "[WARNING] " + n.type().name() + " has no verb" )
 
 lzutil.copyToClipboard(script)
-print script
+print (script)
 
 ]]></script>
   </tool>
@@ -951,7 +952,7 @@ for n in hou.selectedNodes():
         script += newline + '\n'
 
 # PRINT SCRIPT AND COPY TO CLIPBOARD
-print script
+print( script )
 
 #import PySide2.QtGui as qtg
 #app = qtg.QApplication.instance()
