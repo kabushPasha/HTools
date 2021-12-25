@@ -46,8 +46,8 @@ def convertToAces_srgbFolder(file_path):
 
 	new_path = os.path.dirname(path) + "/sRGB/" + os.path.basename(path)
 	if os.path.isfile(new_path):
-		print os.path.basename(path) + " already converted"
+		print (os.path.basename(path) + " already converted")
 	else:
-		print "Converting " + path
+		print ("Converting " + path)
 		os.rename(path, new_path)
 		convertToAces(new_path,path)
