@@ -12,7 +12,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
 
 		# read json
 		import json
-		hext = hou.expandString('$HEXT')
+		hext = hou.text.expandString('$HEXT')
 		self.json = json.load(open(hext + '/' + scipt +'.txt'))
 		
 		i = 0
@@ -28,7 +28,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
 				
 				picName =  key.split(". ")[len(key.split(". "))-1].lower().replace(":","").replace(" ","")
 				#print picNam
-				pic_path = hou.expandString('$HEXT\pic') + '\\' + picName + r".svg"
+				pic_path = hou.text.expandString('$HEXT\pic') + '\\' + picName + r".svg"
 				if os.path.isfile(pic_path):
 					list_item.setIcon(QtGui.QIcon(pic_path))
 				new_list.addItem(list_item)

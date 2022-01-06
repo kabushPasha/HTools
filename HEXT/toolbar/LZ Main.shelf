@@ -515,7 +515,7 @@ lzutil.setProject()
 
 #import os
 ## get root dir
-#start_dir = hou.expandString("$HMEGA") + "/! Projects/"
+#start_dir = hou.text.expandString("$HMEGA") + "/! Projects/"
 #answer = hou.ui.selectFile(start_directory=start_dir,file_type=hou.fileType.Directory)
 #
 #if answer is not '':
@@ -613,10 +613,10 @@ altclick = kwargs["altclick"]
 
 npp = "C:\\Program Files (x86)\\Notepad++\\notepad++.exe"
 
-lzutils = hou.expandString('$HEXT') + "\\scripts\\python\\lzutil.py"
-lzquickvex = hou.expandString('$HEXT') + "\\lz_quick_vex.txt"
-vexfunc = hou.expandString('$HEXT') + "\\lz_vexfunc.txt"
-hscript = hou.expandString('$HEXT') + "\\hscript.txt"
+lzutils = hou.text.expandString('$HEXT') + "\\scripts\\python\\lzutil.py"
+lzquickvex = hou.text.expandString('$HEXT') + "\\lz_quick_vex.txt"
+vexfunc = hou.text.expandString('$HEXT') + "\\lz_vexfunc.txt"
+hscript = hou.text.expandString('$HEXT') + "\\hscript.txt"
 
 file = lzutils
 if ctrlclick:
@@ -641,9 +641,9 @@ if ctrlclick:
     lzutil.updateJobNameFromHipLocation()
 else:
     print ("")
-    print("JOBNAME: " + hou.expandString('$JOBNAME'))
-    print("JOB:     " + hou.expandString('$JOB'))
-    print("HIP:     " + hou.expandString('$HIP'))
+    print("JOBNAME: " + hou.text.expandString('$JOBNAME'))
+    print("JOB:     " + hou.text.expandString('$JOB'))
+    print("HIP:     " + hou.text.expandString('$HIP'))
     ]]></script>
   </tool>
 
@@ -1094,7 +1094,7 @@ import os
 def load_netbox():
     filename = hou.ui.selectFile(start_directory="S:/CloudStation/Assets/Toolkit/Env")
     n = lzutil.getCurrentContextNode()
-    filename = hou.expandString(filename)
+    filename = hou.text.expandString(filename)
     if os.path.isfile(filename):
         n.loadItemsFromFile(filename)
 
@@ -1102,7 +1102,7 @@ def load_netbox():
 def save_netbox():
     for nb in hou.selectedItems():    
         if isinstance(nb,hou.NetworkBox):        
-            filename = hou.expandString(nb.comment())
+            filename = hou.text.expandString(nb.comment())
             #os.makedirs(os.path.dirname(filename))
             if filename is not "":
                 items = list(nb.items()) + [nb]

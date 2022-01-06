@@ -107,7 +107,7 @@ newnode.parm('RSL_volumeScale').set(1)
 newnode.setDisplayFlag(False)
 
 default_hdr = "$HMEGA/Assets/HDRI/panorama_map.hdr"
-if not os.path.isfile(hou.expandString(default_hdr)):
+if not os.path.isfile(hou.text.expandString(default_hdr)):
     default_hdr = "X:/Assets/HDRI/panorama_map.hdr"
 
 newnode.parm('env_map').set(default_hdr)
@@ -244,7 +244,7 @@ else:
     hou.hscript('colorsettings -g 1 -c')
     hou.putenv("g","1")
     
-mega = hou.expandString('$HEXT').replace('\\','/')
+mega = hou.text.expandString('$HEXT').replace('\\','/')
 hou.hscript('colorsettings -l "'+ mega +'/Assets/LUTS/Rec.709_for_ACEScg_Houdini.lut" -c')]]></script>
   </tool>
 

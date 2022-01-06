@@ -199,13 +199,13 @@ def viewNode():
 
 def openFolderFromEnv(env):
 	import os
-	dir = os.path.abspath(hou.expandString(env).replace('/','\\'))
+	dir = os.path.abspath(hou.text.expandString(env).replace('/','\\'))
 	subprocess.Popen('explorer "' + dir  + '"')
 
 def setProject():
 	import os
 	# get root dir
-	start_dir = hou.expandString("$HMEGA") + "/! Projects/"
+	start_dir = hou.text.expandString("$HMEGA") + "/! Projects/"
 	answer = hou.ui.selectFile(start_directory=start_dir,file_type=hou.fileType.Directory)
 
 	if answer is not '':
@@ -243,7 +243,7 @@ def updateJobFromHipLocation():
 	
 def updateJobNameFromHipLocation():
 	import os
-	hip = hou.expandString("$HIP")
+	hip = hou.text.expandString("$HIP")
 	JOB = os.path.dirname(hip)
 	jobname = JOB.split("/").pop()
 	hou.hscript('setenv JOBNAME ='+ jobname)	
@@ -263,7 +263,7 @@ def copyToClipboard(str):
 def copyToClipboardExpanded(str):
 	''' Expands str and copies it to clipboard
 	'''
-	copyToClipboard(hou.expandString(str))
+	copyToClipboard(hou.text.expandString(str))
 	
 def updateSnippetFromClipboard(node):
 	''' Sets the snippet parm on a node from the text n clipboard
@@ -279,7 +279,7 @@ def updateSnippetFromClipboard(node):
 def installOtlLib(lib):
 	import hou,glob
 
-	hext = hou.expandString('$OTLS')
+	hext = hou.text.expandString('$OTLS')
 
 	path = hext + "/" + lib + "/*.hda"
 	otls = glob.glob(path)
@@ -289,7 +289,7 @@ def installOtlLib(lib):
 # shows a ui to install libs in current hip file, then adds their installation to the python source editor		
 def installOtlLibsUI():
 	import glob
-	path = hou.expandString('$OTLS') + "\\*/"
+	path = hou.text.expandString('$OTLS') + "\\*/"
 	libs =  glob.glob(path)
 	libs = [e.split("\\")[-2] for e in libs]
 	print( libs )

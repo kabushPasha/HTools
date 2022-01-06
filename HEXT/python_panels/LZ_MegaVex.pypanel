@@ -18,7 +18,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
         self.mainLayout = QtWidgets.QGridLayout()            
         self.callbackDict = {}        
         self.tabs = QtWidgets.QTabWidget() 
-        hext = hou.expandString('$HEXT')
+        hext = hou.text.expandString('$HEXT')
         stats_json = json.load(open(hext + "/vexstat.txt"))   
         
         for json_file in  glob.glob(hext + "/megavex/*txt"):
@@ -39,7 +39,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
                     list_item = QtWidgets.QListWidgetItem(key)                
                     picName =  key.split(". ")[len(key.split(". "))-1].lower().replace(":","").replace(" ","")
                     #print picNam
-                    pic_path = hou.expandString('$HEXT\pic') + '\\' + picName + r".svg"
+                    pic_path = hou.text.expandString('$HEXT\pic') + '\\' + picName + r".svg"
                     if os.path.isfile(pic_path):
                             list_item.setIcon(QtGui.QIcon(pic_path))
                     # get Colro based on stats 
@@ -104,7 +104,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
         if 'clip' in item:                        
             lzutil.copyToClipboard(item['clip'])
             
-        hext = hou.expandString('$HEXT')
+        hext = hou.text.expandString('$HEXT')
         my_json = json.load(open(hext + "/vexstat.txt"))   
         nclicks = 1
         if action in my_json:
@@ -124,7 +124,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
                 code = n.parm("snippet").evalAsString()        
                  
                 # Dublicate file as backup
-                hext = hou.expandString('$HEXT')
+                hext = hou.text.expandString('$HEXT')
                 backup_dir = os.path.join(hext,"megavex/backup")
                 if not os.path.isdir(backup_dir):
                     os.makedirs(backup_dir)          

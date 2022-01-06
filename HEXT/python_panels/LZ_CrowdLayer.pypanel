@@ -145,7 +145,7 @@ class LZ_abc_interface(QtWidgets.QWidget):
                 
                 lz_check(sl.isExternalReference(),'Shape library is not stored on disk, wtf?') 
                 
-                sl_path = hou.expandString(sl.fileName())
+                sl_path = hou.text.expandString(sl.fileName())
                 map = os.path.dirname(sl_path) + "/map.json"
                 lz_check( os.path.isfile(map), "No map json file found at:\n" + map )
                 

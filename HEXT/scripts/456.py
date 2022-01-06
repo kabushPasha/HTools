@@ -2,7 +2,7 @@
 import hou
 
 import glob
-path = hou.expandString('$JOB/hda/')
+path = hou.text.expandString('$JOB/hda/')
 hdas = glob.glob(path + '*.hda' )
 for hda in hdas:
     hou.hda.installFile(hda)
