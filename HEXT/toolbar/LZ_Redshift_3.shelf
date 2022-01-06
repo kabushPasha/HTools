@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="lz_redshift_3" label="LZ Redshift 3.0">
+    <memberTool name="LZ RS Setup"/>
+    <memberTool name="rs_cam_from_view"/>
+    <memberTool name="LZ RS LightDome"/>
+    <memberTool name="Rs vol shader"/>
+    <memberTool name="ViewportIPR"/>
+    <memberTool name="Options_Panel0"/>
+    <memberTool name="Rs Directional Light"/>
+    <memberTool name="Rs Light Sun"/>
+    <memberTool name="Add RS Prefix"/>
+    <memberTool name="batchProxy"/>
+    <memberTool name="find_all_textures"/>
+    <memberTool name="matte_grid"/>
+    <memberTool name="spheres"/>
+    <memberTool name="add_reflection_sphere"/>
+    <memberTool name="submit_RS_render_Deadline"/>
+    <memberTool name="merge_proxies"/>
+    <memberTool name="unpack_proxies"/>
+    <memberTool name="add_custom_aovs"/>
+  </toolshelf>
+</shelfDocument>

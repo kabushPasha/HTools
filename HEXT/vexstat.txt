@@ -85,8 +85,8 @@
     "splitpath ": 6,
     "sprintf ": 1,
     "uvsample": 3,
-    "volumegradient": 3,
-    "volumesample": 21,
+    "volumegradient": 4,
+    "volumesample": 22,
     "volumesampleV": 1,
     "xyzdist": 23
 }

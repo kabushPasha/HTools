@@ -154,6 +154,80 @@ def LZ_RS_Setup():
 	if has_render_panel == 0:
 		lzutil.createRenderView()
 
+def LZ_RS_Setup3():
+	########## MAIN ##################
+	rs = hou.node("/out/Redshift_ROP1")
+
+
+	if rs is None:
+		rs = __import__('roptoolutils').createRenderNode('Redshift_ROP')
+		ipr = __import__('roptoolutils').createRenderNode('Redshift_IPR')
+		
+		rs.parm('RS_renderAOVsToMPlay').set(1)
+		
+		rs.parm('MotionBlurDeformationEnabled').set(1)  
+		rs.parm('RS_mbPoints').set(1)
+		  
+		rs.parm('RS_outputFileNamePrefix').set('$JOB/Render/001_InitRender/$F4.exr')
+		rs.parm('IrradiancePointCloudFilename').set('$JOB/Cache/Redshift/IPC/$F4.rsmap')
+		rs.parm('IrradianceCacheFilename').set('$JOB/Cache/Redshift/IRC/$F4.rsmap')
+		
+		rs.parm("UnifiedMaxSamples").setExpression('ch("UnifiedMinSamples")*4')    
+		
+		# AOV's
+		rs.parm("RS_aovAllAOVsDisabled").set(1)
+		rs.parm("RS_renderCamera").set("/obj/RS_Cam")
+		rs.parm("RS_lights_candidate").set("RS_*")
+		rs.parm("RS_objects_candidate").set("RS_*")
+		rs.parm("RS_addDefaultLight").set(0)
+		
+		CreateCanoeRenderTab(rs)    
+	
+	addRenderSettingsPaneTab(rs)
+	
+	'''
+	# Create RENDER VIEW Floating Panels (currently using 1 monitor)
+	# Check if we have parms and render view already
+	has_render_panel = 0
+	has_rs_parms = 0
+	floatingPanels = hou.ui.floatingPanels()
+	for panel in floatingPanels:
+		if panel.name() == 'RenderView':
+			has_render_panel = 1
+		if panel.name() == 'Render_Settings':
+			has_rs_parms = 1
+		
+	# Open Parms Window
+	if has_rs_parms == 0:
+		dy = [0.05,0.65];
+		dx = [0.57,0.85];
+		panel = lzutil.createFloatingPanel(hou.paneTabType.Parm,'Render_Settings',dx,dy)
+		pane = panel.panes()[0]
+		tab = pane.tabs()[0]
+		tab.setCurrentNode(rs)
+		tab.setPin(1)
+
+	#create RenderView
+	if has_render_panel == 0:
+		lzutil.createRenderView()
+	'''
+
+def addRenderSettingsPaneTab(rs):
+	tab = hou.ui.findPaneTab("rs_render_settings_tab")
+	if tab: 
+		tab.setPin(True)
+		tab.setCurrentNode(rs)
+	else :
+		pane = hou.ui.findPane(25)
+		curr_tab = pane.currentTab()
+		
+		tab = pane.createTab(hou.paneTabType.Parm)
+		tab.setName("rs_render_settings_tab")
+		tab.setPin(True)
+		tab.setCurrentNode(rs)
+		
+		curr_tab.setIsCurrentTab()
+
 def BatchProxy(n,threads = 5,sleep = 5):
 	if n.type().name() == 'Redshift_Proxy_Output' or n.type().name() == 'Redshift_ROP':
 		hython = hou.getenv('HB')+'/hython'
