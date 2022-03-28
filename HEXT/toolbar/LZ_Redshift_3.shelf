@@ -10,7 +10,7 @@
     <memberTool name="rs_cam_from_view"/>
     <memberTool name="LZ RS LightDome"/>
     <memberTool name="Rs vol shader"/>
-    <memberTool name="ViewportIPR"/>
+    <memberTool name="lz_rs_viewport"/>
     <memberTool name="Options_Panel0"/>
     <memberTool name="Rs Directional Light"/>
     <memberTool name="Rs Light Sun"/>
@@ -25,4 +25,16 @@
     <memberTool name="unpack_proxies"/>
     <memberTool name="add_custom_aovs"/>
   </toolshelf>
+
+  <tool name="lz_rs_viewport" label="RS Viewport IPR" icon="RS_openIPR_icon">
+    <script scriptType="python"><![CDATA[import toolutils
+sv = toolutils.sceneViewer()
+if sv.isViewingSceneGraph():
+    if sv.currentHydraRenderer() == "Redshift":
+        sv.setHydraRenderer('Houdini GL')
+    else:
+        sv.setHydraRenderer("Redshift")
+else:
+    hou.hscript('Redshift_openViewportRenderingIPR')]]></script>
+  </tool>
 </shelfDocument>
