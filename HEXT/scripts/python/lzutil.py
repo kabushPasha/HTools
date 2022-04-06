@@ -621,5 +621,14 @@ def changeRampType(p):
 
 
 
+#-----------------------------
+# LOPS / SOLARIS / USD
+def load_asset_to_LayoutAssetGallery(filepath):
+    asset_name = os.path.splitext(os.path.basename(filepath))[0]
+    thumbnail = os.path.dirname(filepath) + "/" + asset_name + ".jpg"
+    hou.qt.AssetGallery.addAsset(asset_name, filepath,thumbnail)
+
+
+
 
 	

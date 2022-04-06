@@ -1,6 +1,6 @@
 import hou
 import lzutil
-import subprocess
+import subprocess,os
 
 def CreateCanoeRenderTab(n):
 	ptg = n.parmTemplateGroup()
@@ -218,7 +218,7 @@ def addRenderSettingsPaneTab(rs):
 		tab.setPin(True)
 		tab.setCurrentNode(rs)
 	else :
-		pane = hou.ui.findPane(25)
+		pane = hou.ui.findPane(28)
 		curr_tab = pane.currentTab()
 		
 		tab = pane.createTab(hou.paneTabType.Parm)
@@ -278,3 +278,88 @@ def addCameraParms(cam,add_comment = False):
     cam.parm("RS_campro_dofUseHoudiniCamera").set(0)
     cam.parm('RS_campro_dofDistance').set(cam.parm("f2t"))
     cam.parm("RS_campro_dofCoC").set(0.02)
+    
+    
+    
+def AddHDRLoader(newnode):
+    # Add LZ Controlls
+    ptg = newnode.parmTemplateGroup()
+    # HDR IMAGE
+    hdr_img = hou.StringParmTemplate("hdr_img",
+                                "HDR_img",
+                                1,
+                                default_value=([]),
+                                string_type=hou.stringParmType.FileReference,
+                                item_generator_script="""
+    import os.path
+    menuItems = []
+    n = kwargs[\'node\']
+    folder = n.parm(\'hdr_dir\').eval()
+    folder = os.path.abspath(folder)
+    
+    from glob import glob
+    items =  glob(folder + \"/*\")
+    
+    for i in items:
+        path = i.split(\'\\\\\')
+        tex = path.pop()
+        if not tex.endswith('.rstexbin'):    
+            menuItems += {i}
+            menuItems += {tex}        
+    return menuItems""",
+                                item_generator_script_language=hou.scriptLanguage.Python,
+                                menu_type=hou.menuType.Normal)                            
+    hdr_img.setTags({"script_action": """
+n = kwargs['node']
+if n.parm(\'xn__inputstexturefile_r3ah\'):
+    n.parm(\'xn__inputstexturefile_r3ah\').set(kwargs['node'].parm(\'hdr_img\'))
+if n.parm(\'env_map\'):
+    n.parm(\'env_map\').set(kwargs['node'].parm(\'hdr_img\'))        
+    """})
+    ptg.addParmTemplate(hdr_img)
+    # HDR Folder
+    default_folder = "S:/CloudStation/Assets/HDRI/Heaven/"
+    if not os.path.isdir(default_folder):
+        default_folder = "X:/Assets/HDRI/Heaven/"
+    if not os.path.isdir(default_folder):
+        default_folder = "S:/Temp/HDRI/Heaven/"    
+    if not os.path.isdir(default_folder):
+        default_folder = "S:/Assets/HDRI/Heaven3/" 
+    
+        
+    hdr_dir = hou.StringParmTemplate("hdr_dir",
+                                    "HDR_dir",
+                                    1,
+                                    default_value=([default_folder]),
+                                    string_type=hou.stringParmType.FileReference,
+                                    item_generator_script_language=hou.scriptLanguage.Python,
+                                    menu_type=hou.menuType.StringReplace)
+    hdr_dir.setFileType(hou.fileType.Directory)
+    ptg.addParmTemplate(hdr_dir)
+    # Next Button
+    next_btn = hou.ButtonParmTemplate("next", "Next")
+    next_btn.setScriptCallback("n = hou.pwd();p = n.parm(\"hdr_img\");mi = p.menuItems();p.set(mi[mi.index(p.eval())+1])")
+    next_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+    ptg.addParmTemplate(next_btn)
+    # Prev Button
+    prev_btn = hou.ButtonParmTemplate("prev", "Prev")
+    prev_btn.setScriptCallback("n = hou.pwd();p = n.parm(\"hdr_img\");mi = p.menuItems();p.set(mi[mi.index(p.eval())-1])")
+    prev_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+    ptg.addParmTemplate(prev_btn)
+    # Rotate Button
+    rotate_btn = hou.ButtonParmTemplate("rotate", "Rotate")
+    rotate_btn.setScriptCallback("hou.pwd().parm(\'ry\').setExpression(\'360*$F/$FEND\')")
+    rotate_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+    rotate_btn.setTags({"script_callback": "hou.pwd().parm(\'ry\').setExpression(\'360*$F/$FEND\')", "script_callback_language": "python"})
+    ptg.addParmTemplate(rotate_btn)
+    # Freeze Rotete button
+    freeze_btn = hou.ButtonParmTemplate("freeze", "Freeze")
+    freeze_btn.setScriptCallback("hou.pwd().parm(\'ry\').deleteAllKeyframes()")
+    freeze_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+    freeze_btn.setTags({"script_callback": "hou.pwd().parm(\'ry\').deleteAllKeyframes()", "script_callback_language": "python"})
+    ptg.addParmTemplate(freeze_btn)
+    
+    newnode.setParmTemplateGroup(ptg)
+    
+    if len(newnode.parm("hdr_img").menuItems()) > 0:
+        newnode.parm("hdr_img").set(newnode.parm("hdr_img").menuItems()[0])

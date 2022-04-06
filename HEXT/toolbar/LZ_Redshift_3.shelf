@@ -24,6 +24,7 @@
     <memberTool name="merge_proxies"/>
     <memberTool name="unpack_proxies"/>
     <memberTool name="add_custom_aovs"/>
+    <memberTool name="take_sceenshot"/>
   </toolshelf>
 
   <tool name="lz_rs_viewport" label="RS Viewport IPR" icon="RS_openIPR_icon">
