@@ -50,6 +50,21 @@ lzutil.changeRampType(p)
 	</scriptCode>
 		</scriptItem>
 
+<!-- Open File Location -->
+		<scriptItem id="open in explorer">
+		  <label>Open in Explorer</label>
+		  <expression>
+return kwargs.get('parms',None)[0].parmTemplate().type().name() == 'String'
+</expression>
+		  <scriptCode><![CDATA[
+import lzutil
+filepath = kwargs['parms'][0].eval()
+lzutil.openInExplorer(filepath)
+	]]>
+	</scriptCode>
+		</scriptItem>
+
+
 		
 	</subMenu>	
   </menu>

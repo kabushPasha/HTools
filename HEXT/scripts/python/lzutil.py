@@ -617,8 +617,9 @@ def changeRampType(p):
 		ptg.replace(pt.name(),pt)
 		n.setParmTemplateGroup(ptg)
 			
-			
-
+def openInExplorer(filepath):			
+    if not os.path.isdir(filepath): filepath = os.path.dirname(filepath)
+    openFolderFromEnv(filepath)
 
 
 #-----------------------------
