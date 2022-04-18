@@ -1,0 +1,18 @@
+h.tool:lz_rs_viewport	"RS Viewport IPR"	"Shelf Tool: RS Viewport IPR"	 F9
+HCONTEXT	h.pane.gview.state.sop.capturelayerpaint	"capturelayerpaint Operation"	"These keys apply to the captuerlayerpaint operation."
+h.pane.gview.state.sop.capturelayerpaint.select	Select	"Select group"	 G
+HCONTEXT	h.pane.gview.state.sop.LZ_PackedAdd.pystate	"LZ PackedAdd"	"These keys apply to the LA Packed Add."
+h.pane.gview.state.sop.LZ_PackedAdd.pystate.LZ_delete	LZ_Delete	"Delete the current point"	 Ctrl+X
+h.pane.wsheet.layout_all	"Layout All"	"Layout all nodes"	
+"h.pane.wsheet.tool:New Flooating Panel"	"New Floating Panel"	"Shelf Tool: New Floating Panel"	 Shift+N
+h.tool:aces	ACES	"Shelf Tool: ACES"	 Ctrl+U
+h.pane.wsheet.opmenu.extract	"Extract Contents"	"Extract the contents of the selected subnet"	 Ctrl+Shift+C
+h.pane.wsheet.tool:wrangle	Wrangle	"Shelf Tool: Wrangle"	 Q
+h.pane.wsheet.radial:network	"Radial Menu: Network"	"Radial Menu: Network"	
+h.pane.wsheet.flag2_mode	"Set Secondary Flag"	"Hold this key and select a node to toggle the secondary flag value"	
+h.pane.gview.radial:view	"Radial Menu: View"	"Radial Menu: View"	
+h.pane.gview.state.sop.LZ_PackedAdd.pystate.LZ_randomize	LZ_Randomize	"Randomize the current point"	 A
+h.pane.gview.state.sop.LZ_PackedAdd.pystate.LZ_snapshot	LZ_Snapshot	"Snapshot the current point"	 S
+h.pane.wsheet.bypass_mode	"Set Bypass Flag"	"Hold this key and select a node to toggle the bypass flag value"	 B
+"h.pane.gview.radial:LZ Main Menu"	"Radial Menu: LZ Main Menu"	"Radial Menu: LZ Main Menu"	 V
+h.pane.wsheet.tool:NodeParms	NodeParms	"Shelf Tool: NodeParms"	 N

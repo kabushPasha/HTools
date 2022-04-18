@@ -629,7 +629,10 @@ def load_asset_to_LayoutAssetGallery(filepath):
     thumbnail = os.path.dirname(filepath) + "/" + asset_name + ".jpg"
     hou.qt.AssetGallery.addAsset(asset_name, filepath,thumbnail)
 
-
+def splitpath(filepath):
+    dir = os.path.dirname(filepath)
+    [f,ext] = os.path.splitext(os.path.basename(filepath))
+    return [dir,f,ext]
 
 
 	
