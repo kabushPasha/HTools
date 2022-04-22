@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<menuDocument>
+  <menu>
+	<subMenu id="lz_parm_submenu">
+	<label>LZ</label>
+		<scriptItem id="add_python_snippet">
+		  <label>Add Python Snippet</label>
+		  <scriptCode><![CDATA[
+import lzutil
+lzutil.addPythonSnippet(kwargs["node"])
+	]]>
+	</scriptCode>
+		</scriptItem>
+
+
+
+		
+	</subMenu>	
+  </menu>
+</menuDocument>

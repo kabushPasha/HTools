@@ -635,4 +635,33 @@ def splitpath(filepath):
     return [dir,f,ext]
 
 
-	
+def addPythonSnippet(n):
+    ptg = n.parmTemplateGroup()
+
+    hou_parm_template = hou.StringParmTemplate("code", "Code", 1, default_value=([""]), string_type=hou.stringParmType.Regular, item_generator_script_language=hou.scriptLanguage.Python, menu_type=hou.menuType.Normal)
+    hou_parm_template.setTags({"editor": "1", "editorlang": "python", "editorlines": "30-50", "script_action": "print(kwargs[\"parm\"])"})
+    ptg.append(hou_parm_template)
+
+    hou_parm_template = hou.ButtonParmTemplate("run", "Run")
+    hou_parm_template.setScriptCallback("exec(hou.pwd().parm(\"code\").eval())")
+    hou_parm_template.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+    hou_parm_template.setTags({"script_callback": "exec(hou.pwd().parm(\"code\").eval())", "script_callback_language": "python"})
+    ptg.append(hou_parm_template)
+
+    n.setParmTemplateGroup(ptg)
+    
+def updateNodeToLatestDefinition(n):
+    type = n.type()
+    definition = type.definition()
+    hda = definition.libraryFilePath()
+
+    max_v = ""
+    for d in hou.hda.definitionsInFile(hda) :     
+        v = d.nodeTypeName().split('::')
+        if len(v) > 1:
+            if (v[1] > max_v):
+                max_v = v[1]
+        
+    max_version = n.type().name().split("::")[0] +"::" +max_v 
+
+    n = n.changeNodeType(max_version, keep_network_contents=False)

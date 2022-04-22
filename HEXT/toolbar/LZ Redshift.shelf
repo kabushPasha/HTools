@@ -452,8 +452,9 @@ if hdri.type().name() == 'rslightdome::2.0':
     uvtexture1.parm("su").set(-1.0)
     uvtexture1.parm("fixseams").set(1)
     
+    '''
     #create Rs_quickMat1 node
-    Rs_quickMat1 = uvtexture1.createOutputNode("Rs_quickMat::004","Rs_quickMat1")
+    Rs_quickMat1 = uvtexture1.createOutputNode("Rs_quickMat::008","Rs_quickMat1")
     Rs_quickMat1.setPosition(uvtexture1.position() + hou.Vector2(2.82882882883,-0.90990990991))
     Rs_quickMat1.parm("material").set('/obj/RS_sphere1/Rs_quickMat1')
     
@@ -464,6 +465,7 @@ if hdri.type().name() == 'rslightdome::2.0':
     material.node("redshift_material1").setInput(0,tex)
     
     Rs_quickMat1.setRenderFlag(1)
+    '''
     
     
     
