@@ -578,10 +578,14 @@ settings = vp.settings()
 curr_type = settings.particleDisplayType()
 points = hou.viewportParticleDisplay.Points
 pixels = hou.viewportParticleDisplay.Pixels
+disks = hou.viewportParticleDisplay.Discs
 
 new_type = pixels if (curr_type == points) else points
+new_type = disks if kwargs["ctrlclick"] else new_type
 
-settings.particleDisplayType( new_type )]]></script>
+settings.particleDisplayType( new_type )
+
+]]></script>
   </tool>
 
   <tool name="OpenJOB" label="OpenJOB" icon="hicon:/SVGIcons.index?SOP_pack.svg">
