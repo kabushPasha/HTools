@@ -665,3 +665,26 @@ def updateNodeToLatestDefinition(n):
     max_version = n.type().name().split("::")[0] +"::" +max_v 
 
     n = n.changeNodeType(max_version, keep_network_contents=False)
+    
+    
+#-------------------------------------------
+# NODE Saving and Loading
+def getCurrentContextNode():
+    current_node = toolutils.networkEditor().currentNode()
+    if current_node.type().name() == 'geo':
+        return current_node
+    else:
+        return current_node.parent()
+        
+def load_nodes(filename):
+    filename = hou.text.expandString(filename)
+    n = getCurrentContextNode()
+    if os.path.isfile(filename):
+        n.loadChildrenFromFile(filename)
+        
+def save_selected_nodes(filename):
+    filename = hou.text.expandString(filename)
+    nodes = hou.selectedNodes()    
+    if filename is not "":
+        contextnode = nodes[0].parent()
+        contextnode.saveChildrenToFile(nodes, [], filename)

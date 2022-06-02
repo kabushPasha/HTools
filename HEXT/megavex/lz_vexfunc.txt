@@ -12,6 +12,9 @@
         "nearpoints": {
             "code": "int npts[] = nearpoints(0,@P,chf('maxDist'));"
         },
+        "pcopen": {
+            "addcode": "int handle = pcopen(0,\"P\",v@P, chf(\"radius\"), chi(\"max_pts\"));\nvector avg = pcfilter(handle, \"P\");\nfloat numf = pcnumfound(handle);\n\nv@Cd = numf/chi(\"max_pts\");\n\n"
+        },
         "primuv": {
             "code": "v@P = primuv (0,'P',prim,uv);"
         },

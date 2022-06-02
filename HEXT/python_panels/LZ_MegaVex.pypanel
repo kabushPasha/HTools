@@ -7,9 +7,9 @@
  in a single file. -->
   <interface name="MegaVEX" label="MegaVEX" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
     <script><![CDATA[from hutil.Qt import QtWidgets,QtGui
-import lzutil
+import lzutil,lz
 import os
-import hou
+import hou,toolutils
 import glob,json,shutil
 
 class LZ_vex_interface(QtWidgets.QWidget):
@@ -103,6 +103,12 @@ class LZ_vex_interface(QtWidgets.QWidget):
         # clipboard
         if 'clip' in item:                        
             lzutil.copyToClipboard(item['clip'])
+        # load nodes
+        if 'load_node' in item:
+            custom_node_name = item['load_node']
+            filename ="$HEXT/megavex/nodes/" + custom_node_name + ".cpio"
+            lz.lzutil.load_nodes(filename)  
+        
             
         hext = hou.text.expandString('$HEXT')
         my_json = json.load(open(hext + "/vexstat.txt"))   
@@ -114,41 +120,80 @@ class LZ_vex_interface(QtWidgets.QWidget):
         with open(hext + "/vexstat.txt", 'w') as outfile:
                     json.dump(my_json, outfile,sort_keys=True, indent=4, separators=(',', ': '))
         
+    
+    def BackupJSON(self,key):
+        # Dublicate file as backup
+        hext = hou.text.expandString('$HEXT')
+        backup_dir = os.path.join(hext,"megavex/backup")
+        if not os.path.isdir(backup_dir):
+            os.makedirs(backup_dir)          
+        max_backup = 0
+        for backup_file in  glob.glob(backup_dir + "\\" + os.path.basename(key[0]).replace(".txt","") + ".*.txt"):
+            max_backup = max(int(backup_file.split(".")[-2]),max_backup)
+        max_backup += 1
+        bakup_path = backup_dir + "\\" + os.path.basename(key[0]).replace(".txt","." + str(max_backup) + ".txt")
+        shutil.copy(key[0],bakup_path)
      
+    def SaveSelectedNodesToDisk(self,filename):
+        nodes = hou.selectedNodes()                                 
+        contextnode = nodes[0].parent()
+        contextnode.saveChildrenToFile(nodes, [], filename) 
+        
     def StoreVex(self,key):
         if len(hou.selectedNodes()) == 1:
             n = hou.selectedNodes()[0]
-            if n.type().name() == 'attribwrangle' or n.type().name() == 'volumewrangle' or True:
+            # SAVE Snippet
+            if n.parm("snippet"):
                 # get Snippets Code and Name
                 snippet_name = n.name().replace("_"," ")
                 code = n.parm("snippet").evalAsString()        
-                 
-                # Dublicate file as backup
-                hext = hou.text.expandString('$HEXT')
-                backup_dir = os.path.join(hext,"megavex/backup")
-                if not os.path.isdir(backup_dir):
-                    os.makedirs(backup_dir)          
-                max_backup = 0
-                for backup_file in  glob.glob(backup_dir + "\\" + os.path.basename(key[0]).replace(".txt","") + ".*.txt"):
-                    max_backup = max(int(backup_file.split(".")[-2]),max_backup)
-                max_backup += 1
-                bakup_path = backup_dir + "\\" + os.path.basename(key[0]).replace(".txt","." + str(max_backup) + ".txt")
-                shutil.copy(key[0],bakup_path)
-                
+                #save Backup 
+                self.BackupJSON(key)
                                 
                 my_json = json.load(open(key[0]))       
                 my_json[key[1]][snippet_name] = {"addcode" : code}     
                 with open(key[0], 'w') as outfile:
                     json.dump(my_json, outfile,sort_keys=True, indent=4, separators=(',', ': '))
+            # SAVE Subnet        
+            if n.type().name() == 'subnet':                
+                #save selected subnet to disk
+                filename = hou.text.expandString("$HEXT/megavex/nodes/" + n.name() + ".cpio")   
+                self.SaveSelectedNodesToDisk(filename)                
+                print("Saved Subnet:",filename)
+                
+                #save Backup 
+                self.BackupJSON(key)
             
+                # Update Json
+                my_json = json.load(open(key[0]))       
+                my_json[key[1]][n.name()] = {"load_node" : n.name()}     
+                with open(key[0], 'w') as outfile:
+                    json.dump(my_json, outfile,sort_keys=True, indent=4, separators=(',', ': '))
+        if len(hou.selectedItems()) == 1:
+            nb = hou.selectedItems()[0]
+            # SAVE Netbox
+            if nb.networkItemType().name() == 'NetworkBox':
+                # Save selected networkBox
+                filename = hou.text.expandString("$HEXT/megavex/nodes/" + nb.comment() + ".cpio")
+                if filename is not "":
+                    items = list(nb.items()) + [nb]
+                    nb.parent().saveItemsToFile(items,filename)
+                print("Saved Netbox:",filename)
+                
+                #save Backup 
+                self.BackupJSON(key)
+                
+                # Update Json
+                my_json = json.load(open(key[0]))       
+                my_json[key[1]][nb.comment()] = {"load_node" : nb.comment()}     
+                with open(key[0], 'w') as outfile:
+                    json.dump(my_json, outfile,sort_keys=True, indent=4, separators=(',', ': '))
             
 def onCreateInterface():
     return LZ_vex_interface('megavex',rows = 4)      
     
     
-    
-    
-    
+
 ]]></script>
     <includeInToolbarMenu menu_position="108" create_separator="false"/>
     <help><![CDATA[]]></help>

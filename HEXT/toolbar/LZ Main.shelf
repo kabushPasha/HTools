@@ -1070,13 +1070,14 @@ def getCurrentContextNode():
 def save_nodes():
     nodes = hou.selectedNodes()
     
-    filename = hou.ui.selectFile()
+    filename = hou.expandString(hou.ui.selectFile())
+    print(filename)
     if filename is not "":
         contextnode = nodes[0].parent()
         contextnode.saveChildrenToFile(nodes, [], filename)
         
 def load_nodes():
-    filename = hou.ui.selectFile()
+    filename = hou.expandString(hou.ui.selectFile())
     n = getCurrentContextNode()
     if os.path.isfile(filename):
         n.loadChildrenFromFile(filename)

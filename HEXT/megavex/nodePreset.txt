@@ -1,0 +1,23 @@
+{
+    "Modelling": {
+        "autouv": {
+            "load_node": "autouv"
+        },
+        "scatter_pscale_orient": {
+            "load_node": "scatter_pscale_orient"
+        }
+    },
+    "Shaders": {
+        "Hex plastic": {
+            "load_node": "Hex plastic"
+        },
+        "Metal Rib Holes": {
+            "load_node": "Metal Rib Holes"
+        }
+    },
+    "VDB Modelling": {
+        "Vdb_Sdf_ForeachShatter": {
+            "load_node": "Vdb_Sdf_ForeachShatter"
+        }
+    }
+}
