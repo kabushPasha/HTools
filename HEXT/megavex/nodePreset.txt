@@ -7,12 +7,18 @@
             "load_node": "scatter_pscale_orient"
         }
     },
+    "SETUPS": {},
     "Shaders": {
         "Hex plastic": {
             "load_node": "Hex plastic"
         },
         "Metal Rib Holes": {
             "load_node": "Metal Rib Holes"
+        }
+    },
+    "Sims_Solvers": {
+        "PropogationSolver_v1": {
+            "load_node": "PropogationSolver_v1"
         }
     },
     "VDB Modelling": {

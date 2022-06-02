@@ -25,6 +25,7 @@
     <memberTool name="unpack_proxies"/>
     <memberTool name="add_custom_aovs"/>
     <memberTool name="take_sceenshot"/>
+    <memberTool name="viewMaskOpacity"/>
   </toolshelf>
 
   <tool name="lz_rs_viewport" label="RS Viewport IPR" icon="RS_openIPR_icon">
@@ -37,5 +38,14 @@ if sv.isViewingSceneGraph():
         sv.setHydraRenderer("Redshift")
 else:
     hou.hscript('Redshift_openViewportRenderingIPR')]]></script>
+  </tool>
+
+  <tool name="viewMaskOpacity" label="View Mask Opacity" icon="hicon:/SVGIcons.index?COP2_window.svg">
+    <script scriptType="python"><![CDATA[import toolutils
+st = toolutils.sceneViewer().curViewport().settings()
+st.setViewMaskOpacity(1 if st.viewMaskOpacity() < 0.5 else 0.4)
+
+
+]]></script>
   </tool>
 </shelfDocument>
