@@ -558,4 +558,57 @@ for n in hou.selectedNodes():
     if n.type().name() == "redshift_vopnet":
         add_custom_AOV(rs,n)]]></script>
   </tool>
+
+  <tool name="take_sceenshot" label="New Tool" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import toolutils,os,lzutil
+print (kwargs)
+   
+n = hou.selectedNodes()[0]
+
+if n.type().name() == "sublayer":
+    usd_path = n.parm("filepath1").eval()
+    filename = os.path.splitext(n.parm("filepath1").eval())[0]
+
+    ass_name = os.path.basename(filename)
+    
+    filename += ".jpg"
+        
+    frame = hou.frame()
+    sv = toolutils.sceneViewer()
+    vp = sv.curViewport()
+    
+    # this will open an mplay window to show the result
+    fbs = sv.flipbookSettings().stash()
+    fbs.frameRange( (frame, frame) )
+    fbs.output(filename)
+    fbs.outputToMPlay(False)
+    fbs.LUT("S:/Htools/HEXT/Assets/LUTS/Rec.709_for_ACEScg_Houdini.lut")
+    fbs.overrideLUT(True)
+    #sv.flipbook(vp, fbs)
+    
+    
+    lzutil.copyToClipboard(filename)
+    if kwargs['ctrlclick']:
+        hou.qt.AssetGallery.addAsset(ass_name, usd_path,filename)]]></script>
+  </tool>
+
+  <tool name="look_trough_light" label="Look Trough Light" icon="hicon:/SVGIcons.index?BUTTONS_visible.svg">
+    <script scriptType="python"><![CDATA[d = hou.ui.curDesktop()
+
+import ctypes
+user32 = ctypes.windll.user32
+sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
+dy = [0.5,0.95];
+dx = [0.7,0.95];
+
+pos = int(sz[0]*dx[0]),int(sz[1]*(1 - dy[1]))
+size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
+
+panel = d.createFloatingPanel(hou.paneTabType.SceneViewer,pos,size)
+panel.setName('LightView')
+
+vp = panel.paneTabs()[0].curViewport()
+vp.setCamera(hou.selectedNodes()[0])
+vp.lockCameraToView(True)]]></script>
+  </tool>
 </shelfDocument>

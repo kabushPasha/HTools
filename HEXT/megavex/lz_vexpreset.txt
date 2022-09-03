@@ -36,6 +36,12 @@
         },
         "mask: byDir": {
             "addcode": "vector dir = normalize(chv('dir'));\nf@mask = chramp('dot_ramp',0.5*dot(v@N,dir)+0.5);\nv@Cd = f@mask;"
+        },
+        "move out of collisions": {
+            "addcode": "float d = volumesample(1,0,@P) - chf(\"offset\");\nvector g = volumegradient(1,0,@P);\n\nif( d<0)\n    v@P -= normalize(g)*d;\n"
+        },
+        "move out of vdb sdf": {
+            "addcode": "float d = volumesample(1,0,@P) - chf(\"offset\");\nvector g = volumegradient(1,0,@P);\n\nif( d<0)\n    v@P -= normalize(g)*d;\n"
         }
     },
     "Other": {

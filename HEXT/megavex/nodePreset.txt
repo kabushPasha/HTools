@@ -1,5 +1,8 @@
 {
     "Modelling": {
+        "GS_Import_simple": {
+            "load_node": "GS_Import_simple"
+        },
         "autouv": {
             "load_node": "autouv"
         },
@@ -7,13 +10,23 @@
             "load_node": "scatter_pscale_orient"
         }
     },
-    "SETUPS": {},
+    "SETUPS": {
+        "Simple Bullet": {
+            "load_node": "Simple Bullet"
+        },
+        "Simple FLIP": {
+            "load_node": "Simple FLIP"
+        }
+    },
     "Shaders": {
         "Hex plastic": {
             "load_node": "Hex plastic"
         },
         "Metal Rib Holes": {
             "load_node": "Metal Rib Holes"
+        },
+        "RS_EnvironmentFogNoise": {
+            "load_node": "RS_EnvironmentFogNoise"
         }
     },
     "Sims_Solvers": {
