@@ -3,6 +3,12 @@
         "GS_Import_simple": {
             "load_node": "GS_Import_simple"
         },
+        "Liquid_Sculpt": {
+            "load_node": "Liquid_Sculpt"
+        },
+        "Reference_Image": {
+            "load_node": "Reference_Image"
+        },
         "autouv": {
             "load_node": "autouv"
         },
