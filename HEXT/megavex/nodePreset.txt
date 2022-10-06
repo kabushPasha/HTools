@@ -36,8 +36,14 @@
         }
     },
     "Sims_Solvers": {
+        "Pbd_Cloth_Tear": {
+            "load_node": "Pbd_Cloth_Tear"
+        },
         "PropogationSolver_v1": {
             "load_node": "PropogationSolver_v1"
+        },
+        "Surface_dissolve": {
+            "load_node": "Surface_dissolve"
         }
     },
     "VDB Modelling": {
