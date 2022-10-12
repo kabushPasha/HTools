@@ -155,7 +155,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
                 with open(key[0], 'w') as outfile:
                     json.dump(my_json, outfile,sort_keys=True, indent=4, separators=(',', ': '))
             # SAVE Subnet        
-            if n.type().name() == 'subnet':                
+            if n.type().name() == 'subnet' or n.type().name() == 'geo':                
                 #save selected subnet to disk
                 filename = hou.text.expandString("$HEXT/megavex/nodes/" + n.name() + ".cpio")   
                 self.SaveSelectedNodesToDisk(filename)                
@@ -175,7 +175,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
             if nb.networkItemType().name() == 'NetworkBox':
                 # Save selected networkBox
                 filename = hou.text.expandString("$HEXT/megavex/nodes/" + nb.comment() + ".cpio")
-                if filename is not "":
+                if filename != "":
                     items = list(nb.items()) + [nb]
                     nb.parent().saveItemsToFile(items,filename)
                 print("Saved Netbox:",filename)

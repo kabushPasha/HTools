@@ -17,6 +17,9 @@
         }
     },
     "SETUPS": {
+        "Activate_NoiseMask": {
+            "load_node": "Activate_NoiseMask"
+        },
         "Simple Bullet": {
             "load_node": "Simple Bullet"
         },
@@ -30,6 +33,9 @@
         },
         "Metal Rib Holes": {
             "load_node": "Metal Rib Holes"
+        },
+        "OSL_Shaders": {
+            "load_node": "OSL_Shaders"
         },
         "RS_EnvironmentFogNoise": {
             "load_node": "RS_EnvironmentFogNoise"
@@ -49,6 +55,11 @@
     "VDB Modelling": {
         "Vdb_Sdf_ForeachShatter": {
             "load_node": "Vdb_Sdf_ForeachShatter"
+        }
+    },
+    "_Helpers": {
+        "Focus_plane": {
+            "load_node": "Focus_plane"
         }
     }
 }

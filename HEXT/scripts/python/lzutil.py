@@ -671,13 +671,13 @@ def updateNodeToLatestDefinition(n):
 # NODE Saving and Loading
 def getCurrentContextNode():
     current_node = toolutils.networkEditor().currentNode()
-    if current_node.type().name() == 'geo':
+    if current_node.type().name() in ['geo','obj']:
         return current_node
     else:
         return current_node.parent()
         
 def load_nodes(filename):
-    filename = hou.text.expandString(filename)
+    filename = hou.text.expandString(filename)    
     n = getCurrentContextNode()
     if os.path.isfile(filename):
         n.loadChildrenFromFile(filename)
@@ -688,3 +688,12 @@ def save_selected_nodes(filename):
     if filename is not "":
         contextnode = nodes[0].parent()
         contextnode.saveChildrenToFile(nodes, [], filename)
+        
+def CamFocusPlane(cam):
+    filename = "$HEXT/megavex/nodes/Focus_plane.cpio"    
+    filename = hou.text.expandString(filename)    
+    n = cam.parent()
+    if os.path.isfile(filename):
+        n.loadChildrenFromFile(filename,True)  
+    sn = hou.selectedNodes()
+    sn[1].setInput(0,cam)

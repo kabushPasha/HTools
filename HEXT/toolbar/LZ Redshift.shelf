@@ -158,6 +158,8 @@ if not os.path.isdir(default_folder):
     default_folder = "X:/Assets/HDRI/Heaven/"
 if not os.path.isdir(default_folder):
     default_folder = "S:/Temp/HDRI/Heaven/"    
+if not os.path.isdir(default_folder):
+    default_folder = "S:/Assets/HDRI/Heaven/" 
     
 hdr_dir = hou.StringParmTemplate("hdr_dir",
                                 "HDR_dir",
