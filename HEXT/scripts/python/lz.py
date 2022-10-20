@@ -12,8 +12,12 @@ reload(lzRS_Shelf)
 import lzModelling
 reload(lzModelling)
 
+import lzocl
+reload(lzocl)
+
 def update():
-	reload(lzutil)
-	reload(lzDeadline)
-	reload(lzRS_Shelf)
-	reload(lzModelling)
+    reload(lzutil)
+    reload(lzDeadline)
+    reload(lzRS_Shelf)
+    reload(lzModelling)
+    reload(lzocl)

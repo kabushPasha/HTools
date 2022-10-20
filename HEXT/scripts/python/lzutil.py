@@ -639,13 +639,21 @@ def addPythonSnippet(n):
     ptg = n.parmTemplateGroup()
 
     hou_parm_template = hou.StringParmTemplate("code", "Code", 1, default_value=([""]), string_type=hou.stringParmType.Regular, item_generator_script_language=hou.scriptLanguage.Python, menu_type=hou.menuType.Normal)
-    hou_parm_template.setTags({"editor": "1", "editorlang": "python", "editorlines": "30-50", "script_action": "print(kwargs[\"parm\"])"})
+    run_in_console_script = """import subprocess,os
+n = kwargs['node']
+python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))
+code = "_shell=True\\n" + n.parm("code").eval()
+subprocess.Popen([python_path,"-i","-c",code])
+"""
+    
+    hou_parm_template.setTags({"editor": "1", "editorlang": "python", "editorlines": "30-50", "script_action": run_in_console_script})
     ptg.append(hou_parm_template)
 
     hou_parm_template = hou.ButtonParmTemplate("run", "Run")
-    hou_parm_template.setScriptCallback("exec(hou.pwd().parm(\"code\").eval())")
+    script_callback = "exec( \"_shell=False\\n\" + hou.pwd().parm(\"code\").eval())"
+    hou_parm_template.setScriptCallback(script_callback)
     hou_parm_template.setScriptCallbackLanguage(hou.scriptLanguage.Python)
-    hou_parm_template.setTags({"script_callback": "exec(hou.pwd().parm(\"code\").eval())", "script_callback_language": "python"})
+    hou_parm_template.setTags({"script_callback": script_callback, "script_callback_language": "python"})
     ptg.append(hou_parm_template)
 
     n.setParmTemplateGroup(ptg)

@@ -42,6 +42,9 @@
         }
     },
     "Sims_Solvers": {
+        "FastestSmoke": {
+            "load_node": "FastestSmoke"
+        },
         "Pbd_Cloth_Tear": {
             "load_node": "Pbd_Cloth_Tear"
         },
@@ -53,6 +56,9 @@
         }
     },
     "VDB Modelling": {
+        "VDB Modelling": {
+            "load_node": "VDB Modelling"
+        },
         "Vdb_Sdf_ForeachShatter": {
             "load_node": "Vdb_Sdf_ForeachShatter"
         }

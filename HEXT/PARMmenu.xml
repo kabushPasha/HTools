@@ -34,6 +34,16 @@ p = kwargs['parms'][0]
 lzutil.dublicateParm(p)
 	]]>
 	</scriptCode>
+		</scriptItem>		
+
+		<scriptItem id="asCode">
+		  <label>As Code to Clipboard</label>
+		  <scriptCode><![CDATA[
+import lzutil
+p = kwargs['parms'][0]
+lzutil.copyToClipboard(p.parmTemplate().asCode())
+	]]>
+	</scriptCode>
 		</scriptItem>
 
 <!-- Turn our float ramp into color ramp -->

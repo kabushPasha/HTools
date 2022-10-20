@@ -1,3 +1,27 @@
+// NEW GXNoise Noises
+float3 Noise3(float3 p,float amp,float4 freq,float rough,int oct,float4 offset)
+{
+    // Usage:
+    // float3 n0 = Noise3(vp,n0_amp,n0_freq,n0_rough,n0_oct,n0_off);
+    float4 pos = ((float4)(p,0) + offset) * freq;
+    float3 noise = 0;    
+    for (int i = 0; i < oct; i++, pos *= 2.0f, amp *= rough) 
+        noise += amp * VEXcurlgxnoise_4(pos); 
+    return noise; 
+}
+
+float Noise(float3 p,float amp,float4 freq,float rough,int oct,float4 offset)
+{
+    // Usage:
+    // float n0 = Noise(vp,n0_amp,n0_freq,n0_rough,n0_oct,n0_off);
+    float4 pos = ((float4)(p,0) + offset) * freq;
+    float noise = 0;    
+    for (int i = 0; i < oct; i++, pos *= 2.0f, amp *= rough) 
+        noise += amp * VEXgxnoise_4_1(pos); 
+    return noise; 
+}
+/*
+// OLD Xnoise Noises
 float3 LZ_CurlNoise4(float3 p,float amp,float4 freq,float rough,int oct,float4 offset,global const void *theXNoise)
 {
     // Usage:
@@ -21,7 +45,7 @@ float LZ_XNoise4(float3 p,float amp,float4 freq,float rough,int oct,float4 offse
         noise += amp * xnoise4(theXNoise, pos); 
     return noise; 
 }
-
+*/
 // LZ Voronoi Function
 float LZ_Voronoi_all(float3 vp,int global_seed,int shape)
 {

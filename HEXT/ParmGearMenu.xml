@@ -26,6 +26,18 @@ lzutil.CamFocusPlane(kwargs["node"])
 	</scriptCode>
 		</scriptItem>
 		
+		<scriptItem id="ocl_add_User">
+		  <label>OCL Add User Parms</label>
+		  <expression>
+return kwargs["node"].type().name() == 'opencl'
+</expression>
+		  <scriptCode><![CDATA[
+import lzocl
+lzocl.AddUserInterface(kwargs["node"])
+	]]>
+	</scriptCode>
+		</scriptItem>
+		
 		
 	</subMenu>	
   </menu>
