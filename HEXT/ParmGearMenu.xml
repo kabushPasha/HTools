@@ -39,6 +39,18 @@ lzocl.AddUserInterface(kwargs["node"])
 		</scriptItem>
 		
 		
+		<scriptItem id="basic_surface_OCL">
+		  <label>Basic Surface OCL</label>
+		  <expression>
+return kwargs["node"].type().name() == 'opencl'
+</expression>
+		  <scriptCode><![CDATA[
+import lzocl
+lzocl.basicSurfaceOcl(kwargs["node"])
+	]]>
+	</scriptCode>
+		</scriptItem>
+		
 	</subMenu>	
   </menu>
 </menuDocument>

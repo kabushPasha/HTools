@@ -106,3 +106,22 @@ def AddUserInterface(n):
     ptg.appendToFolder('User',Parms_folder)
 
     n.setParmTemplateGroup(ptg)
+
+
+def basicSurfaceOcl(n):
+    n.parm("stdswitcher1").set(1)
+    n.parm("usecode").set(1)
+    n.parm("kernelcode").set('#include <gxnoise.h>\n#include "interpolate.h" \n#include <random.h>\n#include <LZ_noises.h>\nfloat lerpConstant( constant float * in, int size, float pos);\n\nkernel void kernelName( \n                 int stride_x, \n                 int stride_y, \n                 int stride_z, \n                 int stride_offset, \n                 int res_x, \n                 int res_y, \n                 int res_z, \n                 float voxelsize_x, \n                 float voxelsize_y, \n                 float voxelsize_z, \n                 float16 xformtoworld, \n                 global float * surface \n)\n{\n    // GET idx\n    int x = get_global_id(0);\n    int y = get_global_id(1);\n    int z = get_global_id(2);\n    int idx = stride_offset + stride_x*x + stride_y*y + stride_z*z;\n    \n    // Get world position (without rotations though)  voxel_position\n    float3 vp = (float3)(x*voxelsize_x,y*voxelsize_y,z*voxelsize_z);     \n    vp += xformtoworld.hi.hi.xyz;                         \n\n    \n    \n}\n')
+    n.parm("kerneloptions").set('-I $HEXT/ocl')
+    n.parm("runover").set(1)
+    n.parm("stdswitcher_child_1").set(1)
+    n.parm("bindings1_name").set('surface')
+    n.parm("bindings1_type").set(6)
+    n.parm("bindings1_volume").set('surface')
+    n.parm("bindings1_forcealign").set(0)
+    n.parm("bindings1_resolution").set(1)
+    n.parm("bindings1_voxelsize").set(1)
+    n.parm("bindings1_xformtoworld").set(1)
+    n.parm("bindings1_writeable").set(1)
+    n.parm("bindings1_ramp2pos").set(1.0)
+    n.parm("bindings1_ramp2value").set(1.0)

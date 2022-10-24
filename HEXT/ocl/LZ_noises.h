@@ -2,7 +2,7 @@
 float3 Noise3(float3 p,float amp,float4 freq,float rough,int oct,float4 offset)
 {
     // Usage:
-    // float3 n0 = Noise3(vp,n0_amp,n0_freq,n0_rough,n0_oct,n0_off);
+    // float3 n1 = Noise3(vp,n1_amp,n1_freq*n1_freqmult,n1_rough,n1_octaves,n1_offset);
     float4 pos = ((float4)(p,0) + offset) * freq;
     float3 noise = 0;    
     for (int i = 0; i < oct; i++, pos *= 2.0f, amp *= rough) 
