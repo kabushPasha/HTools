@@ -25,6 +25,9 @@
         },
         "Simple FLIP": {
             "load_node": "Simple FLIP"
+        },
+        "Vellum_Rigids": {
+            "load_node": "Vellum_Rigids"
         }
     },
     "Shaders": {
