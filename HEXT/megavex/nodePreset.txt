@@ -54,6 +54,9 @@
         "PropogationSolver_v1": {
             "load_node": "PropogationSolver_v1"
         },
+        "Smoke_LZDisturb_RotateVectors": {
+            "load_node": "Smoke_LZDisturb_RotateVectors"
+        },
         "Surface_dissolve": {
             "load_node": "Surface_dissolve"
         }

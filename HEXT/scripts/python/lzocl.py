@@ -2,11 +2,39 @@ import hou
 
 ocl_types = { "vector":2, "float":1, "vector4":3, "int":0, "menu":0 ,"bool":0}
 ocl_val_types = {  "vector":"v3", "float":"f", "vector4":"v4", "int":"int", "menu":"int" ,"bool":"int"}
+ocl_kernel_types = { "vector":"float3", "float":"float", "vector4":"float4", "int":"int", "menu":"int" ,"bool":"int"}
 
+# Split OCL Kernel code
+def split_ocl_code(code,kernel_name):
+    kernel_split = f"kernel void {kernel_name}("
+    [before_kernel,code] = code.split(kernel_split)
+    [parms,code] =  code.split(")",1)
+    [kernel_function,after_kernel_function] = code.split("}",1)
+    return [before_kernel,kernel_split,parms,kernel_function,after_kernel_function]
+
+def join_ocl_code(blocks):
+    return blocks[0] + blocks[1] + blocks[2] + ")" + blocks[3] + "}" + blocks[4]
+
+def get_ocl_node_code(n):
+    kernel_name = n.parm("kernelname").eval()
+    code = n.parm("kernelcode").eval()    
+    code = split_ocl_code(code,kernel_name)
+    return code
+    
+# Add OCL Parameter Based on Type
+def add_ocl_kernel_parm(n,type,name):
+    code = get_ocl_node_code(n)
+    code[2] = code[2][0:-1]
+    new_parm = f"{ocl_kernel_types[type]} {name}"
+    code[2] += f",\n\t\t {new_parm}\n"
+    
+    code = join_ocl_code(code)
+    n.parm("kernelcode").set(code)
+    
+# Basic User panel code
 def process_OclLinesParm(parm):    
     parms_string = parm.eval()[0]
     process_OCL_Lines(parms_string.splitlines(),parm.node())
-
 
 def get_OCL_bindings(n):
     parms = []
@@ -25,8 +53,8 @@ def add_OCL_parm(n,type,name,user_parm):
     
     value_string = f"bindings{i}_{ocl_val_types[type]}val"
     (n.parm(value_string) or n.parmTuple(value_string)).set(user_parm)
-
-   
+    add_ocl_kernel_parm(n,type,name)
+    
 def create_OCL_user_parm(n,name,type,val,noise_name=""):
     parm = n.parm(name) or n.parmTuple(name)
     if parm is None:
@@ -65,21 +93,34 @@ def process_OCL_Lines(lines, n , noise_name=""):
         val = val.split(",")
         if type != "menu": val = [float(x) for x in val]        # Convert to floats
       
-        if type == "noise":
-            add_OCL_Noise(n,name)
+        if type in ["noise","vnoise"]:
+            add_OCL_Noise(n,name,type)
+            
         else:
             # create parm
             user_parm = create_OCL_user_parm(n,name,type,val,noise_name)
             if not name in bindings:
                 add_OCL_parm(n,type,name,user_parm)    
 
-def add_OCL_Noise(n,noise_name):    
-    noise_dict = """float amp 1
+# Basic Noise
+def add_OCL_Noise(n,noise_name,type):  
+    if type == "noise":
+        noise_dict = """float amp 1
+                float freq 1
+                vector4 freqmult 1
+                vector4 offset 0
+                float rough 0.5
+                int octaves 9"""  
+    if type == "vnoise":
+        noise_dict = """bool invert 0
+            float iso 0
+            float cut 2
+            float amp 1
             float freq 1
-            vector4 freqmult 1
-            vector4 offset 0
-            float rough 0.5
-            int octaves 9"""    
+            vector freqmult 1
+            vector offset 0
+            int seed 0
+            menu shape f1,f1-f2,seed"""    
     
     # CreateNoiseFolder
     ptg = n.parmTemplateGroup()
@@ -87,9 +128,27 @@ def add_OCL_Noise(n,noise_name):
     ptg.appendToFolder(ptg.find("Parameters"),noise_folder)
     n.setParmTemplateGroup(ptg)
     # Add Parms
-    process_OCL_Lines(noise_dict.splitlines(),n ,noise_name)       
-
-
+    process_OCL_Lines(noise_dict.splitlines(),n ,noise_name)  
+    
+    # Add Function Line
+    name = noise_name
+    if type == "noise":
+        func_str = f"\n    float3 {name} = Noise3(vp,{name}_amp,{name}_freq*{name}_freqmult,{name}_rough,{name}_octaves,{name}_offset);\n"
+    if type == "vnoise":
+        func_str = f"\n    float {name} ={name}_amp * min((1 - 2*{name}_invert) * ({name}_iso + LZ_Voronoi_all((vp+{name}_offset)*{name}_freq*{name}_freqmult,{name}_seed,{name}_shape)),{name}_cut);\n"
+        func_str += f"    float {name}_outseed = LZ_Voronoi_all((vp+{name}_offset)*{name}_freq*{name}_freqmult,{name}_seed,2);\n"
+    add_OCL_codeline_safe(n,func_str)
+    
+# Add OCL NOISE function
+def add_OCL_codeline(n,codeline):
+    code = get_ocl_node_code(n)  
+    code[3] += codeline    
+    code = join_ocl_code(code)
+    n.parm("kernelcode").set(code)
+    
+def add_OCL_codeline_safe(n,codeline):
+    if not codeline in n.parm("kernelcode").eval():
+        add_OCL_codeline(n,codeline)
 
 def AddUserInterface(n):
     ptg = n.parmTemplateGroup()    
@@ -97,7 +156,7 @@ def AddUserInterface(n):
     first_folder = ptg.entryAtIndices([0])
     ptg.insertBefore(first_folder,folder)
 
-    hou_parm_template = hou.StringParmTemplate("parms", "Parms", 1, default_value=(["//vector offset 1,2,3\n//float scale 5\n//bool invert 1\n//menu shape sphere,plane,caves\n//noise noise1 1\n//noise noise2 1\n\n  "]), naming_scheme=hou.parmNamingScheme.Base1, string_type=hou.stringParmType.Regular, menu_items=([]), menu_labels=([]), icon_names=([]), item_generator_script="", item_generator_script_language=hou.scriptLanguage.Python, menu_type=hou.menuType.Normal)
+    hou_parm_template = hou.StringParmTemplate("parms", "Parms", 1, default_value=(["//vector offset 1,2,3\n//float iso 0\n//bool invert 1\n//menu shape sphere,plane,caves\n//noise n0 1\n//noise n1 1\n//vnoise vn0 1\n\n  "]), naming_scheme=hou.parmNamingScheme.Base1, string_type=hou.stringParmType.Regular, menu_items=([]), menu_labels=([]), icon_names=([]), item_generator_script="", item_generator_script_language=hou.scriptLanguage.Python, menu_type=hou.menuType.Normal)
     hou_parm_template.setScriptCallbackLanguage(hou.scriptLanguage.Python)
     hou_parm_template.setTags({"editor": "1", "editorlang": "vex", "editorlines": "5-20", "script_action": "import lzocl\nlzocl.process_OclLinesParm( kwargs['parmtuple'] )\n", "script_callback_language": "python"})
     ptg.appendToFolder('User',hou_parm_template)
@@ -125,3 +184,4 @@ def basicSurfaceOcl(n):
     n.parm("bindings1_writeable").set(1)
     n.parm("bindings1_ramp2pos").set(1.0)
     n.parm("bindings1_ramp2value").set(1.0)
+    AddUserInterface(n)
