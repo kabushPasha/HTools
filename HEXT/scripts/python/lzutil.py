@@ -208,7 +208,7 @@ def setProject():
 	start_dir = hou.text.expandString("$HMEGA") + "/! Projects/"
 	answer = hou.ui.selectFile(start_directory=start_dir,file_type=hou.fileType.Directory)
 
-	if answer is not '':
+	if answer != '':
 		# Make dirs
 		os.makedirs(answer)
 		os.makedirs(answer + "/Hip")
@@ -693,7 +693,7 @@ def load_nodes(filename):
 def save_selected_nodes(filename):
     filename = hou.text.expandString(filename)
     nodes = hou.selectedNodes()    
-    if filename is not "":
+    if filename != "":
         contextnode = nodes[0].parent()
         contextnode.saveChildrenToFile(nodes, [], filename)
         
@@ -705,3 +705,14 @@ def CamFocusPlane(cam):
         n.loadChildrenFromFile(filename,True)  
     sn = hou.selectedNodes()
     sn[1].setInput(0,cam)
+   
+def InsertParmTemplateBefore(n,new_parm,parm_name):
+    ptg = n.parmTemplateGroup()
+    divsize = ptg.find(parm_name)
+    ptg.insertBefore(divsize,new_parm)
+    n.setParmTemplateGroup(ptg)
+    
+def sopPyroAddDivisionsParm(n):    
+    p = hou.IntParmTemplate("usd","Divisions",1,[150],150,600)
+    InsertParmTemplateBefore(n,p,"divsize")    
+    n.parm("divsize").setExpression(f'max(max(ch("maxsizex"),ch("maxsizey")),ch("maxsizez"))/ch("usd")')

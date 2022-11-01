@@ -20,6 +20,9 @@
         "Activate_NoiseMask": {
             "load_node": "Activate_NoiseMask"
         },
+        "Setup_GPU_explosion": {
+            "load_node": "Setup_GPU_explosion"
+        },
         "Simple Bullet": {
             "load_node": "Simple Bullet"
         },

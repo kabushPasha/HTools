@@ -51,6 +51,23 @@ lzocl.basicSurfaceOcl(kwargs["node"])
 	</scriptCode>
 		</scriptItem>
 		
+		
+		<scriptItem id="soppyro_add_divisions">
+		  <label>Add Divisions Parm</label>
+		  <expression>
+return kwargs["node"].type().name() == 'pyrosolver'
+</expression>
+		  <scriptCode><![CDATA[
+import lzutil
+lzutil.sopPyroAddDivisionsParm(kwargs["node"])
+	]]>
+	</scriptCode>
+		</scriptItem>		
+		
+		
+		
+		
+		
 	</subMenu>	
   </menu>
 </menuDocument>
