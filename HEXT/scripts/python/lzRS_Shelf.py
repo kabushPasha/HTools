@@ -360,50 +360,95 @@ if n.parm(\'env_map\'):
     
     if len(newnode.parm("hdr_img").menuItems()) > 0:
         newnode.parm("hdr_img").set(newnode.parm("hdr_img").menuItems()[0])
-        
-        
+      
+def AovIndexFromName(rs, aov_name):
+    for i in range(0,rs.parm("RS_aov").eval()):
+        if rs.parm(f"RS_aovSuffix_{i+1}").eval() == aov_name:
+            return i+1
+    return 0
+    
+def toggleAovs(rs, aovs , on):
+    for aov in aovs: rs.parm("RS_aovEnable_" + str(AovIndexFromName(rs,aov))).set(on)
+
 def AddBasicAovs(rs):
-    # AOV's
-    rs.parm("RS_aov").set(17)
-    rs.parm("RS_aovAllAOVsDisabled").set(1)
+    aov_dict = [
+    ["beauty" , 39],
+    ["diffuse",18],
+    ["specular" , 8],
+    ["reflection" , 11],
+    ["refraction" , 14],
+    ["emission" , 17],
+    ["SSS" , 9],
+    ["GI" , 18],
+
+    ["diffuseFilter" , 7],
+    ["Z" , 1],
+    ["P" , 0],
+    ["N" , 24],
+    ["shadows" , 23],
+
+    ["VolumeLighting" , 27],
+    ["VolumeFogTint" , 28],
+    ["VolumeFogEmission" , 29],
+
+    ["cryptomatte" , 41],
+    ["cryptomatte_mat" , 41]
+    ]
+
     rs.parm("RS_cryptomatteFullPaths").set(1)
     rs.parm("RS_aovGUIHideOptions").set(1)
 
-    rs.parm("RS_aovID_1").set(1)
-    rs.parm("RS_aovSuffix_1").set('Z')
-    rs.parm("RS_aovID_2").set(17)
-    rs.parm("RS_aovSuffix_2").set('emission')
-    rs.parm("RS_aovID_3").set(39)
-    rs.parm("RS_aovSuffix_3").set('beauty')
-    rs.parm("RS_aovLightAllGroups_3").set(1)
-    rs.parm("RS_aovID_4").set(7)
-    rs.parm("RS_aovSuffix_4").set('diffuseFilter')
-    rs.parm("RS_aovID_5").set(0)
-    rs.parm("RS_aovSuffix_5").set('P') 
-    rs.parm("RS_aovID_6").set(18)
-    rs.parm("RS_aovSuffix_6").set('GI')
-    rs.parm("RS_aovID_7").set(23)
-    rs.parm("RS_aovSuffix_7").set('shadows')
-    rs.parm("RS_aovID_8").set(24)
-    rs.parm("RS_aovSuffix_8").set('N')
-    rs.parm("RS_aovID_9").set(9)
-    rs.parm("RS_aovSuffix_9").set('SSS') 
-    rs.parm("RS_aovID_10").set(41)
-    rs.parm("RS_aovSuffix_10").set('cryptomatte')
-    rs.parm("RS_aovID_11").set(27)
-    rs.parm("RS_aovSuffix_11").set('VolumeLighting')
-    rs.parm("RS_aovID_12").set(28)
-    rs.parm("RS_aovSuffix_12").set('VolumeFogTint')
-    rs.parm("RS_aovID_13").set(29)
-    rs.parm("RS_aovSuffix_13").set('VolumeFogEmission')
+    # add basic aovs
+    rs.parm("RS_aov").set(len(aov_dict))
+    for index,item in enumerate(aov_dict,start=1):
+        rs.parm(f"RS_aovID_{index}").set(item[1])
+        rs.parm(f"RS_aovSuffix_{index}").set(item[0])
+    
+    # beauty all lights
+    rs.parm("RS_aovLightAllGroups_" + str(AovIndexFromName(rs,"beauty"))).set(1)
+    # cryptomatte matte
+    rs.parm("RS_aovCryptomatteType_" + str(AovIndexFromName(rs,"cryptomatte_mat"))).set(1)
+    # Z depth center sample
+    rs.parm("RS_aovDeepFilter_" + str(AovIndexFromName(rs,"Z"))).set(3)
 
-    rs.parm("RS_aovID_14").set(41)
-    rs.parm("RS_aovSuffix_14").set('cryptomatte_mat')
-    rs.parm("RS_aovCryptomatteType_10").set(1)
+    addQuickAovToggles(rs)
 
-    rs.parm("RS_aovID_15").set(8)
-    rs.parm("RS_aovSuffix_15").set('specular')
-    rs.parm("RS_aovID_16").set(11)
-    rs.parm("RS_aovSuffix_16").set('reflection')
-    rs.parm("RS_aovID_17").set(14)
-    rs.parm("RS_aovSuffix_17").set('refraction')
+def addQuickAovToggles(rs):
+    toggles = [
+    ["Light_components",["diffuse","specular","reflection","refraction","SSS"]],
+    ["Volume_components",["VolumeLighting","VolumeFogTint","VolumeFogEmission"]],
+    ["Crypto_components",["cryptomatte","cryptomatte_mat"]],    
+    ["Z_comp",["Z"]],
+    ["PN_comp",["P","N"]],    
+    ["GI_comp",["GI"]],
+    ["EM_comp",["emission"]],
+    ["Shadows_comp",["shadows"]]
+    ]
+
+    ptg = rs.parmTemplateGroup()
+    insert_parm = ptg.find('RS_cryptomatteFullPaths')
+    insert_canoe =  ptg.find('RS_aovAllAOVsDisabled2')
+    join = 0 
+    for parm in reversed(toggles):
+        name = parm[0]
+        print(name)
+        label = name.split("_")[0]
+        aovs = parm[1]
+        script = f'import lzRS_Shelf;lzRS_Shelf.toggleAovs(hou.pwd(),{aovs},kwargs["script_value"]=="on")'
+        toggle = hou.ToggleParmTemplate(name,label,1,script_callback = script)
+        toggle.setScriptCallbackLanguage(hou.scriptLanguage.Python)    
+        toggle.setJoinWithNext(join)        
+        ptg.insertAfter(insert_parm , toggle)   
+        
+        # shortcut on canoe 
+        sc = hou.ToggleParmTemplate("sc_" + name,label,1) 
+        sc.setJoinWithNext(join)
+        ptg.insertAfter(insert_canoe , sc)
+        join = 1
+    
+    rs.setParmTemplateGroup(ptg)
+    
+    # link shortcuts
+    for parm in reversed(toggles):
+        rs.parm(parm[0]).set(rs.parm("sc_" + parm[0]))
+        #rs.parm("sc_" + parm[0]).set(0)
