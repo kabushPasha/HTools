@@ -7,31 +7,45 @@ def CreateCanoeRenderTab(n):
 	
 	folder = hou.FolderParmTemplate("shortcuts","CANOE")
 	
-	Render_Cam = hou.StringParmTemplate("RS_renderCamera2", "Render Camera", 1, default_value=(["/obj/RS_Cam"]),string_type=hou.stringParmType.NodeReference)
+	Render_Cam = hou.StringParmTemplate("Canoe_renderCamera", "Render Camera", 1, default_value=(["/obj/RS_Cam"]),string_type=hou.stringParmType.NodeReference)
 	Render_Cam.setTags({"autoscope": "0000000000000000", "opfilter": "!!OBJ/CAMERA!!", "oprelative": "."})
 	folder.addParmTemplate(Render_Cam)
 	
-	Output = hou.StringParmTemplate("RS_outputFileNamePrefix2", "Common File Prefix", 1, default_value=(["$JOB/Render/001_InitRender/$F4.exr"]),string_type=hou.stringParmType.FileReference, item_generator_script="opmenu -l . RS_outputFileNamePrefix", item_generator_script_language=hou.scriptLanguage.Hscript, menu_type=hou.menuType.StringReplace)
+	Output = hou.StringParmTemplate("Canoe_outputFileNamePrefix", "Common File Prefix", 1, default_value=(["$JOB/Render/001_InitRender/$F4.exr"]),string_type=hou.stringParmType.FileReference, item_generator_script="opmenu -l . RS_outputFileNamePrefix", item_generator_script_language=hou.scriptLanguage.Hscript, menu_type=hou.menuType.StringReplace)
 	folder.addParmTemplate(Output)
 	folder.addParmTemplate(hou.SeparatorParmTemplate("sep1"))
 	
-	arhive_toggle = hou.ToggleParmTemplate("RS_archive_enable2", "Export .rs Proxy File", default_value=False, default_expression='off', default_expression_language=hou.scriptLanguage.Hscript)
+	arhive_toggle = hou.ToggleParmTemplate("Canoe_archive_enable", "Export .rs Proxy File", default_value=False)
 	folder.addParmTemplate(arhive_toggle)
 	
-	archive = hou.StringParmTemplate("RS_archive_file2", "Filename", 1, default_value=(["$HIP/filename.$F4.rs"]), naming_scheme=hou.parmNamingScheme.Base1, string_type=hou.stringParmType.FileReference, item_generator_script="opmenu -l . RS_archive_file", item_generator_script_language=hou.scriptLanguage.Hscript, menu_type=hou.menuType.StringReplace)
+	archive = hou.StringParmTemplate(
+		"Canoe_archive_file", 
+		"Filename", 
+		1,
+		default_value=([""]), 
+		default_expression_language=([hou.scriptLanguage.Python]), 
+		naming_scheme=hou.parmNamingScheme.Base1, 
+		string_type=hou.stringParmType.FileReference, 
+		item_generator_script="opmenu -l . RS_archive_file", 
+		menu_items=([]), menu_labels=([]), icon_names=([]),
+		menu_type=hou.menuType.StringReplace,
+		item_generator_script_language=hou.scriptLanguage.Hscript)
+	archive.setDefaultExpression(["hou.pwd().parm('Canoe_outputFileNamePrefix').unexpandedString().rsplit('.',1)[0] + '.rs'"])
 	folder.addParmTemplate(archive)
+	
+
 	folder.addParmTemplate(hou.SeparatorParmTemplate("sep2"))
 	
-	Motion_toggle = hou.ToggleParmTemplate("MotionBlurEnabled2", "Enable Motion Blur", default_value=False, default_expression='off', default_expression_language=hou.scriptLanguage.Hscript)
+	Motion_toggle = hou.ToggleParmTemplate("Canoe_MotionBlurEnabled", "Enable Motion Blur", default_value=False, default_expression='off', default_expression_language=hou.scriptLanguage.Hscript)
 	folder.addParmTemplate(Motion_toggle)
 	
-	Fog_toggle = hou.ToggleParmTemplate("VolLightingEnabled2", "Enable Global Fog", default_value=False, default_expression='off', default_expression_language=hou.scriptLanguage.Hscript)
+	Fog_toggle = hou.ToggleParmTemplate("Canoe_VolLightingEnabled", "Enable Global Fog", default_value=False, default_expression='off', default_expression_language=hou.scriptLanguage.Hscript)
 	folder.addParmTemplate(Fog_toggle)
 	
-	AOV_toggle = hou.ToggleParmTemplate("RS_aovAllAOVsDisabled2", "Disable All AOVs", default_value=True, default_expression='on', default_expression_language=hou.scriptLanguage.Hscript)
+	AOV_toggle = hou.ToggleParmTemplate("Canoe_aovAllAOVsDisabled", "Disable All AOVs", default_value=True, default_expression='on', default_expression_language=hou.scriptLanguage.Hscript)
 	folder.addParmTemplate(AOV_toggle)
 	
-	Tesselation_Toggle = hou.ToggleParmTemplate("TessellationDisplacementEnable2", "Enable Tessellation And Displacement", default_value=True, default_expression='on', default_expression_language=hou.scriptLanguage.Hscript)
+	Tesselation_Toggle = hou.ToggleParmTemplate("Canoe_TessellationDisplacementEnable", "Enable Tessellation And Displacement", default_value=True, default_expression='on', default_expression_language=hou.scriptLanguage.Hscript)
 	folder.addParmTemplate(Tesselation_Toggle)
 	
 	folder.addParmTemplate(hou.SeparatorParmTemplate("sep3"))
@@ -66,7 +80,7 @@ def CreateCanoeRenderTab(n):
 	"TessellationDisplacementEnable"]
 	
 	for parm in parms:
-		n.parm(parm).set(n.parm(parm + "2"))
+		n.parm(parm).set(n.parm("Canoe_" + parm.replace("RS_","")))
 
 
 def LZ_RS_Setup():
@@ -427,11 +441,10 @@ def addQuickAovToggles(rs):
 
     ptg = rs.parmTemplateGroup()
     insert_parm = ptg.find('RS_cryptomatteFullPaths')
-    insert_canoe =  ptg.find('RS_aovAllAOVsDisabled2')
+    insert_canoe =  ptg.find('Canoe_aovAllAOVsDisabled')
     join = 0 
     for parm in reversed(toggles):
         name = parm[0]
-        print(name)
         label = name.split("_")[0]
         aovs = parm[1]
         script = f'import lzRS_Shelf;lzRS_Shelf.toggleAovs(hou.pwd(),{aovs},kwargs["script_value"]=="on")'
