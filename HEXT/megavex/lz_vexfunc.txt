@@ -220,6 +220,9 @@
         },
         "quaternion": {
             "code": "p@orient = quaternion(t);"
+        },
+        "rotate orient around y": {
+            "addcode": "\np@orient = qmultiply(p@orient,quaternion(chf(\"angle\")*3.1415926535897932384*2,{0,1,0}));"
         }
     },
     "Samplers": {

@@ -20,6 +20,9 @@
         "Activate_NoiseMask": {
             "load_node": "Activate_NoiseMask"
         },
+        "Crowd_Along_Line": {
+            "load_node": "Crowd_Along_Line"
+        },
         "Setup_GPU_explosion": {
             "load_node": "Setup_GPU_explosion"
         },
@@ -51,11 +54,17 @@
         "FastestSmoke": {
             "load_node": "FastestSmoke"
         },
+        "FastestSmoke_Flames": {
+            "load_node": "FastestSmoke_Flames"
+        },
         "Pbd_Cloth_Tear": {
             "load_node": "Pbd_Cloth_Tear"
         },
         "PropogationSolver_v1": {
             "load_node": "PropogationSolver_v1"
+        },
+        "Pyro_Instanceing_explosions": {
+            "load_node": "Pyro_Instanceing_explosions"
         },
         "Smoke_LZDisturb_RotateVectors": {
             "load_node": "Smoke_LZDisturb_RotateVectors"

@@ -53,6 +53,12 @@
         }
     },
     "Packeds": {
+        "Packed to rest": {
+            "addcode": "setprimintrinsic (0,'transform',@ptnum,matrix3());\nv@P = 0;"
+        },
+        "Packeds to points": {
+            "addcode": "matrix3 t = primintrinsic(0,'transform',@primnum);\nint pt = addpoint(0,@P);\nvector4 orient = quaternion(t);\nvector pivot = primintrinsic(0,'pivot',@ptnum);\nvector scale = cracktransform(0, 0, 2, v@pivot,t);\nsetpointattrib(0,'orient',pt,orient);\nsetpointattrib(0,'pivot',pt,pivot);\nsetpointattrib(0,'scale',pt,scale);\nremoveprim(0,@primnum,1);"
+        },
         "Rotate Packeds": {
             "addcode": "vector axis = sample_direction_uniform(rand(@ptnum));\nvector4 orient = quaternion(chf(\"angle\"),axis);\nmatrix3 r = qconvert(orient);\n\nmatrix3 t = primintrinsic(0,'transform',@ptnum);\nt *= chf(\"scale\")*r;\nsetprimintrinsic (0,'transform',@ptnum,t);"
         },
@@ -111,6 +117,9 @@
         }
     },
     "Utility": {
+        "Check loaded packeds": {
+            "addcode": "float bounds[] = primintrinsic(0,'packedbounds',@primnum);\n\nfloat volume = bounds[1] - bounds[0];\nvolume *= bounds[3] - bounds[2];\nvolume *= bounds[5] - bounds[4];\nif(volume < chf(\"tres\"))\n{\n    //i@group_loaded = 1;\n    removepoint(0,@ptnum);    \n}\n    \n    "
+        },
         "Remove Primless Points": {
             "addcode": "if(len(pointprims(0,@ptnum))==0)\n    removepoint(0,@ptnum);"
         },
