@@ -184,7 +184,8 @@ def LZ_RS_Setup3():
 		CreateCanoeRenderTab(rs)    
 	
 	addRenderSettingsPaneTab(rs)
-	
+	AddBasicAovs(rs)
+    
 	'''
 	# Create RENDER VIEW Floating Panels (currently using 1 monitor)
 	# Check if we have parms and render view already
@@ -246,8 +247,6 @@ def BatchProxy(n,threads = 5,sleep = 5):
 			cmd += 'import time;print("SLEEPING");time.sleep('+str(sleep)+')'
 
 			subprocess.Popen([hython,file,'-c',cmd])
-
-
 			
 def addCameraParms(cam,add_comment = False):
     ptg = cam.parmTemplateGroup()
@@ -278,8 +277,6 @@ def addCameraParms(cam,add_comment = False):
     cam.parm("RS_campro_dofUseHoudiniCamera").set(0)
     cam.parm('RS_campro_dofDistance').set(cam.parm("f2t"))
     cam.parm("RS_campro_dofCoC").set(0.02)
-    
-    
     
 def AddHDRLoader(newnode):
     # Add LZ Controlls
@@ -363,3 +360,50 @@ if n.parm(\'env_map\'):
     
     if len(newnode.parm("hdr_img").menuItems()) > 0:
         newnode.parm("hdr_img").set(newnode.parm("hdr_img").menuItems()[0])
+        
+        
+def AddBasicAovs(rs):
+    # AOV's
+    rs.parm("RS_aov").set(17)
+    rs.parm("RS_aovAllAOVsDisabled").set(1)
+    rs.parm("RS_cryptomatteFullPaths").set(1)
+    rs.parm("RS_aovGUIHideOptions").set(1)
+
+    rs.parm("RS_aovID_1").set(1)
+    rs.parm("RS_aovSuffix_1").set('Z')
+    rs.parm("RS_aovID_2").set(17)
+    rs.parm("RS_aovSuffix_2").set('emission')
+    rs.parm("RS_aovID_3").set(39)
+    rs.parm("RS_aovSuffix_3").set('beauty')
+    rs.parm("RS_aovLightAllGroups_3").set(1)
+    rs.parm("RS_aovID_4").set(7)
+    rs.parm("RS_aovSuffix_4").set('diffuseFilter')
+    rs.parm("RS_aovID_5").set(0)
+    rs.parm("RS_aovSuffix_5").set('P') 
+    rs.parm("RS_aovID_6").set(18)
+    rs.parm("RS_aovSuffix_6").set('GI')
+    rs.parm("RS_aovID_7").set(23)
+    rs.parm("RS_aovSuffix_7").set('shadows')
+    rs.parm("RS_aovID_8").set(24)
+    rs.parm("RS_aovSuffix_8").set('N')
+    rs.parm("RS_aovID_9").set(9)
+    rs.parm("RS_aovSuffix_9").set('SSS') 
+    rs.parm("RS_aovID_10").set(41)
+    rs.parm("RS_aovSuffix_10").set('cryptomatte')
+    rs.parm("RS_aovID_11").set(27)
+    rs.parm("RS_aovSuffix_11").set('VolumeLighting')
+    rs.parm("RS_aovID_12").set(28)
+    rs.parm("RS_aovSuffix_12").set('VolumeFogTint')
+    rs.parm("RS_aovID_13").set(29)
+    rs.parm("RS_aovSuffix_13").set('VolumeFogEmission')
+
+    rs.parm("RS_aovID_14").set(41)
+    rs.parm("RS_aovSuffix_14").set('cryptomatte_mat')
+    rs.parm("RS_aovCryptomatteType_10").set(1)
+
+    rs.parm("RS_aovID_15").set(8)
+    rs.parm("RS_aovSuffix_15").set('specular')
+    rs.parm("RS_aovID_16").set(11)
+    rs.parm("RS_aovSuffix_16").set('reflection')
+    rs.parm("RS_aovID_17").set(14)
+    rs.parm("RS_aovSuffix_17").set('refraction')

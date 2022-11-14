@@ -27,6 +27,7 @@
     <memberTool name="look_trough_light"/>
     <memberTool name="create_aovs"/>
     <memberTool name="export_node_to_ABC"/>
+    <memberTool name="tool_1"/>
   </toolshelf>
 
   <tool name="lz_rs_viewport" label="RS Viewport IPR" icon="RS_openIPR_icon">
