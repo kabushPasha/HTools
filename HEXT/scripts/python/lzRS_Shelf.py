@@ -234,14 +234,15 @@ def addRenderSettingsPaneTab(rs):
 		tab.setCurrentNode(rs)
 	else :
 		pane = hou.ui.findPane(28)
-		curr_tab = pane.currentTab()
-		
-		tab = pane.createTab(hou.paneTabType.Parm)
-		tab.setName("rs_render_settings_tab")
-		tab.setPin(True)
-		tab.setCurrentNode(rs)
-		
-		curr_tab.setIsCurrentTab()
+		if pane:
+			curr_tab = pane.currentTab()
+			
+			tab = pane.createTab(hou.paneTabType.Parm)
+			tab.setName("rs_render_settings_tab")
+			tab.setPin(True)
+			tab.setCurrentNode(rs)
+			
+			curr_tab.setIsCurrentTab()
 
 def BatchProxy(n,threads = 5,sleep = 5):
 	if n.type().name() == 'Redshift_Proxy_Output' or n.type().name() == 'Redshift_ROP':

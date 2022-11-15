@@ -70,7 +70,7 @@
     "min": 1,
     "minpos": 13,
     "nametopoint": 1,
-    "nearpoint": 17,
+    "nearpoint": 18,
     "nearpoints": 6,
     "neighbourcount": 5,
     "neighbours": 5,
@@ -85,7 +85,7 @@
     "primintrinsic": 14,
     "primpoint": 8,
     "primpoints": 6,
-    "primuv": 34,
+    "primuv": 35,
     "qconvert": 10,
     "qrotate": 39,
     "quaternion": 11,
@@ -94,7 +94,7 @@
     "relbbox ": 18,
     "removepoint ": 17,
     "removeprim  ": 6,
-    "rotate orient around y": 5,
+    "rotate orient around y": 6,
     "sample direction uniform": 5,
     "sample_circle_edge": 1,
     "sample_direction_cone": 12,
@@ -113,5 +113,5 @@
     "volumegradient": 14,
     "volumesample": 38,
     "volumesampleV": 4,
-    "xyzdist": 42
+    "xyzdist": 44
 }
