@@ -64,6 +64,12 @@
         },
         "scale packeds": {
             "addcode": "matrix3 t = primintrinsic(0,'transform',@ptnum);\nt *= chf(\"scale\");\nsetprimintrinsic (0,'transform',@ptnum,t);"
+        },
+        "set pivot global": {
+            "addcode": "vector old_pivot = primintrinsic(0,'pivot',@ptnum);\nvector pivot = chv(\"pivot\");\n\nsetprimintrinsic (0,'pivot',@ptnum,pivot);\nmatrix3 t = matrix3(primintrinsic(0,'transform',@ptnum));\nv@P += t * (pivot - old_pivot);\n\n"
+        },
+        "zero pivot": {
+            "addcode": "vector old_pivot = primintrinsic(0,'pivot',@ptnum);\nmatrix3 t = matrix3(primintrinsic(0,'transform',@ptnum));\nv@P -= t * old_pivot;\nsetprimintrinsic (0,'pivot',@ptnum,{0,0,0});\n"
         }
     },
     "Particles": {
