@@ -193,7 +193,6 @@ def CreateCanoeRenderTab(rs):
 				folder.addParmTemplate(hou.SeparatorParmTemplate(f"Canoe_separator_{sep}"))
 				sep +=1
 			else:
-				print (parm_name)
 				pt = (rs.parm(parm_name) or rs.parmTuple(parm_name)).parmTemplate()
 				pt.setName("Canoe_" + pt.name())
 				if parm_name in CanoeShortcutNames: pt.setLabel(CanoeShortcutNames[parm_name])   
