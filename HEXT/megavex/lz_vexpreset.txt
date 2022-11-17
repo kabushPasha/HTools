@@ -100,6 +100,9 @@
         "Copy t from RSInstances to Packeds": {
             "addcode": "v@P = point(1,\"P\",@ptnum);\nvector pivot = point(1,\"pivot\",@ptnum);\nmatrix3 t = qconvert(point(1,\"orient\",@ptnum));\nfloat pscale =  point(1,\"pscale\",@ptnum);\nvector scale =  point(1,\"scale\",@ptnum);\nt *= pscale;\nscale(t,scale);\n\n\nsetprimintrinsic (0,'pivot',@ptnum,pivot);\nsetprimintrinsic (0,'transform',@primnum,t);"
         },
+        "Packed zero Transform": {
+            "addcode": "v@P = 0;\nsetprimintrinsic (0,'transform',@primnum,matrix());\n\n\n\n\n"
+        },
         "Random Rotate Packed": {
             "addcode": "\nmatrix3 t = primintrinsic(0,'transform',@primnum);\n\nvector dir = sample_direction_uniform(rand(@ptnum));\nmatrix3 rotator = qconvert(quaternion(chf(\"ang\"),dir));\n\nt *= rotator;\nsetprimintrinsic (0,'transform',@primnum,t);\n\n\n\n\n"
         },
