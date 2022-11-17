@@ -176,7 +176,7 @@ def CreateCanoeRenderTab(rs):
 			"RS_overrideRes" : [1920,1080],
 			}
 		CanoeShortcutsDefaultExpressions={
-			"RS_archive_file" : "hou.pwd().parm('Canoe_RS_outputFileNamePrefix').unexpandedString().rsplit('.',1)[0] + '.rs'"
+			"RS_archive_file" : "hou.pwd().parm('Canoe_RS_outputFileNamePrefix').eval().rsplit('.',1)[0] + '.rs'"
 			}	   
 		CanoeJoinWithNext=[
 			"RS_overrideCameraRes"		
