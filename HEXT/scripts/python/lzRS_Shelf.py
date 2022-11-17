@@ -104,6 +104,7 @@ def CreateCanoeRenderTabOld(n):
 	before = "RS_rrs2"
 	ptg.insertAfter(before,folder)
 	
+	
 	# Add AOV Toggles
 	addQuickAovToggles(ptg)	
 	
@@ -315,12 +316,13 @@ def LZ_RS_Setup3():
 		rs = __import__('roptoolutils').createRenderNode('Redshift_ROP')
 		ipr = __import__('roptoolutils').createRenderNode('Redshift_IPR')		
 
+
 		rs.setParms(canoe_rs_parms)
+		AddBasicAovs(rs)
 		rs.setParmExpressions(canoe_rs_parmExp)
 		
 		CreateCanoeRenderTab(rs)			
-		#AddBasicAovs(rs)
-	
+
 	addRenderSettingsPaneTab(rs)	
 	
 	'''
@@ -548,8 +550,6 @@ def AddBasicAovs(rs):
 	rs.parm("RS_aovCryptomatteType_" + str(AovIndexFromName(rs,"cryptomatte_mat"))).set(1)
 	# Z depth center sample
 	rs.parm("RS_aovDeepFilter_" + str(AovIndexFromName(rs,"Z"))).set(3)
-
-	addQuickAovToggles(rs)
 
 def addQuickAovToggles(rs):
 	is_node = isinstance(rs, hou.Node)
