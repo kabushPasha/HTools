@@ -65,7 +65,7 @@
     "fit": 13,
     "idtopoint": 1,
     "intersect": 9,
-    "maya strip namespaces": 22,
+    "maya strip namespaces": 23,
     "maya strip namespaces 2": 1,
     "min": 1,
     "minpos": 13,
