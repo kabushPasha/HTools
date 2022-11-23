@@ -74,7 +74,22 @@ lzutil.openInExplorer(filepath)
 	</scriptCode>
 		</scriptItem>
 
-
+<!-- Rename folder -->
+		<scriptItem id="rename folder">
+		  <label>Rename Folder</label>
+		  <expression>
+return kwargs.get('parms',None)[0].parmTemplate().type().name() == 'FolderSet'
+</expression>
+		  <scriptCode><![CDATA[
+import lzutil
+lzutil.renameFolderParm(kwargs.get('parms',None)[0])
+	]]>
+	</scriptCode>
+		</scriptItem>
+		
+		
+		
+		
 		
 	</subMenu>	
   </menu>

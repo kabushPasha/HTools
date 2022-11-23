@@ -20,7 +20,22 @@ def createTopoHelper(topobuild):
 def removeTopoHelper(topobuild):
 	n = topobuild
 	geo = n.parent().parent().node(n.name()+'_temp_vis').destroy()
-	
+
+def addCodeToPythonSnippet(n,code,code_name = "Python"):
+	code_name = code_name.replace(" ","_")
+	snippet = n.parm('code')
+	if snippet is not None:	
+		snippet.set(snippet.eval() + '\n' + code)
+	else:	
+		# if its a null create 	
+		if n.type().name() == 'null':
+			addPythonSnippet(n)
+			n.parm('code').set(code)
+		# else create output null
+		else:
+			new_null = n.createOutputNode("null",code_name)
+			addPythonSnippet(new_null)
+			new_null.parm('code').set(code)
 	
 # Snippets and noises	
 def snippetAddCodeAtStart(n,code):
@@ -716,3 +731,19 @@ def sopPyroAddDivisionsParm(n):
     p = hou.IntParmTemplate("usd","Divisions",1,[150],150,600)
     InsertParmTemplateBefore(n,p,"divsize")    
     n.parm("divsize").setExpression(f'max(max(ch("maxsizex"),ch("maxsizey")),ch("maxsizez"))/ch("usd")')
+
+def renameFolderParm(folder,new_name = ""):
+	n = folder.node()
+	ptg = n.parmTemplateGroup()
+	folder_name = folder.parmTemplate().name()
+	print(folder_name)
+	
+	folder_pt = ptg.find(folder_name)
+	result = 0
+	if new_name == "":
+		[result,new_name] = hou.ui.readInput("New Folder Name", buttons=('OK',"Cancel"), title="New Folder Name", initial_contents=folder_pt.label(),close_choice=1)
+
+	if result == 0 and new_name != "": 
+		folder_pt.setLabel(new_name)
+		ptg.replace(folder_name, folder_pt)
+		n.setParmTemplateGroup(ptg)
