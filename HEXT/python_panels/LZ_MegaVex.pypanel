@@ -158,17 +158,23 @@ class LZ_vex_interface(QtWidgets.QWidget):
                 with open(key[0], 'w') as outfile:
                     json.dump(my_json, outfile,sort_keys=True, indent=4, separators=(',', ': '))
             # SAVE Python Code
-            if n.parm("code"):
+            if n.parm("lzPython_code"):
                  # get Snippets Code and Name
                 snippet_name = n.name().replace("_"," ")
-                code = n.parm("code").evalAsString()        
+                code = [n.parm("lzPython_code").evalAsString()]
+                # get all other snippets
+                index = 1
+                while n.parm("lzPython_code" + str(index)): 
+                    code.append( n.parm("lzPython_code" + str(index)).eval() )
+                    index += 1                 
+                
                 #save Backup 
                 self.BackupJSON(key)
                                 
                 my_json = json.load(open(key[0]))       
                 my_json[key[1]][snippet_name] = {"python_code" : code}     
                 with open(key[0], 'w') as outfile:
-                    json.dump(my_json, outfile,sort_keys=True, indent=4, separators=(',', ': '))
+                    json.dump(my_json, outfile,sort_keys=True, indent=4, separators=(',', ': '))                
             
             
             # SAVE Subnet        
