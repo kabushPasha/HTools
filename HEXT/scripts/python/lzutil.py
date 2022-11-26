@@ -5,6 +5,48 @@ import socket
 import os
 import string
 import ftplib
+import lzftp
+
+import_hou_str = """
+def enableHouModule():
+	'''Set up the environment so that "import hou" works.'''
+	import sys, os
+
+	# Importing hou will load Houdini's libraries and initialize Houdini.
+	# This will cause Houdini to load any HDK extensions written in C++.
+	# These extensions need to link against Houdini's libraries,
+	# so the symbols from Houdini's libraries must be visible to other
+	# libraries that Houdini loads.  To make the symbols visible, we add the
+	# RTLD_GLOBAL dlopen flag.
+	if hasattr(sys, "setdlopenflags"):
+		old_dlopen_flags = sys.getdlopenflags()
+		sys.setdlopenflags(old_dlopen_flags | os.RTLD_GLOBAL)
+
+	# For Windows only.
+	# Add %HFS%/bin to the DLL search path so that Python can locate
+	# the hou module's Houdini library dependencies.  Note that 
+	# os.add_dll_directory() does not exist in older Python versions.
+	# Python 3.7 users are expected to add %HFS%/bin to the PATH environment
+	# variable instead prior to launching Python.
+	if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
+		os.add_dll_directory("{}/bin".format(os.environ["HFS"]))
+
+	try:
+		import hou
+	except ImportError:
+		# If the hou module could not be imported, then add 
+		# $HFS/houdini/pythonX.Ylibs to sys.path so Python can locate the
+		# hou module.
+		sys.path.append(os.environ['HHP'])
+		import hou
+	finally:
+		# Reset dlopen flags back to their original value.
+		if hasattr(sys, "setdlopenflags"):
+			sys.setdlopenflags(old_dlopen_flags)
+
+enableHouModule()
+"""
+
 
 def createTopoHelper(topobuild):
 	n = topobuild
@@ -876,59 +918,60 @@ def renameFolderParm(folder,new_name = ""):
 		ptg.replace(folder_name, folder_pt)
 		n.setParmTemplateGroup(ptg)
 
+### FTP SCRIPTS ###
 
-def ftp_login(login_str = ""):
-	# Needs Environment variable in the form of 
-	# FTP_LOGIN = username:password@ftpserver
-	login_str = login_str if login_str else hou.text.expandString("$FTP_LOGIN")
-	login = login_str.replace(":","@").split("@")
-	#ftp = ftplib.FTP("server","username","login") 
-	return ftplib.FTP(login[2],login[0],login[1]) 
+def ftp_downloadFile(local_file,ftp_file, load_in_subprocess = True):
+	login_str = hou.text.expandString("$FTP_LOGIN")
 	
+	if load_in_subprocess:
+		# Run In Subprocess:		
+		python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))
+		lz_scripts_path = os.path.dirname(os.path.abspath(lzftp.__file__))
 	
-def ftp_downloadFile(local_file,ftp_file):
-	ftp = ftp_login()
-	[ftp_dir,ftp_filename] = os.path.split(ftp_file)
-	ftp.cwd(ftp_dir)
-	if ftp_filename in ftp.nlst():
-		os.makedirs(os.path.dirname(local_file), exist_ok=True)
-		ftp.retrbinary("RETR " + ftp_filename, open(local_file, 'wb').write)
+		code = f"""
+import sys
+sys.path.append("{lz_scripts_path}")
+import lzftp
+lzftp.ftp_downloadFile("{login_str}","{local_file}","{ftp_file}")
+"""
+	
+		subprocess.Popen([python_path,"-i","-c",code])	
 	else:
-		print("File not on ftp")
-	ftp.quit()
+		lzftp.ftp_downloadFile(login_str,local_file,ftp_file)
 	
 def ftp_downloadFromCanoeServer(local_file):
 	local_file = os.path.normpath(local_file).replace(os.sep,"/")
-	ftp_file = local_file.replace("Z:/","/Fileserver/Projects/")
-	
+	ftp_file = local_file.replace("Z:/","/Fileserver/Projects/")	
 	ftp_downloadFile(local_file,ftp_file)
 	
 def lzPython_createParmsFromCode(code_parm):
-    # replaces all parms of type
-    # test_parm = "path to file" #defparm file    
-    n = code_parm.node()
-    ptg = n.parmTemplateGroup()
-    code_name = code_parm.name()
-    code_str = code_parm.unexpandedString()
-    for code_line in reversed(code_str.splitlines()):
-        if "#defparm" in code_line:                
-                parm_options = code_line.split("#defparm")[-1].strip().split()
-                parm_type = parm_options[0]
-                [parm_name,default_value] = code_line.split("#defparm")[0].split("=")
-                parm_name = parm_name.strip()
-                # If we have a file type parameter
-                if parm_type == 'file':
-                    # if parm already transformed 
-                    if 'parm("' in default_value:
-                        default_value = parm_options[1]                      
-                    else:                
-                        default_value = default_value.strip().replace('"',"")                        
-                        new_code_line = f'{parm_name} = hou.pwd().parm("{parm_name}").eval() #defparm {parm_type} {default_value}' 
-                        code_str = code_str.replace(code_line,new_code_line)
-                        
-                    if not n.parm(parm_name):    
-                        new_parm = hou.StringParmTemplate(parm_name,parm_name,1,string_type = hou.stringParmType.FileReference,default_value = [default_value])                    
-                        ptg.insertAfter(code_name,new_parm)  
+	# replaces all parms of type
+	# test_parm = "path to file" #defparm file	
+	n = code_parm.node()
+	ptg = n.parmTemplateGroup()
+	code_name = code_parm.name()
+	code_str = code_parm.unexpandedString()
+	for code_line in reversed(code_str.splitlines()):
+		if "#defparm" in code_line:				
+				parm_options = code_line.split("#defparm")[-1].strip().split()
+				parm_type = parm_options[0]
+				[parm_name,default_value] = code_line.split("#defparm")[0].split("=")
+				parm_name = parm_name.strip()
+				# If we have a file type parameter
+				if parm_type == 'file':
+					# if parm already transformed 
+					if 'parm("' in default_value:
+						default_value = parm_options[1]					  
+					else:				
+						default_value = default_value.strip().replace('"',"")						
+						new_code_line = f'{parm_name} = hou.pwd().parm("{parm_name}").eval() #defparm {parm_type} {default_value}' 
+						code_str = code_str.replace(code_line,new_code_line)
+						
+					if not n.parm(parm_name):	
+						new_parm = hou.StringParmTemplate(parm_name,parm_name,1,string_type = hou.stringParmType.FileReference,default_value = [default_value])					
+						ptg.insertAfter(code_name,new_parm)  
 
-    code_parm.set(code_str)
-    n.setParmTemplateGroup(ptg)    
+	code_parm.set(code_str)
+	n.setParmTemplateGroup(ptg)	
+	
+	
