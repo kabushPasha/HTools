@@ -4,6 +4,7 @@ import subprocess
 import socket
 import os
 import string
+import ftplib
 
 def createTopoHelper(topobuild):
 	n = topobuild
@@ -229,7 +230,6 @@ def viewNode():
 	return toolutils.sceneViewer().currentNode()
 
 def openFolderFromEnv(env):
-	import os
 	dir = os.path.abspath(hou.text.expandString(env).replace('/','\\'))
 	subprocess.Popen('explorer "' + dir  + '"')
 
@@ -648,7 +648,7 @@ def changeRampType(p):
 		ptg.replace(pt.name(),pt)
 		n.setParmTemplateGroup(ptg)
 			
-def openInExplorer(filepath):			
+def openInExplorer(filepath):		
 	if not os.path.isdir(filepath): filepath = os.path.dirname(filepath)
 	openFolderFromEnv(filepath)
 
@@ -875,3 +875,60 @@ def renameFolderParm(folder,new_name = ""):
 		folder_pt.setLabel(new_name)
 		ptg.replace(folder_name, folder_pt)
 		n.setParmTemplateGroup(ptg)
+
+
+def ftp_login(login_str = ""):
+	# Needs Environment variable in the form of 
+	# FTP_LOGIN = username:password@ftpserver
+	login_str = login_str if login_str else hou.text.expandString("$FTP_LOGIN")
+	login = login_str.replace(":","@").split("@")
+	#ftp = ftplib.FTP("server","username","login") 
+	return ftplib.FTP(login[2],login[0],login[1]) 
+	
+	
+def ftp_downloadFile(local_file,ftp_file):
+	ftp = ftp_login()
+	[ftp_dir,ftp_filename] = os.path.split(ftp_file)
+	ftp.cwd(ftp_dir)
+	if ftp_filename in ftp.nlst():
+		os.makedirs(os.path.dirname(local_file), exist_ok=True)
+		ftp.retrbinary("RETR " + ftp_filename, open(local_file, 'wb').write)
+	else:
+		print("File not on ftp")
+	ftp.quit()
+	
+def ftp_downloadFromCanoeServer(local_file):
+	local_file = os.path.normpath(local_file).replace(os.sep,"/")
+	ftp_file = local_file.replace("Z:/","/Fileserver/Projects/")
+	
+	ftp_downloadFile(local_file,ftp_file)
+	
+def lzPython_createParmsFromCode(code_parm):
+    # replaces all parms of type
+    # test_parm = "path to file" #defparm file    
+    n = code_parm.node()
+    ptg = n.parmTemplateGroup()
+    code_name = code_parm.name()
+    code_str = code_parm.unexpandedString()
+    for code_line in reversed(code_str.splitlines()):
+        if "#defparm" in code_line:                
+                parm_options = code_line.split("#defparm")[-1].strip().split()
+                parm_type = parm_options[0]
+                [parm_name,default_value] = code_line.split("#defparm")[0].split("=")
+                parm_name = parm_name.strip()
+                # If we have a file type parameter
+                if parm_type == 'file':
+                    # if parm already transformed 
+                    if 'parm("' in default_value:
+                        default_value = parm_options[1]                      
+                    else:                
+                        default_value = default_value.strip().replace('"',"")                        
+                        new_code_line = f'{parm_name} = hou.pwd().parm("{parm_name}").eval() #defparm {parm_type} {default_value}' 
+                        code_str = code_str.replace(code_line,new_code_line)
+                        
+                    if not n.parm(parm_name):    
+                        new_parm = hou.StringParmTemplate(parm_name,parm_name,1,string_type = hou.stringParmType.FileReference,default_value = [default_value])                    
+                        ptg.insertAfter(code_name,new_parm)  
+
+    code_parm.set(code_str)
+    n.setParmTemplateGroup(ptg)    

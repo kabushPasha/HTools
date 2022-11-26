@@ -87,9 +87,40 @@ lzutil.renameFolderParm(kwargs.get('parms',None)[0])
 	</scriptCode>
 		</scriptItem>
 		
+<!-- ftp Download from canoe server -->
+		<scriptItem id="ftp Donwload from Canoe">
+		  <label>ftp Download from Canoe</label>
+		  <expression>
+return kwargs.get('parms',None)[0].eval().startswith("Z:")
+</expression>
+		  <scriptCode><![CDATA[
+import lzutil
+filepath = kwargs['parms'][0].eval()
+lzutil.ftp_downloadFromCanoeServer(filepath)
+	]]>
+	</scriptCode>
+		</scriptItem>	
 		
-		
-		
+<!-- Python Parms from code -->
+		<scriptItem id="Python parms from code">
+		  <label>Python parms from code</label>
+		  <expression>
+return kwargs.get('parms',None)[0].parmTemplate().tags().get('editorlang',None) == 'python'
+</expression>
+		  <scriptCode><![CDATA[
+import lzutil
+lzutil.lzPython_createParmsFromCode(kwargs['parms'][0])
+	]]>
+	</scriptCode>
+		</scriptItem>			
+	
+
+
+
+
+
+
+	
 		
 	</subMenu>	
   </menu>

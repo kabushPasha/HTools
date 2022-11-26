@@ -62,7 +62,7 @@
     "addprim": 20,
     "autouv": 13,
     "center": 5,
-    "curveU psacle": 30,
+    "curveU psacle": 31,
     "findattribval": 9,
     "findattribvalcount": 5,
     "fit": 13,
