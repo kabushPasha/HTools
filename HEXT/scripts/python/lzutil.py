@@ -920,6 +920,23 @@ def renameFolderParm(folder,new_name = ""):
 
 ### FTP SCRIPTS ###
 
+def ftp_subprocessFiles(local_files,ftp_files,function = "ftp_downloadFile"):
+        # Generate Code
+        login_str = ftp_getLoginStr()
+        lz_scripts_path = os.path.dirname(os.path.abspath(lzftp.__file__))      
+        code = f"""
+import sys
+sys.path.append("{lz_scripts_path}")
+import lzftp
+local_files = {local_files}
+ftp_files = {ftp_files}
+for i in range(len(local_files)):
+    lzftp.{function}("{login_str}",local_files[i],ftp_files[i])
+"""        
+        # Run this code
+        python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))        
+        subprocess.Popen([python_path,"-i","-c",code]) 
+
 def ftp_subprocessFile(local_file,ftp_file,function = "ftp_downloadFile"):
 	# Generate Code
 	login_str = ftp_getLoginStr()
