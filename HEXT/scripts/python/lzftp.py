@@ -62,8 +62,7 @@ def ftp_walkAndDownload(ftp,local_dir,ftp_dir,subpath = ""):
 		[filename,filetype,size] = [item[0],item[1]["type"],item[1]["size"]]
 		if filetype == "dir":
 			print(subpath + filename)
-			subpath += filename + "/" 
-			ftp_walkAndDownload(ftp,local_dir,filename,subpath)
+			ftp_walkAndDownload(ftp,local_dir,filename,subpath + filename + "/" )
 		else:					   
 			os.makedirs(os.path.join(local_dir,subpath), exist_ok=True)
 			local_file = os.path.join(local_dir,subpath,filename)
@@ -72,12 +71,19 @@ def ftp_walkAndDownload(ftp,local_dir,ftp_dir,subpath = ""):
 	ftp.cwd(start_dir)	
 
 def ftp_downloadFolder(login_str,local_dir,ftp_dir):
+	print("Downloading Folder: ")
+	print("From: ", ftp_dir)	
+	print("To: ", local_dir)
 	local_dir = ftp_normpath(local_dir)
 	ftp_dir = ftp_normpath(ftp_dir)
 	with ftp_login(login_str) as ftp:
 		ftp_walkAndDownload(ftp,local_dir,ftp_dir)
+	print("DONE!")
 
 def ftp_uploadFolder(login_str,local_dir,ftp_dir):
+	print("Uploading Folder: ")
+	print("From: ", local_dir)	
+	print("To: ", ftp_dir)
 	local_dir = ftp_normpath(local_dir)
 	ftp_dir = ftp_normpath(ftp_dir)
 	with ftp_login(login_str) as ftp:		
@@ -89,3 +95,4 @@ def ftp_uploadFolder(login_str,local_dir,ftp_dir):
 				local_file = os.path.join( dirpath,filename)
 				print("Uploading: ",local_file)	
 				ftp.storbinary("STOR " + filename, open(local_file,'rb'))
+	print("DONE!")
