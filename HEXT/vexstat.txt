@@ -40,7 +40,7 @@
     "PropogationSolver_v1": 2,
     "RS_EnvironmentFogNoise": 4,
     "Random Proxy Version": 1,
-    "Random Rotate Packed": 14,
+    "Random Rotate Packed": 15,
     "Reference_Image": 4,
     "Remove Primless Points": 12,
     "Rotate Packeds": 1,
