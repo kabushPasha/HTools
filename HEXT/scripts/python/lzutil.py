@@ -954,29 +954,20 @@ lzftp.{function}("{login_str}","{local_file}","{ftp_file}")"""
 def ftp_getLoginStr():
 	return hou.text.expandString("$FTP_LOGIN")
 
+def ftp_callFunction(ftp_function, local_file,ftp_file, load_in_subprocess = True):
+	if load_in_subprocess:
+		ftp_subprocessFile(local_file,ftp_file,ftp_function)	
+	else:
+		getattr(lzftp,ftp_function).ftp_downloadFile(ftp_getLoginStr(),local_file,ftp_file)
+
 def ftp_downloadFile(local_file,ftp_file, load_in_subprocess = True):
-	if load_in_subprocess:
-		ftp_subprocessFile(local_file,ftp_file,"ftp_downloadFile")	
-	else:
-		lzftp.ftp_downloadFile(ftp_getLoginStr(),local_file,ftp_file)
-
+	ftp_callFunction("ftp_downloadFile",local_file,ftp_file, load_in_subprocess = True)
 def ftp_uploadFile(local_file,ftp_file, load_in_subprocess = True):
-	if load_in_subprocess:
-		ftp_subprocessFile(local_file,ftp_file,"ftp_uploadFile")	
-	else:
-		lzftp.ftp_uploadFile(ftp_getLoginStr(),local_file,ftp_file)
-
+	ftp_callFunction("ftp_uploadFile",local_file,ftp_file, load_in_subprocess = True)
 def ftp_downloadFolder(local_file,ftp_file, load_in_subprocess = True):
-	if load_in_subprocess:
-		ftp_subprocessFile(local_file,ftp_file,"ftp_downloadFolder")	
-	else:
-		lzftp.ftp_downloadFolder(ftp_getLoginStr(),local_file,ftp_file)
-
+	ftp_callFunction("ftp_downloadFolder",local_file,ftp_file, load_in_subprocess = True)
 def ftp_uploadFolder(local_file,ftp_file, load_in_subprocess = True):
-	if load_in_subprocess:
-		ftp_subprocessFile(local_file,ftp_file,"ftp_uploadFolder")	
-	else:
-		lzftp.ftp_uploadFolder(ftp_getLoginStr(),local_file,ftp_file)
+	ftp_callFunction("ftp_uploadFolder",local_file,ftp_file, load_in_subprocess = True)
 	
 def ftp_downloadFromCanoeServer(local_file,upload = False):
 	local_file = os.path.normpath(local_file).replace(os.sep,"/")
