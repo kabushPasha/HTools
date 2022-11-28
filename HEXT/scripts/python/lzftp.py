@@ -10,8 +10,15 @@ def ftp_login(login_str = ""):
 	print("Logging in to:",login[2])
 	return ftplib.FTP(login[2],login[0],login[1]) 
 
+def ftp_sameSize(ftp,local_file,ftp_filename):
+	local_size = os.path.getsize(local_file)
+	ftp_size = ftp.size(ftp_filename)
+	return local_size == ftp_size
+
+
 def ftp_canUploadFile(ftp,local_file,ftp_filename):
 	if ftp_filename in ftp.nlst():
+		'''
 		# Check timestamp
 		remote_timestamp = ftp.voidcmd(f"MDTM {ftp_filename}")[4:].strip()
 		remote_timestamp = time.mktime(time.strptime(remote_timestamp, '%Y%m%d%H%M%S'))
@@ -19,10 +26,17 @@ def ftp_canUploadFile(ftp,local_file,ftp_filename):
 		if (local_timestamp < remote_timestamp):
 			print("Newer version on FTP")
 			return False
+		'''
+		# Check filesize
+						
+		if ftp_sameSize(ftp,local_file,ftp_filename):
+			print("File of same size already on FTP")
+			return False		
 	return True
 	
 def ftp_canDownloadFile(ftp,local_file,ftp_filename):
 	if os.path.isfile(local_file):
+		'''
 		# Check timestamp
 		remote_timestamp = ftp.voidcmd(f"MDTM {ftp_filename}")[4:].strip()
 		remote_timestamp = time.mktime(time.strptime(remote_timestamp, '%Y%m%d%H%M%S'))
@@ -30,8 +44,21 @@ def ftp_canDownloadFile(ftp,local_file,ftp_filename):
 		if (local_timestamp >= remote_timestamp):
 			print("Newer version on Disk")
 			return False
+		'''
+		if ftp_sameSize(ftp,local_file,ftp_filename):
+			print("File of same size already on Disk")
+			return False		
 	return True
-	
+
+'''
+def ftp_compyTimestampFromFTP(ftp,local_file,ftp_filename):
+	# fix timestamp
+	remote_timestamp = ftp.voidcmd(f"MDTM {ftp_filename}")[4:].strip()
+	remote_timestamp = time.mktime(time.strptime(remote_timestamp, '%Y%m%d%H%M%S'))
+	# fix utc offset
+	remote_timestamp -= time.mktime(time.gmtime(remote_timestamp)) - remote_timestamp
+	os.utime(local_file, (remote_timestamp, remote_timestamp))	
+'''	
 
 def ftp_downloadFile(login_str,local_file,ftp_file):
 	ftp = ftp_login(login_str)
@@ -54,11 +81,8 @@ def ftp_downloadFile(login_str,local_file,ftp_file):
 		ftp.retrbinary("RETR " + ftp_filename, open(local_file, 'wb').write)
 		
 		# fix timestamp
-		remote_timestamp = ftp.voidcmd(f"MDTM {ftp_filename}")[4:].strip()
-		remote_timestamp = time.mktime(time.strptime(remote_timestamp, '%Y%m%d%H%M%S'))
-		# fix utc offset
-		remote_timestamp -= time.mktime(time.gmtime(remote_timestamp)) - remote_timestamp
-		os.utime(local_file, (remote_timestamp, remote_timestamp))		
+		#ftp_compyTimestampFromFTP(ftp,local_file,ftp_filename)
+	
 		print("Downloaded")
 	else:
 		print("ERROR:File not on ftp")
@@ -110,6 +134,10 @@ def ftp_walkAndDownload(ftp,local_dir,ftp_dir,subpath = ""):
 			os.makedirs(os.path.join(local_dir,subpath), exist_ok=True)
 			local_file = os.path.join(local_dir,subpath,filename)
 			print("Downloading file: ",subpath + filename, "to: ",local_file) 
+			
+			if not ftp_canDownloadFile(ftp,local_file,filename):			
+				continue
+			
 			ftp.retrbinary("RETR " + filename, open(local_file, 'wb').write)  
 	ftp.cwd(start_dir)	
 
