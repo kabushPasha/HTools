@@ -977,16 +977,14 @@ def ftp_uploadFolder(local_file,ftp_file, load_in_subprocess = True):
 		ftp_subprocessFile(local_file,ftp_file,"ftp_uploadFolder")	
 	else:
 		lzftp.ftp_uploadFolder(ftp_getLoginStr(),local_file,ftp_file)
-
 	
 def ftp_downloadFromCanoeServer(local_file,upload = False):
 	local_file = os.path.normpath(local_file).replace(os.sep,"/")
 	ftp_file = local_file.replace("Z:/","/Fileserver/Projects/")	
 	if upload:
-		ftp_uploadFileFile(local_file,ftp_file)
+		ftp_uploadFile(local_file,ftp_file)
 	else:
 		ftp_downloadFile(local_file,ftp_file)
-	
 
 def ftp_downloadFolderFromCanoeServer(local_file,upload = False):
 	local_file = os.path.normpath(os.path.dirname(local_file)).replace(os.sep,"/")
