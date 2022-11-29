@@ -73,6 +73,7 @@ def submitRS2Deadline(n, one_task_per_gpu = True):
 	p = subprocess.Popen([deadline,job_info_file,plugin_info_file],stdout=subprocess.PIPE)
 	(output, err) = p.communicate()
 	p_status = p.wait()
+	output = output.decode('ascii')
 	print(output)
 	job_id = output.split("JobID=")[-1].split("\n")[0]
 	return job_id
