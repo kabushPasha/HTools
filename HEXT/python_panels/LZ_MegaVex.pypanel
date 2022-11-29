@@ -108,6 +108,9 @@ class LZ_vex_interface(QtWidgets.QWidget):
             custom_node_name = item['load_node']
             filename ="$HEXT/megavex/nodes/" + custom_node_name + ".cpio"
             lz.lzutil.load_nodes(filename)  
+        # load python code
+        if 'python_code' in item:
+            lzutil.addCodeToPythonSnippet(n,item['python_code'],action)        
         
             
         hext = hou.text.expandString('$HEXT')
@@ -151,9 +154,29 @@ class LZ_vex_interface(QtWidgets.QWidget):
                 self.BackupJSON(key)
                                 
                 my_json = json.load(open(key[0]))       
-                my_json[key[1]][snippet_name] = {"addcode" : code}     
+                my_json[key[1]][snippet_name] = {"python_code" : code}     
                 with open(key[0], 'w') as outfile:
                     json.dump(my_json, outfile,sort_keys=True, indent=4, separators=(',', ': '))
+            # SAVE Python Code
+            if n.parm("lzPython_code"):
+                 # get Snippets Code and Name
+                snippet_name = n.name().replace("_"," ")
+                code = [n.parm("lzPython_code").evalAsString()]
+                # get all other snippets
+                index = 1
+                while n.parm("lzPython_code" + str(index)): 
+                    code.append( n.parm("lzPython_code" + str(index)).eval() )
+                    index += 1                 
+                
+                #save Backup 
+                self.BackupJSON(key)
+                                
+                my_json = json.load(open(key[0]))       
+                my_json[key[1]][snippet_name] = {"python_code" : code}     
+                with open(key[0], 'w') as outfile:
+                    json.dump(my_json, outfile,sort_keys=True, indent=4, separators=(',', ': '))                
+            
+            
             # SAVE Subnet        
             if n.type().name() == 'subnet' or n.type().name() == 'geo':                
                 #save selected subnet to disk

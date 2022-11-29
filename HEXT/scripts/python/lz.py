@@ -15,9 +15,13 @@ reload(lzModelling)
 import lzocl
 reload(lzocl)
 
+import lzftp
+reload(lzftp)
+
 def update():
-    reload(lzutil)
-    reload(lzDeadline)
-    reload(lzRS_Shelf)
-    reload(lzModelling)
-    reload(lzocl)
+	reload(lzutil)
+	reload(lzDeadline)
+	reload(lzRS_Shelf)
+	reload(lzModelling)
+	reload(lzocl)
+	reload(lzftp)

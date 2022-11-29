@@ -3,6 +3,50 @@ import toolutils
 import subprocess
 import socket
 import os
+import string
+import ftplib
+import lzftp
+
+import_hou_str = """
+def enableHouModule():
+	'''Set up the environment so that "import hou" works.'''
+	import sys, os
+
+	# Importing hou will load Houdini's libraries and initialize Houdini.
+	# This will cause Houdini to load any HDK extensions written in C++.
+	# These extensions need to link against Houdini's libraries,
+	# so the symbols from Houdini's libraries must be visible to other
+	# libraries that Houdini loads.  To make the symbols visible, we add the
+	# RTLD_GLOBAL dlopen flag.
+	if hasattr(sys, "setdlopenflags"):
+		old_dlopen_flags = sys.getdlopenflags()
+		sys.setdlopenflags(old_dlopen_flags | os.RTLD_GLOBAL)
+
+	# For Windows only.
+	# Add %HFS%/bin to the DLL search path so that Python can locate
+	# the hou module's Houdini library dependencies.  Note that 
+	# os.add_dll_directory() does not exist in older Python versions.
+	# Python 3.7 users are expected to add %HFS%/bin to the PATH environment
+	# variable instead prior to launching Python.
+	if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
+		os.add_dll_directory("{}/bin".format(os.environ["HFS"]))
+
+	try:
+		import hou
+	except ImportError:
+		# If the hou module could not be imported, then add 
+		# $HFS/houdini/pythonX.Ylibs to sys.path so Python can locate the
+		# hou module.
+		sys.path.append(os.environ['HHP'])
+		import hou
+	finally:
+		# Reset dlopen flags back to their original value.
+		if hasattr(sys, "setdlopenflags"):
+			sys.setdlopenflags(old_dlopen_flags)
+
+enableHouModule()
+"""
+
 
 def createTopoHelper(topobuild):
 	n = topobuild
@@ -20,6 +64,36 @@ def createTopoHelper(topobuild):
 def removeTopoHelper(topobuild):
 	n = topobuild
 	geo = n.parent().parent().node(n.name()+'_temp_vis').destroy()
+
+def addCodeToPythonSnippet(n,code,code_name = "Python"):
+	'''
+	code_name = code_name.replace(" ","_")
+	snippet = n.parm('code')
+	if snippet is not None:	
+		snippet.set(snippet.eval() + '\n' + code)
+	else:	
+		# if its a null create 	
+		if n.type().name() == 'null':
+			addPythonSnippet(n)
+			n.parm('code').set(code)
+		# else create output null
+		else:
+			new_null = n.createOutputNode("null",code_name)
+			addPythonSnippet(new_null)
+			new_null.parm('code').set(code)
+	'''
+	code_name = code_name.replace(" ","_")
+	if n.type().name() != 'null':
+		n = n.createOutputNode("null",code_name)
+		
+	for code_snippet in code:
+		index = addPythonSnippet(n)
+		index_str = str(index) if index > 0 else ""
+		n.parm("lzPython_code" + index_str).set(code_snippet)
+		RenamePythonSnippetFromFirstLine(n,index)
+
+
+
 	
 	
 # Snippets and noises	
@@ -35,19 +109,19 @@ def snippetAddCode(n,code):
 
 		
 def createNoiseFolderParmTemplate(id):
-    a_parm = hou.FloatParmTemplate('a'+id,'a'+id,1,default_value = (1,))
-    f_parm = hou.FloatParmTemplate('f'+id,'f'+id,1,default_value = (1,))   
-    t_parm = hou.IntParmTemplate('t'+id,'t'+id,1,default_value = (3,))   
-    r_parm = hou.FloatParmTemplate('r'+id,'r'+id,1,default_value = (0.5,))   
-    noise_folder = hou.FolderParmTemplate('noise'+id,'Noise'+id,parm_templates = (a_parm,f_parm),folder_type = hou.folderType.Simple)
-    return noise_folder
+	a_parm = hou.FloatParmTemplate('a'+id,'a'+id,1,default_value = (1,))
+	f_parm = hou.FloatParmTemplate('f'+id,'f'+id,1,default_value = (1,))   
+	t_parm = hou.IntParmTemplate('t'+id,'t'+id,1,default_value = (3,))   
+	r_parm = hou.FloatParmTemplate('r'+id,'r'+id,1,default_value = (0.5,))   
+	noise_folder = hou.FolderParmTemplate('noise'+id,'Noise'+id,parm_templates = (a_parm,f_parm),folder_type = hou.folderType.Simple)
+	return noise_folder
 
 # checks if node is a snippet and if it has a folder with noises, adds a noise and creates spare amp and freq
 def addNoiseScriptAndParmsToSnippet(n,dim = 'float',fun = 'pfn'):
 	if n.parm('snippet') is not None:
 	#if n.type().name() == 'attribwrangle' or n.type().name() =='volumewrangle': 
 		includeAddSafe(n,'lzn')
-		ptg = n.parmTemplateGroup()    
+		ptg = n.parmTemplateGroup()	
 		parm = ptg.findFolder('Noises')
 		if parm is None:
 			parm = hou.FolderParmTemplate('noises','Noises',folder_type = hou.folderType.Simple)
@@ -58,7 +132,7 @@ def addNoiseScriptAndParmsToSnippet(n,dim = 'float',fun = 'pfn'):
 		
 		new_code = "{n_dim} n{id} = ch('a{id}') * {n_fun}(@P * ch('f{id}'));".format(id = noise_id,n_dim = dim,n_fun=fun)
 		snippetAddCode(n,new_code)   
-		ptg.appendToFolder(parm,noise_folder)    
+		ptg.appendToFolder(parm,noise_folder)	
 		n.setParmTemplateGroup(ptg)  	
 # Curl Noise(ALL PARAMETERS)
 def createCurlNoiseFolderParmTemplate(id):
@@ -134,7 +208,7 @@ def createAaNoiseFolderParmTemplate(id):
 def addCurlNoiseToSnippet(n):
 	if n.parm('snippet') is not None:
 		includeAddSafe(n,'lzn')
-		ptg = n.parmTemplateGroup()    
+		ptg = n.parmTemplateGroup()	
 		parm = ptg.findFolder('Noises')
 		if parm is None:
 			parm = hou.FolderParmTemplate('noises','Noises',folder_type = hou.folderType.Simple)
@@ -145,7 +219,7 @@ def addCurlNoiseToSnippet(n):
 		
 		new_code = "vector4 pos{id} = set(@P,ch('o{id}'));\nvector n{id} = ch('a{id}')*curl(pos{id},ch('f{id}'),chi('t{id}'),ch('r{id}'),ch('at{id}'),chs('type{id}'),chs('sdf{id}'),chf('ef{id}'));\nv@vel = n1;".format(id = noise_id)
 		snippetAddCode(n,new_code)   
-		ptg.appendToFolder(parm,noise_folder)    
+		ptg.appendToFolder(parm,noise_folder)	
 		n.setParmTemplateGroup(ptg)		
 
 
@@ -153,7 +227,7 @@ def addCurlNoiseToSnippet(n):
 def addNoiseToSnippet(n,type,v = 1):
 	if n.parm('snippet') is not None:
 		includeAddSafe(n,'lzn')
-		ptg = n.parmTemplateGroup()    
+		ptg = n.parmTemplateGroup()	
 		parm = ptg.findFolder('Noises')
 		if parm is None:
 			parm = hou.FolderParmTemplate('noises','Noises',folder_type = hou.folderType.Simple)
@@ -183,7 +257,7 @@ def addNoiseToSnippet(n,type,v = 1):
 		
 		
 		snippetAddCode(n,new_code)   
-		ptg.appendToFolder(parm,noise_folder)    
+		ptg.appendToFolder(parm,noise_folder)	
 		n.setParmTemplateGroup(ptg)		
 		
 		
@@ -198,7 +272,6 @@ def viewNode():
 	return toolutils.sceneViewer().currentNode()
 
 def openFolderFromEnv(env):
-	import os
 	dir = os.path.abspath(hou.text.expandString(env).replace('/','\\'))
 	subprocess.Popen('explorer "' + dir  + '"')
 
@@ -226,7 +299,7 @@ def setProject():
 		
 		hou.hscript('setenv JOBNAME ='+ hipname)
 		#print answer
-		hou.hscript('setenv JOB ='+ answer)    
+		hou.hscript('setenv JOB ='+ answer)	
 		
 		hou.hipFile.save(answer + "/hip/" + hipname +".000" +".hip")  
 		
@@ -272,7 +345,7 @@ def updateSnippetFromClipboard(node):
 	if snippet is not None:
 		from PySide2.QtWidgets  import  QApplication
 		code =  QApplication.clipboard().text()
-		code =  code.replace('\t', '    ')
+		code =  code.replace('\t', '	')
 		snippet.set(code)
 
 # installs all hdas from a  lib directory in $hext/otls		
@@ -307,12 +380,12 @@ def explorer(dir):
 	subprocess.Popen('explorer "' + dir.replace('/','\\')  + '"')
 
 def FixPtgFolders(node):
-    ptg = node.parmTemplateGroup()
-    folders = ptg.entries()
-    for folder in folders:
-        folder.setFolderType(hou.folderType.Simple)
-        ptg.replace(folder.name(),folder)
-    node.setParmTemplateGroup(ptg)  
+	ptg = node.parmTemplateGroup()
+	folders = ptg.entries()
+	for folder in folders:
+		folder.setFolderType(hou.folderType.Simple)
+		ptg.replace(folder.name(),folder)
+	node.setParmTemplateGroup(ptg)  
 	
 	
 # Execute script from a shelf
@@ -385,17 +458,17 @@ def cpOrigin(construction_plane = []):
 # Fix for redshift
 # import lzutil;n = hou.pwd();lzutil.copyFloatRampToColorRamp(n.parm("cramp"),n.parm("ramp"))
 def copyFloatRampToColorRamp(r,cd):
-    ramp = r.evalAsRamp()
-    basis = ramp.basis()
-    keys = ramp.keys()
-    values = ramp.values()    
+	ramp = r.evalAsRamp()
+	basis = ramp.basis()
+	keys = ramp.keys()
+	values = ramp.values()	
    
-    cdValues = []
-    for val in values:
-        cdValues += [[val,val,val]]
-    
-    cdRamp = hou.Ramp(basis,keys,cdValues)
-    cd.set(cdRamp)
+	cdValues = []
+	for val in values:
+		cdValues += [[val,val,val]]
+	
+	cdRamp = hou.Ramp(basis,keys,cdValues)
+	cd.set(cdRamp)
 
 def preset(n,preset_name):
 	op_path = n.path()
@@ -487,25 +560,25 @@ def installMyShelves():
 		ss2.setShelves(shelves)
 
 def createFloatingPanel(panel_type,panel_name,dx,dy):
-    from PySide2.QtWidgets  import  QApplication
+	from PySide2.QtWidgets  import  QApplication
 
-    d = hou.ui.curDesktop()
-    screen = QApplication.screens()[-1]
-    geo = screen.geometry()
-    x = geo.x()
-    y = geo.y()
-    w = geo.width()
-    h = geo.height()
+	d = hou.ui.curDesktop()
+	screen = QApplication.screens()[-1]
+	geo = screen.geometry()
+	x = geo.x()
+	y = geo.y()
+	w = geo.width()
+	h = geo.height()
 
-    pos  = [int(x+dx[0]*w)              , int(h*(1 - dy[1] - dy[0])) ]
-    size = [int(w*(dx[1] - dx[0]))      , int(h*(dy[1] - dy[0]))]
+	pos  = [int(x+dx[0]*w)			  , int(h*(1 - dy[1] - dy[0])) ]
+	size = [int(w*(dx[1] - dx[0]))	  , int(h*(dy[1] - dy[0]))]
 
 
-    panel = d.createFloatingPanel(panel_type,pos,size)
-    panel.setPosition(pos)
-    panel.setName(panel_name)
-    
-    return panel
+	panel = d.createFloatingPanel(panel_type,pos,size)
+	panel.setPosition(pos)
+	panel.setName(panel_name)
+	
+	return panel
 
 def createRenderView():
 	dy = [0.05,0.65]
@@ -514,91 +587,91 @@ def createRenderView():
 	panel_name = 'RenderView'
 	return createFloatingPanel(panel_type,panel_name,dx,dy)
 
-#        _____     _____     _____                          _              
-#       |  __ \   / ____|   |  __ \                        (_)             
-#       | |__) | | (___     | |__) |  _ __    ___   __  __  _    ___   ___ 
-#       |  _  /   \___ \    |  ___/  | '__|  / _ \  \ \/ / | |  / _ \ / __|
-#       | | \ \   ____) |   | |      | |    | (_) |  >  <  | | |  __/ \__ \
-#       |_|  \_\ |_____/    |_|      |_|     \___/  /_/\_\ |_|  \___| |___/
-#                                                                          
+#		_____	 _____	 _____						  _			  
+#	   |  __ \   / ____|   |  __ \						(_)			 
+#	   | |__) | | (___	 | |__) |  _ __	___   __  __  _	___   ___ 
+#	   |  _  /   \___ \	|  ___/  | '__|  / _ \  \ \/ / | |  / _ \ / __|
+#	   | | \ \   ____) |   | |	  | |	| (_) |  >  <  | | |  __/ \__ \
+#	   |_|  \_\ |_____/	|_|	  |_|	 \___/  /_/\_\ |_|  \___| |___/
+#																		  
 
 def addParm(n,parm):
-    ptg = n.parmTemplateGroup()
-    ptg.addParmTemplate(parm) 
-    n.setParmTemplateGroup(ptg)
+	ptg = n.parmTemplateGroup()
+	ptg.addParmTemplate(parm) 
+	n.setParmTemplateGroup(ptg)
 
 # Function To Load Assets and sequences
 def loadRsAssetSimple(path = "",animated = False,versions = 1):
-    # Check if file on disk
-    if not (animated or versions > 1):
-        if not os.path.isfile(path):
-            print ("File not found: \n" + path)
-            return    
-    
-    # Create Holder Node
-    obj_node = hou.node("/obj")
-    name = os.path.basename(os.path.dirname(path)) 
-    holder = obj_node.createNode("geo","RS_Proxy_" + name)    
-    holder.moveToGoodPosition()        
-    
-    fixed_path = path
-    if animated:
-        holder.parm("RS_objprop_proxy_prevAnimated").set(1)
-        fixed_path = re.sub(regex,r'\1$F4\3',path)
-    if versions > 1:
-        # create versions spare parm
-        version_parm = hou.IntParmTemplate("asset_version", "Asset Version", 1, default_value=([1]), min=1, max=int(versions),min_is_strict=True, max_is_strict=True)
-        ptg = holder.parmTemplateGroup()
-        ptg.addParmTemplate(version_parm)
-        holder.setParmTemplateGroup(ptg)
-        fixed_path = regex_replace(path,r'`padzero(4,ch("asset_version"))`')
-    
-    holder.parm("RS_objprop_proxy_enable").set(1)
-    holder.parm("RS_objprop_proxy_file").set(fixed_path)
-    holder.parm("RS_objprop_inst_ignorePivot").set(1)
-    
-    # def check Filesize (only if the file exists)
-    if os.path.isfile(path):
-        filesize  = os.path.getsize(path) * 1e-6
-        if filesize < 50 :    
-            holder.parm("RS_objprop_proxy_preview").set(2)    
-            
-    # Create Preview Geometry
-    # if we have animated geo there's no point in createing LZRSLOADPROXIES
-    if not animated:
-        load_proxy = holder.createNode("attribwrangle","load_proxy")
-        load_proxy.parm("class").set(0)
-        load_proxy.parm("snippet").set('int pt = addpoint(0,@P);\nstring instancefile = chs("file");\nsetpointattrib(0,\'instancefile\',pt,instancefile);')
-    
-        rs_file_parm = hou.StringParmTemplate("file", "File", 1, string_type=hou.stringParmType.FileReference)
-        addParm(load_proxy,rs_file_parm)
-        
-        load_proxy.parm("file").set('`chs("../RS_objprop_proxy_file")`')
-        load_proxy.setDisplayFlag(True) 
-        
-        LZ_RS_InstanceProxies = load_proxy.createOutputNode('LZ_RS_InstanceProxies')
-        LZ_RS_InstanceProxies.setDisplayFlag(1)              
-    else:
-        # load preview geometry
-        if os.path.isfile(path.replace(".rs",".bgeo.sc")):
-            file = holder.createNode('file')
-            file.parm("file").set( path.replace(".rs",".bgeo.sc"))
-            # make it packed
-            file.parm("loadtype").set(4)
-            file.parm("viewportlod").set(0)
-        else:
-            holder.createNode('redshift_proxySOP') 
-    
-    return holder
+	# Check if file on disk
+	if not (animated or versions > 1):
+		if not os.path.isfile(path):
+			print ("File not found: \n" + path)
+			return	
+	
+	# Create Holder Node
+	obj_node = hou.node("/obj")
+	name = os.path.basename(os.path.dirname(path)) 
+	holder = obj_node.createNode("geo","RS_Proxy_" + name)	
+	holder.moveToGoodPosition()		
+	
+	fixed_path = path
+	if animated:
+		holder.parm("RS_objprop_proxy_prevAnimated").set(1)
+		fixed_path = re.sub(regex,r'\1$F4\3',path)
+	if versions > 1:
+		# create versions spare parm
+		version_parm = hou.IntParmTemplate("asset_version", "Asset Version", 1, default_value=([1]), min=1, max=int(versions),min_is_strict=True, max_is_strict=True)
+		ptg = holder.parmTemplateGroup()
+		ptg.addParmTemplate(version_parm)
+		holder.setParmTemplateGroup(ptg)
+		fixed_path = regex_replace(path,r'`padzero(4,ch("asset_version"))`')
+	
+	holder.parm("RS_objprop_proxy_enable").set(1)
+	holder.parm("RS_objprop_proxy_file").set(fixed_path)
+	holder.parm("RS_objprop_inst_ignorePivot").set(1)
+	
+	# def check Filesize (only if the file exists)
+	if os.path.isfile(path):
+		filesize  = os.path.getsize(path) * 1e-6
+		if filesize < 50 :	
+			holder.parm("RS_objprop_proxy_preview").set(2)	
+			
+	# Create Preview Geometry
+	# if we have animated geo there's no point in createing LZRSLOADPROXIES
+	if not animated:
+		load_proxy = holder.createNode("attribwrangle","load_proxy")
+		load_proxy.parm("class").set(0)
+		load_proxy.parm("snippet").set('int pt = addpoint(0,@P);\nstring instancefile = chs("file");\nsetpointattrib(0,\'instancefile\',pt,instancefile);')
+	
+		rs_file_parm = hou.StringParmTemplate("file", "File", 1, string_type=hou.stringParmType.FileReference)
+		addParm(load_proxy,rs_file_parm)
+		
+		load_proxy.parm("file").set('`chs("../RS_objprop_proxy_file")`')
+		load_proxy.setDisplayFlag(True) 
+		
+		LZ_RS_InstanceProxies = load_proxy.createOutputNode('LZ_RS_InstanceProxies')
+		LZ_RS_InstanceProxies.setDisplayFlag(1)			  
+	else:
+		# load preview geometry
+		if os.path.isfile(path.replace(".rs",".bgeo.sc")):
+			file = holder.createNode('file')
+			file.parm("file").set( path.replace(".rs",".bgeo.sc"))
+			# make it packed
+			file.parm("loadtype").set(4)
+			file.parm("viewportlod").set(0)
+		else:
+			holder.createNode('redshift_proxySOP') 
+	
+	return holder
 
 #----------------------------------
 
 def getCurrentContextNode():
-    current_node = toolutils.networkEditor().currentNode()
-    if current_node.type().name() == 'geo':
-        return current_node
-    else:
-        return current_node.parent()
+	current_node = toolutils.networkEditor().currentNode()
+	if current_node.type().name() == 'geo':
+		return current_node
+	else:
+		return current_node.parent()
 
 		
 	
@@ -617,102 +690,331 @@ def changeRampType(p):
 		ptg.replace(pt.name(),pt)
 		n.setParmTemplateGroup(ptg)
 			
-def openInExplorer(filepath):			
-    if not os.path.isdir(filepath): filepath = os.path.dirname(filepath)
-    openFolderFromEnv(filepath)
+def openInExplorer(filepath):		
+	if not os.path.isdir(filepath): filepath = os.path.dirname(filepath)
+	openFolderFromEnv(filepath)
 
 
 #-----------------------------
 # LOPS / SOLARIS / USD
 def load_asset_to_LayoutAssetGallery(filepath):
-    asset_name = os.path.splitext(os.path.basename(filepath))[0]
-    thumbnail = os.path.dirname(filepath) + "/" + asset_name + ".jpg"
-    hou.qt.AssetGallery.addAsset(asset_name, filepath,thumbnail)
+	asset_name = os.path.splitext(os.path.basename(filepath))[0]
+	thumbnail = os.path.dirname(filepath) + "/" + asset_name + ".jpg"
+	hou.qt.AssetGallery.addAsset(asset_name, filepath,thumbnail)
 
 def splitpath(filepath):
-    dir = os.path.dirname(filepath)
-    [f,ext] = os.path.splitext(os.path.basename(filepath))
-    return [dir,f,ext]
+	dir = os.path.dirname(filepath)
+	[f,ext] = os.path.splitext(os.path.basename(filepath))
+	return [dir,f,ext]
 
 
-def addPythonSnippet(n):
-    ptg = n.parmTemplateGroup()
+def PythonSnippet_CreateParmTemplates( index = 0 ):
+	index = str(index) if index>0 else ""	
 
-    hou_parm_template = hou.StringParmTemplate("code", "Code", 1, default_value=([""]), string_type=hou.stringParmType.Regular, item_generator_script_language=hou.scriptLanguage.Python, menu_type=hou.menuType.Normal)
-    run_in_console_script = """import subprocess,os
+	code_name = "lzPython_code" + index
+	
+	lzPython_code = hou.StringParmTemplate(code_name, "Code", 1, default_value=([""]), string_type=hou.stringParmType.Regular, item_generator_script_language=hou.scriptLanguage.Python, menu_type=hou.menuType.Normal)
+	run_in_console_script = f"""import subprocess,os
 n = kwargs['node']
 python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))
-code = "_shell=True\\n" + n.parm("code").eval()
+code = "_shell=True\\n" + n.parm("{code_name}").eval()
 subprocess.Popen([python_path,"-i","-c",code])
 """
-    
-    hou_parm_template.setTags({"editor": "1", "editorlang": "python", "editorlines": "30-50", "script_action": run_in_console_script})
-    ptg.append(hou_parm_template)
+	lzPython_code.setTags({"editor": "1", "editorlang": "python", "editorlines": "30-50", "script_action": run_in_console_script})
+  
 
-    hou_parm_template = hou.ButtonParmTemplate("run", "Run")
-    script_callback = "exec( \"_shell=False\\n\" + hou.pwd().parm(\"code\").eval())"
-    hou_parm_template.setScriptCallback(script_callback)
-    hou_parm_template.setScriptCallbackLanguage(hou.scriptLanguage.Python)
-    hou_parm_template.setTags({"script_callback": script_callback, "script_callback_language": "python"})
-    ptg.append(hou_parm_template)
+	lzPython_run = hou.ButtonParmTemplate("lzPython_run" + index, "Run")
+	script_callback = f"exec( \"_shell=False\\n\" + hou.pwd().parm(\"{code_name}\").eval())"
+	lzPython_run.setScriptCallback(script_callback)
+	lzPython_run.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+	#lzPython_run.setTags({"script_callback": script_callback, "script_callback_language": "python"})
+	
+	return [lzPython_code,lzPython_run]
 
-    n.setParmTemplateGroup(ptg)
-    
+def PythonSnippet_addFolderWithParmTemplates(ptg,index = 0):
+	# create script and run buttons
+	pts = PythonSnippet_CreateParmTemplates(index)
+	pts[1].setJoinWithNext(True)
+	
+	# create rename buttons
+	rename_button_pt = hou.ButtonParmTemplate("lzPyhton_updateName" + (str(index) if index > 0 else ""), "Update Name")
+	rename_button_pt.setHelp("updates name from first line comment")
+	rename_button_script = f"import lzutil;lzutil.RenamePythonSnippetFromFirstLine(hou.pwd(),{index})"
+	rename_button_pt.setScriptCallback(rename_button_script)
+	rename_button_pt.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+	rename_button_pt.setJoinWithNext(True)
+	pts.append(rename_button_pt)
+	
+	# create Delete Button
+	delete_button_pt = hou.ButtonParmTemplate("lzPyhton_delete" + (str(index) if index > 0 else ""), "Delete")
+	delete_button_script = f"import lzutil;lzutil.deletePythonSnippet(hou.pwd(),{index})"
+	delete_button_pt.setScriptCallback(delete_button_script)
+	delete_button_pt.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+	pts.append(delete_button_pt)
+	
+	index = str(index) if index>0 else ""	
+	folder_pt = hou.FolderParmTemplate("lzPython_folder" + index,"Python" + index,folder_type = hou.folderType.Tabs,parm_templates = pts)
+	ptg.append(folder_pt) 
+ 
+def RenamePythonSnippetFromFirstLine(n,index):
+	index = str(index) if index>0 else ""   
+	code_name = "lzPython_code" + index
+	folder_name = "lzPython_folder" + ("_" + index if index else "")
+	new_name = n.parm(code_name).eval().splitlines()[0].replace("#","").strip()
+	ptg = n.parmTemplateGroup()
+	folder_pt = ptg.find(folder_name)
+	if folder_pt:
+		folder_pt.setLabel(new_name)
+		ptg.replace(folder_name, folder_pt)
+		n.setParmTemplateGroup(ptg)
+
+def addPythonSnippet(n):
+	ptg = n.parmTemplateGroup()
+
+	# Check if we already have code
+	if n.parm("lzPython_code"):
+		# check if we have a folder
+		index = 1
+		if ptg.find("lzPython_folder"):
+			# find index to insert newfolder at	  
+			while n.parm("lzPython_code" + str(index)): index += 1 
+		else:
+			# remove old par,s
+			ptg.remove("lzPython_code")
+			ptg.remove("lzPython_run")
+			# add folder with old parms
+			PythonSnippet_addFolderWithParmTemplates(ptg)   
+		# Add A new folder
+		PythonSnippet_addFolderWithParmTemplates(ptg,index)
+	else:   
+		# add simple snippet
+		[lzPython_code,lzPython_run] = PythonSnippet_CreateParmTemplates()	
+		ptg.append(lzPython_code)
+		ptg.append(lzPython_run)	
+		index = 0
+		
+	n.setParmTemplateGroup(ptg)
+	return index
+	
+def deletePythonSnippet(n,index):
+	ptg = n.parmTemplateGroup()
+	folder_index_str = "_" + str(index) if index > 0 else ""
+	folder = ptg.find("lzPython_folder" +  folder_index_str  )
+	ptg.remove(folder)
+	
+	snippets = {}
+	index += 1
+	while ptg.find("lzPython_folder_" + str(index)): 
+		folder = ptg.find("lzPython_folder_" + str(index)) 
+		new_index_str =  str(index-1) if index-1 > 0 else ""
+		folder.setName("lzPython_folder" + new_index_str )
+		ptg.replace("lzPython_folder_" + str(index),folder)
+		snippets[index-1] = n.parm("lzPython_code" + str(index)).eval()
+		
+		for parm in folder.parmTemplates():		
+			old_name = parm.name()
+			name = parm.name().rstrip(string.digits) + new_index_str
+			parm.setName(name)
+			# replace script callbacks
+			if name.startswith("lzPython_run"):				  
+				parm.setScriptCallback( parm.scriptCallback().replace( "lzPython_code" + str(index),"lzPython_code" +new_index_str) )			
+			if  name.startswith("lzPyhton_updateName"):
+				parm.setScriptCallback(f"import lzutil;lzutil.RenamePythonSnippetFromFirstLine(hou.pwd(),{index-1})")
+			if  name.startswith("lzPyhton_delete"):
+				parm.setScriptCallback(f"import lzutil;lzutil.deletePythonSnippet(hou.pwd(),{index-1})")
+			if name.startswith("lzPython_code"):
+				tags = parm.tags()
+				tags['script_action'] = tags['script_action'].replace( "lzPython_code" + str(index),"lzPython_code" +new_index_str)
+				parm.setTags(tags)			
+			ptg.replace(old_name,parm)
+		index += 1
+		
+	n.setParmTemplateGroup(ptg)
+	
+	# update scripts
+	for key in snippets.keys():
+		str_key = str(key) if key>0 else ""
+		n.parm("lzPython_code" + str_key ).set(snippets[key])
+	
 def updateNodeToLatestDefinition(n):
-    type = n.type()
-    definition = type.definition()
-    hda = definition.libraryFilePath()
+	type = n.type()
+	definition = type.definition()
+	hda = definition.libraryFilePath()
 
-    max_v = ""
-    for d in hou.hda.definitionsInFile(hda) :     
-        v = d.nodeTypeName().split('::')
-        if len(v) > 1:
-            if (v[1] > max_v):
-                max_v = v[1]
-        
-    max_version = n.type().name().split("::")[0] +"::" +max_v 
+	max_v = ""
+	for d in hou.hda.definitionsInFile(hda) :	 
+		v = d.nodeTypeName().split('::')
+		if len(v) > 1:
+			if (v[1] > max_v):
+				max_v = v[1]
+		
+	max_version = n.type().name().split("::")[0] +"::" +max_v 
 
-    n = n.changeNodeType(max_version, keep_network_contents=False)
-    
-    
+	n = n.changeNodeType(max_version, keep_network_contents=False)
+	
+	
 #-------------------------------------------
 # NODE Saving and Loading
 def getCurrentContextNode():
-    current_node = toolutils.networkEditor().currentNode()
-    if current_node.type().name() in ['geo','obj']:
-        return current_node
-    else:
-        return current_node.parent()
-        
+	current_node = toolutils.networkEditor().currentNode()
+	if current_node.type().name() in ['geo','obj']:
+		return current_node
+	else:
+		return current_node.parent()
+		
 def load_nodes(filename):
-    filename = hou.text.expandString(filename)    
-    n = getCurrentContextNode()
-    if os.path.isfile(filename):
-        n.loadChildrenFromFile(filename)
-        
+	filename = hou.text.expandString(filename)	
+	n = getCurrentContextNode()
+	if os.path.isfile(filename):
+		n.loadChildrenFromFile(filename)	
+
+	# Move to center of screen
+	center = toolutils.networkEditor().visibleBounds().center()
+	if len(hou.selectedNodes()) == 1:
+		hou.selectedNodes()[0].setPosition(center)	
+	for nitem in hou.selectedItems():
+		if (isinstance(nitem,hou.NetworkBox)):
+			nitem.setPosition(center)
+		
 def save_selected_nodes(filename):
-    filename = hou.text.expandString(filename)
-    nodes = hou.selectedNodes()    
-    if filename != "":
-        contextnode = nodes[0].parent()
-        contextnode.saveChildrenToFile(nodes, [], filename)
-        
+	filename = hou.text.expandString(filename)
+	nodes = hou.selectedNodes()	
+	if filename != "":
+		contextnode = nodes[0].parent()
+		contextnode.saveChildrenToFile(nodes, [], filename)
+		
 def CamFocusPlane(cam):
-    filename = "$HEXT/megavex/nodes/Focus_plane.cpio"    
-    filename = hou.text.expandString(filename)    
-    n = cam.parent()
-    if os.path.isfile(filename):
-        n.loadChildrenFromFile(filename,True)  
-    sn = hou.selectedNodes()
-    sn[1].setInput(0,cam)
+	filename = "$HEXT/megavex/nodes/Focus_plane.cpio"	
+	filename = hou.text.expandString(filename)	
+	n = cam.parent()
+	if os.path.isfile(filename):
+		n.loadChildrenFromFile(filename,True)  
+	sn = hou.selectedNodes()
+	sn[1].setInput(0,cam)
    
 def InsertParmTemplateBefore(n,new_parm,parm_name):
-    ptg = n.parmTemplateGroup()
-    divsize = ptg.find(parm_name)
-    ptg.insertBefore(divsize,new_parm)
-    n.setParmTemplateGroup(ptg)
-    
-def sopPyroAddDivisionsParm(n):    
-    p = hou.IntParmTemplate("usd","Divisions",1,[150],150,600)
-    InsertParmTemplateBefore(n,p,"divsize")    
-    n.parm("divsize").setExpression(f'max(max(ch("maxsizex"),ch("maxsizey")),ch("maxsizez"))/ch("usd")')
+	ptg = n.parmTemplateGroup()
+	divsize = ptg.find(parm_name)
+	ptg.insertBefore(divsize,new_parm)
+	n.setParmTemplateGroup(ptg)
+	
+def sopPyroAddDivisionsParm(n):	
+	p = hou.IntParmTemplate("usd","Divisions",1,[150],150,600)
+	InsertParmTemplateBefore(n,p,"divsize")	
+	n.parm("divsize").setExpression(f'max(max(ch("maxsizex"),ch("maxsizey")),ch("maxsizez"))/ch("usd")')
+
+def renameFolderParm(folder,new_name = ""):
+	n = folder.node()
+	ptg = n.parmTemplateGroup()
+	folder_name = folder.parmTemplate().name()
+	
+	folder_pt = ptg.find(folder_name)
+	result = 0
+	if new_name == "":
+		[result,new_name] = hou.ui.readInput("New Folder Name", buttons=('OK',"Cancel"), title="New Folder Name", initial_contents=folder_pt.label(),close_choice=1)
+
+	if result == 0 and new_name != "": 
+		folder_pt.setLabel(new_name)
+		ptg.replace(folder_name, folder_pt)
+		n.setParmTemplateGroup(ptg)
+
+### FTP SCRIPTS ###
+
+def ftp_subprocessFiles(local_files,ftp_files,function = "ftp_downloadFile"):
+        # Generate Code
+        login_str = ftp_getLoginStr()
+        lz_scripts_path = os.path.dirname(os.path.abspath(lzftp.__file__))      
+        code = f"""
+import sys
+sys.path.append("{lz_scripts_path}")
+import lzftp
+local_files = {local_files}
+ftp_files = {ftp_files}
+for i in range(len(local_files)):
+    lzftp.{function}("{login_str}",local_files[i],ftp_files[i])
+"""        
+        # Run this code
+        python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))        
+        subprocess.Popen([python_path,"-i","-c",code]) 
+
+def ftp_subprocessFile(local_file,ftp_file,function = "ftp_downloadFile"):
+	# Generate Code
+	login_str = ftp_getLoginStr()
+	lz_scripts_path = os.path.dirname(os.path.abspath(lzftp.__file__))	
+	code = f"""
+import sys
+sys.path.append("{lz_scripts_path}")
+import lzftp
+lzftp.{function}("{login_str}","{local_file}","{ftp_file}")"""
+	
+	# Run this code
+	python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))
+	subprocess.Popen([python_path,"-i","-c",code])	
+
+def ftp_getLoginStr():
+	return hou.text.expandString("$FTP_LOGIN")
+
+def ftp_callFunction(ftp_function, local_file,ftp_file, load_in_subprocess = True):
+	if load_in_subprocess:
+		ftp_subprocessFile(local_file,ftp_file,ftp_function)	
+	else:
+		getattr(lzftp,ftp_function).ftp_downloadFile(ftp_getLoginStr(),local_file,ftp_file)
+
+def ftp_downloadFile(local_file,ftp_file, load_in_subprocess = True):
+	ftp_callFunction("ftp_downloadFile",local_file,ftp_file, load_in_subprocess = True)
+def ftp_uploadFile(local_file,ftp_file, load_in_subprocess = True):
+	ftp_callFunction("ftp_uploadFile",local_file,ftp_file, load_in_subprocess = True)
+def ftp_downloadFolder(local_file,ftp_file, load_in_subprocess = True):
+	ftp_callFunction("ftp_downloadFolder",local_file,ftp_file, load_in_subprocess = True)
+def ftp_uploadFolder(local_file,ftp_file, load_in_subprocess = True):
+	ftp_callFunction("ftp_uploadFolder",local_file,ftp_file, load_in_subprocess = True)
+	
+def ftp_downloadFromCanoeServer(local_file,upload = False):
+	local_file = os.path.normpath(local_file).replace(os.sep,"/")
+	ftp_file = local_file.replace("Z:/","/Fileserver/Projects/")	
+	if upload:
+		ftp_uploadFile(local_file,ftp_file)
+	else:
+		ftp_downloadFile(local_file,ftp_file)
+
+def ftp_downloadFolderFromCanoeServer(local_file,upload = False):
+	local_file = os.path.normpath(os.path.dirname(local_file)).replace(os.sep,"/")
+	ftp_file = local_file.replace("Z:/","/Fileserver/Projects/")	
+	if upload:
+		ftp_downloadFolder(local_file,ftp_file)
+	else:
+		ftp_uploadFolder(local_file,ftp_file)
+
+### LZ PYTHON ###
+	
+def lzPython_createParmsFromCode(code_parm):
+	# replaces all parms of type
+	# test_parm = "path to file" #defparm file	
+	n = code_parm.node()
+	ptg = n.parmTemplateGroup()
+	code_name = code_parm.name()
+	code_str = code_parm.unexpandedString()
+	for code_line in reversed(code_str.splitlines()):
+		if "#defparm" in code_line:				
+				parm_options = code_line.split("#defparm")[-1].strip().split()
+				parm_type = parm_options[0]
+				[parm_name,default_value] = code_line.split("#defparm")[0].split("=")
+				parm_name = parm_name.strip()
+				# If we have a file type parameter
+				if parm_type == 'file':
+					# if parm already transformed 
+					if 'parm("' in default_value:
+						default_value = parm_options[1]					  
+					else:				
+						default_value = default_value.strip().replace('"',"")						
+						new_code_line = f'{parm_name} = hou.pwd().parm("{parm_name}").eval() #defparm {parm_type} {default_value}' 
+						code_str = code_str.replace(code_line,new_code_line)
+						
+					if not n.parm(parm_name):	
+						new_parm = hou.StringParmTemplate(parm_name,parm_name,1,string_type = hou.stringParmType.FileReference,default_value = [default_value])					
+						ptg.insertAfter(code_name,new_parm)  
+
+	code_parm.set(code_str)
+	n.setParmTemplateGroup(ptg)	
+	
+	
