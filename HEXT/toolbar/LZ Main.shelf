@@ -777,15 +777,15 @@ print (script)
 
   <tool name="create_ref" label="Create Ref" icon="hicon:/SVGIcons.index?SOP_attribcast.svg">
     <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
+    print n.parent().type().category().name()
     if n.parent().type().category().name() == 'Object':
         p = n.parent().parent()
-        px = p.createNode('geo', n.name())
-
+        px = p.createNode('geo',"Proxy_" + n.name())
+        #px.node('file1').destroy()
         m = px.createNode('object_merge')
         m.parm('objpath1').set(m.relativePathTo(n))
-        px.moveToGoodPosition()
         
-        
+        print px
         
         
     ]]></script>
