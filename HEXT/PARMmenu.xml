@@ -73,8 +73,80 @@ lzutil.openInExplorer(filepath)
 	]]>
 	</scriptCode>
 		</scriptItem>
+		
+<!-- Python Parms from code -->
+		<scriptItem id="Python parms from code">
+		  <label>Python parms from code</label>
+		  <expression>
+return kwargs.get('parms',None)[0].parmTemplate().tags().get('editorlang',None) == 'python'
+</expression>
+		  <scriptCode><![CDATA[
+import lzutil
+lzutil.lzPython_createParmsFromCode(kwargs['parms'][0])
+	]]>
+	</scriptCode>
+		</scriptItem>			
+
+<!-- CANOE FTP Scripts -->		
+<subMenu id="lz_ftp">
+<label>FTP Canoe</label>	
+<expression>
+return kwargs.get('parms',None)[0].evalAsString().startswith("Z:")
+</expression>
+		<scriptItem id="ftp Donwload from Canoe">
+		  <label>Download File</label>
+		  <scriptCode><![CDATA[
+import lzutil
+filepath = kwargs['parms'][0].eval()
+lzutil.ftp_downloadFromCanoeServer(filepath)
+	]]>
+	</scriptCode>
+		</scriptItem>	
+
+		<scriptItem id="ftp Donwload Folder from Canoe">
+		  <label>Download Folder</label>
+		  <scriptCode><![CDATA[
+import lzutil
+filepath = kwargs['parms'][0].eval()
+lzutil.ftp_downloadFolderFromCanoeServer(filepath)
+	]]>
+	</scriptCode>
+		</scriptItem>
+
+		<scriptItem id="ftp Upload File to Canoe">
+		  <label>Upload File </label>
+		  <scriptCode><![CDATA[
+import lzutil
+filepath = kwargs['parms'][0].eval()
+lzutil.ftp_downloadFromCanoeServer(filepath,True)
+	]]>
+	</scriptCode>
+		</scriptItem>	
+
+		<scriptItem id="ftp Upload Folder to Canoe">
+		  <label>Upload Folder</label>
+		  <scriptCode><![CDATA[
+import lzutil
+filepath = kwargs['parms'][0].eval()
+lzutil.ftp_downloadFolderFromCanoeServer(filepath,True)
+	]]>
+	</scriptCode>
+		</scriptItem>
+</subMenu>
 
 
+
+
+
+
+
+
+
+
+
+
+
+	
 		
 	</subMenu>	
   </menu>
