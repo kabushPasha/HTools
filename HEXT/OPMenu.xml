@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<menuDocument>
+  <menu>
+	<subMenu id="lz_OPSubmenu">
+	<label>LZ</label>		
+		
+		<scriptItem id="CompiledBlock">
+		  <label>Compiled Block</label>
+		  <expression>
+return kwargs['node'].type().category().name() == "Sop"
+</expression>
+		  <scriptCode><![CDATA[
+import lzutil
+lzutil.compile_CreateBlock()
+print(kwargs)
+	]]>
+	</scriptCode>
+		</scriptItem>
+		
+
+		
+		
+		
+		
+		
+	</subMenu>	
+  </menu>
+</menuDocument>

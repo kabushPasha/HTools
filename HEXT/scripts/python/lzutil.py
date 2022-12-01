@@ -921,21 +921,21 @@ def renameFolderParm(folder,new_name = ""):
 ### FTP SCRIPTS ###
 
 def ftp_subprocessFiles(local_files,ftp_files,function = "ftp_downloadFile"):
-        # Generate Code
-        login_str = ftp_getLoginStr()
-        lz_scripts_path = os.path.dirname(os.path.abspath(lzftp.__file__))      
-        code = f"""
+		# Generate Code
+		login_str = ftp_getLoginStr()
+		lz_scripts_path = os.path.dirname(os.path.abspath(lzftp.__file__))	  
+		code = f"""
 import sys
 sys.path.append("{lz_scripts_path}")
 import lzftp
 local_files = {local_files}
 ftp_files = {ftp_files}
 for i in range(len(local_files)):
-    lzftp.{function}("{login_str}",local_files[i],ftp_files[i])
-"""        
-        # Run this code
-        python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))        
-        subprocess.Popen([python_path,"-i","-c",code]) 
+	lzftp.{function}("{login_str}",local_files[i],ftp_files[i])
+"""		
+		# Run this code
+		python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))		
+		subprocess.Popen([python_path,"-i","-c",code]) 
 
 def ftp_subprocessFile(local_file,ftp_file,function = "ftp_downloadFile"):
 	# Generate Code
@@ -1017,4 +1017,29 @@ def lzPython_createParmsFromCode(code_parm):
 	code_parm.set(code_str)
 	n.setParmTemplateGroup(ptg)	
 	
-	
+## LZ Compile ###
+def compile_CreateBlock():
+	for n in hou.selectedNodes():
+		if len(n.outputs()) == 0 or not( n.outputs()[0] in hou.selectedNodes()): 
+			old = n.outputs()[0] if len(n.outputs()) > 0 else None
+			name = n.name()
+			compile_end = n.createOutputNode("compile_end","compile_" + n.name())
+			compile_end.setPosition(n.position() + hou.Vector2(0.0,-1.0))
+			compile_end.setColor(hou.Color(0.75,0.75,0))
+			if old: old.setInput(0, compile_end)
+	id = 1
+	for n in hou.selectedNodes():
+		if len(n.inputs()) == 0 or not( n.inputs()[0] in hou.selectedNodes()):
+			old = n.inputs()[0] if len(n.outputs()) > 0 else None
+			compile_begin = n.createInputNode(0,"compile_begin","compile_begin")
+			compile_begin.parm("blockpath").set(n.relativePathTo(compile_end))
+			compile_begin.parm("name").set(f"IN{id}")
+			compile_begin.setColor(hou.Color(0.75,0.75,0))
+			if old: compile_begin.setInput(0, old)
+			id += 1
+			 
+	#create invoke node
+	invoke = compile_end.parent().createNode("invoke","invoke_" + name)
+	invoke.setPosition(compile_end.position() + hou.Vector2(2,0))
+	invoke.setParms({"name0":'IN1',"name1":'IN2',"name2":'IN3',"name3":'IN4'})
+	invoke.setColor(hou.Color(1.0,0.725,0))
