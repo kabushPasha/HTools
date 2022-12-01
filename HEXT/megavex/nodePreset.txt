@@ -81,6 +81,11 @@
             "load_node": "Vdb_Sdf_ForeachShatter"
         }
     },
+    "_Examples": {
+        "Packeds Example": {
+            "load_node": "Packeds Example"
+        }
+    },
     "_Helpers": {
         "Focus_plane": {
             "load_node": "Focus_plane"
