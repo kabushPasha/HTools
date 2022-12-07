@@ -605,3 +605,18 @@ def RS_RopnetPromote(rs):
     lzutil.PromoteParmsToParent(rs, promote_list)       
 
     rs.setParms({ "RS_lights_candidate" : "../RS_*", "RS_objects_candidate" : "../RS_*"  })
+	
+def createShotSubnet():
+	n = hou.node("/obj")
+
+	# Create Subnet and hide its parms
+	subnet = n.createNode("subnet", "SHOT_010")
+	subnet.parm("visibleobjects").set("")
+	subnet.moveToGoodPosition()
+	lzutil.HideAllParms(subnet)
+
+	# Create Ropnet
+	ropnet = subnet.createNode("ropnet","ropnet")
+	rs = RopnetAddRS(ropnet)
+	RS_RopnetPromote(rs)
+

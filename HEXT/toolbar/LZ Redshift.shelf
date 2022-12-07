@@ -24,6 +24,7 @@
     <memberTool name="merge_proxies"/>
     <memberTool name="unpack_proxies"/>
     <memberTool name="add_custom_aovs"/>
+    <memberTool name="take_sceenshot"/>
   </toolshelf>
 
   <tool name="rs_cam_from_view" label="Rs camera from view" icon="hicon:/SVGIcons.index?OBJ_camera.svg">
@@ -257,7 +258,11 @@ print (size_total)
             ]]></script>
   </tool>
 
-  <tool name="matte_grid" label="Matte Grid" icon="hicon:/SVGIcons.index?COP2_atop.svg">
+  <tool name="matte_grid" label="LZ RS Matte Grid" icon="hicon:/SVGIcons.index?COP2_atop.svg">
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>LZ</toolSubmenu>
     <script scriptType="python"><![CDATA[import lzutil
 
 obj = lzutil.ne_findParentObjnet()
@@ -282,7 +287,11 @@ matte.parm("RS_objprop_matte_shadowsFromM").set(0)
 ]]></script>
   </tool>
 
-  <tool name="spheres" label="Spheres" icon="hicon:/SVGIcons.index?TOOLS_select_remove.svg">
+  <tool name="spheres" label="LZ RS Spheres" icon="hicon:/SVGIcons.index?TOOLS_select_remove.svg">
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>LZ</toolSubmenu>
     <script scriptType="python"><![CDATA[import lzRS_Shelf,lzutil
 obj = lzutil.ne_findParentObjnet()
 
@@ -476,7 +485,7 @@ for n in hou.selectedNodes():
         add_custom_AOV(rs,n)]]></script>
   </tool>
 
-  <tool name="take_sceenshot" label="New Tool" icon="PLASMA_App">
+  <tool name="take_sceenshot" label="USD Take Screenshot" icon="PLASMA_App">
     <script scriptType="python"><![CDATA[import toolutils,os,lzutil
 print (kwargs)
    

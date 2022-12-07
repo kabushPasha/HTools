@@ -13,21 +13,10 @@
     <memberTool name="lz_rs_viewport"/>
     <memberTool name="Options_Panel0"/>
     <memberTool name="Add RS Prefix"/>
-    <memberTool name="batchProxy"/>
-    <memberTool name="find_all_textures"/>
     <memberTool name="matte_grid"/>
-    <memberTool name="spheres"/>
-    <memberTool name="add_reflection_sphere"/>
-    <memberTool name="submit_RS_render_Deadline"/>
-    <memberTool name="merge_proxies"/>
-    <memberTool name="unpack_proxies"/>
-    <memberTool name="add_custom_aovs"/>
-    <memberTool name="take_sceenshot"/>
     <memberTool name="viewMaskOpacity"/>
     <memberTool name="look_trough_light"/>
-    <memberTool name="create_aovs"/>
-    <memberTool name="export_node_to_ABC"/>
-    <memberTool name="tool_1"/>
+    <memberTool name="shot_subnet"/>
   </toolshelf>
 
   <tool name="lz_rs_viewport" label="RS Viewport IPR" icon="RS_openIPR_icon">
