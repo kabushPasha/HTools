@@ -314,9 +314,8 @@ def LZ_RS_Setup3():
 
 	if rs is None:
 		rs = __import__('roptoolutils').createRenderNode('Redshift_ROP')
-		ipr = __import__('roptoolutils').createRenderNode('Redshift_IPR')		
-
-
+		ipr = __import__('roptoolutils').createRenderNode('Redshift_IPR')
+		
 		rs.setParms(canoe_rs_parms)
 		AddBasicAovs(rs)
 		rs.setParmExpressions(canoe_rs_parmExp)
@@ -585,3 +584,24 @@ def link_aov_toggles_toCanoeTab(rs):
 	for parm in reversed(aov_toggles):
 		rs.parm(parm[0]).set(rs.parm("sc_" + parm[0]))
 		#rs.parm("sc_" + parm[0]).set(0)
+
+def RopnetAddRS(ropnet):
+    rs = ropnet.createNode("Redshift_ROP","Redshift")
+    # IPR
+    ipr = ropnet.createNode("Redshift_IPR","Redshift_Ipr")    
+    ipr.moveToGoodPosition()
+    ipr.parm("linked_rop").set("../Redshift")
+    
+    # RS
+    rs.setParms(canoe_rs_parms)
+    AddBasicAovs(rs)
+    rs.setParmExpressions(canoe_rs_parmExp)
+    CreateCanoeRenderTab(rs)       
+    return rs
+	
+def RS_RopnetPromote(rs):
+    # Promote RS parms to Subnet
+    promote_list =  ["shortcuts" , "renderpreview","RS_IPRVP","trange","f"]
+    lzutil.PromoteParmsToParent(rs, promote_list)       
+
+    rs.setParms({ "RS_lights_candidate" : "../RS_*", "RS_objects_candidate" : "../RS_*"  })

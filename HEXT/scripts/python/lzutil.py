@@ -85,6 +85,7 @@ def addCodeToPythonSnippet(n,code,code_name = "Python"):
 	code_name = code_name.replace(" ","_")
 	if n.type().name() != 'null':
 		n = n.createOutputNode("null",code_name)
+		HideAllParms(n)
 		
 	for code_snippet in code:
 		index = addPythonSnippet(n)
@@ -958,7 +959,7 @@ def ftp_callFunction(ftp_function, local_file,ftp_file, load_in_subprocess = Tru
 	if load_in_subprocess:
 		ftp_subprocessFile(local_file,ftp_file,ftp_function)	
 	else:
-		getattr(lzftp,ftp_function).ftp_downloadFile(ftp_getLoginStr(),local_file,ftp_file)
+		getattr(lzftp,ftp_function)(ftp_getLoginStr(),local_file,ftp_file)
 
 def ftp_downloadFile(local_file,ftp_file, load_in_subprocess = True):
 	ftp_callFunction("ftp_downloadFile",local_file,ftp_file, load_in_subprocess = True)
@@ -981,9 +982,9 @@ def ftp_downloadFolderFromCanoeServer(local_file,upload = False):
 	local_file = os.path.normpath(os.path.dirname(local_file)).replace(os.sep,"/")
 	ftp_file = local_file.replace("Z:/","/Fileserver/Projects/")	
 	if upload:
-		ftp_downloadFolder(local_file,ftp_file)
-	else:
 		ftp_uploadFolder(local_file,ftp_file)
+	else:
+		ftp_downloadFolder(local_file,ftp_file)
 
 ### LZ PYTHON ###
 	
@@ -1043,3 +1044,57 @@ def compile_CreateBlock():
 	invoke.setPosition(compile_end.position() + hou.Vector2(2,0))
 	invoke.setParms({"name0":'IN1',"name1":'IN2',"name2":'IN3',"name3":'IN4'})
 	invoke.setColor(hou.Color(1.0,0.725,0))
+
+# PARM TEMPLATES UTILS	
+def copy_conditionals(ptg,target):
+    for entry in ptg.parmTemplates():
+        if(entry.conditionals()):
+            #print( entry.conditionals())
+            target_entry = target.find(entry.name())
+            if target_entry:
+                for c in entry.conditionals():
+                    target_entry.setConditional(c , entry.conditionals()[c])
+                target.replace(entry.name(),target_entry)
+            
+        if entry.type().name() == "Folder":
+            copy_conditionals(entry,target)
+			
+def HideAllParms(n):
+    ptg = n.parmTemplateGroup()
+    for entry in ptg.entries():
+        entry.hide(True)    
+        ptg.replace( entry.name() , entry)
+        
+    n.setParmTemplateGroup(ptg)
+	
+def PromoteParmsToParent(n, promote_list = []):
+    rop = n.parent()
+    rs_ptg = n.parmTemplateGroup()
+    rop_ptg = rop.parmTemplateGroup()
+    
+    # Promote the parms
+    for entry in rs_ptg.entries():
+        if rop.parm(entry.name()) : continue
+        if promote_list and entry.name() not in promote_list : continue
+        rop_ptg.append( entry)    
+        
+    copy_conditionals(rs_ptg,rop_ptg) 
+    rop.setParmTemplateGroup(rop_ptg)
+    
+    # Copy Settings
+    for parm in n.parms():
+        rop_parm  = rop.parm(parm.name())
+        if not rop_parm: continue
+        
+        # Update Our Parm Value
+        rop_parm.deleteAllKeyframes()
+        if parm.keyframes():
+            rop_parm.setExpression(parm.expression() , parm.expressionLanguage())
+        else:
+            if parm.parmTemplate().type().name() == "String":
+                rop_parm.set(parm.unexpandedString())
+            else:
+                rop_parm.set(parm.eval())
+        
+        parm.deleteAllKeyframes()
+        parm.set(rop_parm)  

@@ -98,6 +98,10 @@ lz.lzRS_Shelf.LZ_RS_Setup3()]]></script>
   </tool>
 
   <tool name="LZ RS LightDome" label="LZ RS LightDome" icon="RS_lightDome_icon">
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>LZ</toolSubmenu>
     <script scriptType="python"><![CDATA[import hou,os
 obj = hou.node("/obj")
 newnode = obj.createNode("rslightdome")
