@@ -102,113 +102,22 @@ lz.lzRS_Shelf.LZ_RS_Setup3()]]></script>
       <contextNetType>OBJ</contextNetType>
     </toolMenuContext>
     <toolSubmenu>LZ</toolSubmenu>
-    <script scriptType="python"><![CDATA[import hou,os
-obj = hou.node("/obj")
+    <script scriptType="python"><![CDATA[import lzRS_Shelf,lzutil
+
+obj = lzutil.ne_findParentObjnet()
+
 newnode = obj.createNode("rslightdome")
 newnode.moveToGoodPosition()
-
-newnode.parm('RSL_volumeScale').set(1)
 newnode.setDisplayFlag(False)
 
-default_hdr = "$HMEGA/Assets/HDRI/panorama_map.hdr"
-if not os.path.isfile(hou.text.expandString(default_hdr)):
-    default_hdr = "X:/Assets/HDRI/panorama_map.hdr"
+# Default HDRI
 
-newnode.parm('env_map').set(default_hdr)
+
 newnode.parm('ogl_enablelight').set(0)
-#newnode.parm('background_enable').set(0)
-
-# Environment alpha replace
 newnode.parm('alphaReplaceEnable').set(1)
-# Set Name
 newnode.setName('RS_DomeLight',True)
 
-
-
-
-
-# Add LZ Controlls
-ptg = newnode.parmTemplateGroup()
-# HDR IMAGE
-hdr_img = hou.StringParmTemplate("hdr_img",
-                            "HDR_img",
-                            1,
-                            default_value=([]),
-                            string_type=hou.stringParmType.FileReference,
-                            item_generator_script="""
-import os.path
-menuItems = []
-n = kwargs[\'node\']
-folder = n.parm(\'hdr_dir\').eval()
-folder = os.path.abspath(folder)
-
-from glob import glob
-items =  glob(folder + \"/*\")
-
-for i in items:
-    path = i.split(\'\\\\\')
-    tex = path.pop()
-    if not tex.endswith('.rstexbin'):    
-        menuItems += {i}
-        menuItems += {tex}        
-return menuItems""",
-                            item_generator_script_language=hou.scriptLanguage.Python,
-                            menu_type=hou.menuType.Normal)                            
-hdr_img.setTags({"script_action": "kwargs['node'].parm(\'env_map\').set(kwargs['node'].parm(\'hdr_img\'))"})
-ptg.addParmTemplate(hdr_img)
-# HDR Folder
-default_folder = "S:/CloudStation/Assets/HDRI/Heaven/"
-if not os.path.isdir(default_folder):
-    default_folder = "X:/Assets/HDRI/Heaven/"
-if not os.path.isdir(default_folder):
-    default_folder = "S:/Temp/HDRI/Heaven/"    
-if not os.path.isdir(default_folder):
-    default_folder = "S:/Assets/HDRI/Heaven/" 
-    
-hdr_dir = hou.StringParmTemplate("hdr_dir",
-                                "HDR_dir",
-                                1,
-                                default_value=([default_folder]),
-                                string_type=hou.stringParmType.FileReference,
-                                item_generator_script_language=hou.scriptLanguage.Python,
-                                menu_type=hou.menuType.StringReplace)
-hdr_dir.setFileType(hou.fileType.Directory)
-ptg.addParmTemplate(hdr_dir)
-# Next Button
-next_btn = hou.ButtonParmTemplate("next", "Next")
-next_btn.setScriptCallback("n = hou.pwd();p = n.parm(\"hdr_img\");mi = p.menuItems();p.set(mi[mi.index(p.eval())+1])")
-next_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
-ptg.addParmTemplate(next_btn)
-# Prev Button
-prev_btn = hou.ButtonParmTemplate("prev", "Prev")
-prev_btn.setScriptCallback("n = hou.pwd();p = n.parm(\"hdr_img\");mi = p.menuItems();p.set(mi[mi.index(p.eval())-1])")
-prev_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
-ptg.addParmTemplate(prev_btn)
-# Rotate Button
-rotate_btn = hou.ButtonParmTemplate("rotate", "Rotate")
-rotate_btn.setScriptCallback("hou.pwd().parm(\'ry\').setExpression(\'360*$F/$FEND\')")
-rotate_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
-rotate_btn.setTags({"script_callback": "hou.pwd().parm(\'ry\').setExpression(\'360*$F/$FEND\')", "script_callback_language": "python"})
-ptg.addParmTemplate(rotate_btn)
-# Freeze Rotete button
-freeze_btn = hou.ButtonParmTemplate("freeze", "Freeze")
-freeze_btn.setScriptCallback("hou.pwd().parm(\'ry\').deleteAllKeyframes()")
-freeze_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
-freeze_btn.setTags({"script_callback": "hou.pwd().parm(\'ry\').deleteAllKeyframes()", "script_callback_language": "python"})
-ptg.addParmTemplate(freeze_btn)
-
-newnode.setParmTemplateGroup(ptg)
-
-if len(newnode.parm("hdr_img").menuItems()) > 0:
-    newnode.parm("hdr_img").set(newnode.parm("hdr_img").menuItems()[0])
-
-# Set Backplate
-newnode.parm("tex1").set("S:/HTools/HEXT/Assets/red.tif")
-newnode.parm("RSL_exposure2").set(1.5)
-newnode.parm("RSL_hue2").set(230)
-newnode.parm("RSL_saturation2").set(20)
-
-
+lzRS_Shelf.AddHDRLoader(newnode)
 
 
 
@@ -349,7 +258,9 @@ print (size_total)
   </tool>
 
   <tool name="matte_grid" label="Matte Grid" icon="hicon:/SVGIcons.index?COP2_atop.svg">
-    <script scriptType="python"><![CDATA[obj = hou.node("obj")
+    <script scriptType="python"><![CDATA[import lzutil
+
+obj = lzutil.ne_findParentObjnet()
 
 matte = obj.createNode("geo","RS_Matte_grid")
 grid = matte.createNode("grid")
@@ -372,7 +283,8 @@ matte.parm("RS_objprop_matte_shadowsFromM").set(0)
   </tool>
 
   <tool name="spheres" label="Spheres" icon="hicon:/SVGIcons.index?TOOLS_select_remove.svg">
-    <script scriptType="python"><![CDATA[obj = hou.node("obj")
+    <script scriptType="python"><![CDATA[import lzRS_Shelf,lzutil
+obj = lzutil.ne_findParentObjnet()
 
 holder = obj.createNode("geo","RS_Spheres")
 holder.parm("ty").set(0.6)
@@ -416,7 +328,6 @@ merge.setNextInput(mat)
 
 holder.layoutChildren()
 holder.moveToGoodPosition()
-
 
 #mat.setDisplayFlag(1)
 #mat.setRenderFlag(1)]]></script>

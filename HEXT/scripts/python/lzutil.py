@@ -1047,54 +1047,65 @@ def compile_CreateBlock():
 
 # PARM TEMPLATES UTILS	
 def copy_conditionals(ptg,target):
-    for entry in ptg.parmTemplates():
-        if(entry.conditionals()):
-            #print( entry.conditionals())
-            target_entry = target.find(entry.name())
-            if target_entry:
-                for c in entry.conditionals():
-                    target_entry.setConditional(c , entry.conditionals()[c])
-                target.replace(entry.name(),target_entry)
-            
-        if entry.type().name() == "Folder":
-            copy_conditionals(entry,target)
+	for entry in ptg.parmTemplates():
+		if(entry.conditionals()):
+			#print( entry.conditionals())
+			target_entry = target.find(entry.name())
+			if target_entry:
+				for c in entry.conditionals():
+					target_entry.setConditional(c , entry.conditionals()[c])
+				target.replace(entry.name(),target_entry)
+			
+		if entry.type().name() == "Folder":
+			copy_conditionals(entry,target)
 			
 def HideAllParms(n):
-    ptg = n.parmTemplateGroup()
-    for entry in ptg.entries():
-        entry.hide(True)    
-        ptg.replace( entry.name() , entry)
-        
-    n.setParmTemplateGroup(ptg)
+	ptg = n.parmTemplateGroup()
+	for entry in ptg.entries():
+		entry.hide(True)	
+		ptg.replace( entry.name() , entry)
+		
+	n.setParmTemplateGroup(ptg)
 	
 def PromoteParmsToParent(n, promote_list = []):
-    rop = n.parent()
-    rs_ptg = n.parmTemplateGroup()
-    rop_ptg = rop.parmTemplateGroup()
-    
-    # Promote the parms
-    for entry in rs_ptg.entries():
-        if rop.parm(entry.name()) : continue
-        if promote_list and entry.name() not in promote_list : continue
-        rop_ptg.append( entry)    
-        
-    copy_conditionals(rs_ptg,rop_ptg) 
-    rop.setParmTemplateGroup(rop_ptg)
-    
-    # Copy Settings
-    for parm in n.parms():
-        rop_parm  = rop.parm(parm.name())
-        if not rop_parm: continue
-        
-        # Update Our Parm Value
-        rop_parm.deleteAllKeyframes()
-        if parm.keyframes():
-            rop_parm.setExpression(parm.expression() , parm.expressionLanguage())
-        else:
-            if parm.parmTemplate().type().name() == "String":
-                rop_parm.set(parm.unexpandedString())
-            else:
-                rop_parm.set(parm.eval())
-        
-        parm.deleteAllKeyframes()
-        parm.set(rop_parm)  
+	rop = n.parent()
+	rs_ptg = n.parmTemplateGroup()
+	rop_ptg = rop.parmTemplateGroup()
+	
+	# Promote the parms
+	for entry in rs_ptg.entries():
+		if rop.parm(entry.name()) : continue
+		if promote_list and entry.name() not in promote_list : continue
+		rop_ptg.append( entry)	
+		
+	copy_conditionals(rs_ptg,rop_ptg) 
+	rop.setParmTemplateGroup(rop_ptg)
+	
+	# Copy Settings
+	for parm in n.parms():
+		rop_parm  = rop.parm(parm.name())
+		if not rop_parm: continue
+		
+		# Update Our Parm Value
+		rop_parm.deleteAllKeyframes()
+		if parm.keyframes():
+			rop_parm.setExpression(parm.expression() , parm.expressionLanguage())
+		else:
+			if parm.parmTemplate().type().name() == "String":
+				rop_parm.set(parm.unexpandedString())
+			else:
+				rop_parm.set(parm.eval())
+		
+		parm.deleteAllKeyframes()
+		parm.set(rop_parm)  
+		
+import toolutils
+def ne_findParentObjnet(n = None):
+	if n == None:
+		n = toolutils.networkEditor().pwd() 
+	if n.path() == "/":
+		return hou.node("/obj")
+	if n.type().childTypeCategory().name() == "Object":
+		return n
+	else:
+		return ne_findParentObjnet(n.parent())
