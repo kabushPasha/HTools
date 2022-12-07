@@ -537,4 +537,24 @@ vp = panel.paneTabs()[0].curViewport()
 vp.setCamera(hou.selectedNodes()[0])
 vp.lockCameraToView(True)]]></script>
   </tool>
+
+  <tool name="lz_rs_ropnet" label="LZ RS Ropnet" icon="ROP_Redshift_ROP">
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>LZ</toolSubmenu>
+    <script scriptType="python"><![CDATA[import lzRS_Shelf,lzutil
+obj = lzutil.ne_findParentObjnet()
+lzRS_Shelf.createRopnetRS(obj)
+]]></script>
+  </tool>
+
+  <tool name="shot_subnet" label="LZ SHOT Subnet" icon="hicon:/SVGIcons.index?COMMON_subnet.svg">
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>LZ</toolSubmenu>
+    <script scriptType="python"><![CDATA[import lzRS_Shelf
+lzRS_Shelf.createShotSubnet()]]></script>
+  </tool>
 </shelfDocument>

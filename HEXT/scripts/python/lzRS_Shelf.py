@@ -616,7 +616,31 @@ def createShotSubnet():
 	lzutil.HideAllParms(subnet)
 
 	# Create Ropnet
-	ropnet = subnet.createNode("ropnet","ropnet")
+	createRopnetRS(subnet)
+
+def createRopnetRS(obj):
+	ropnet = obj.createNode("ropnet","ropnet")
 	rs = RopnetAddRS(ropnet)
 	RS_RopnetPromote(rs)
+	fixRopnetParms(ropnet)
+		
+def fixRopnetParms(n):
+	ptg = n.parmTemplateGroup()
+	
+	pt = ptg.find("renderpreview")
+	pt.setJoinWithNext(0)
+	ptg.replace(pt.name(),pt)
 
+	pt = ptg.find("RS_IPRVP")
+	pt.setJoinWithNext(1)
+	ptg.replace(pt.name(),pt)
+
+	pt = ptg.find("trange")
+	pt.setMenuUseToken(True)
+	ptg.replace(pt.name(),pt)
+
+	pt = ptg.find("f")
+	pt.setConditional(hou.parmCondType.DisableWhen, "{ trange == 0}")
+	ptg.replace(pt.name(),pt)
+
+	n.setParmTemplateGroup(ptg)

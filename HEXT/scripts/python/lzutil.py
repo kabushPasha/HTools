@@ -1073,9 +1073,9 @@ def PromoteParmsToParent(n, promote_list = []):
 	rop_ptg = rop.parmTemplateGroup()
 	
 	# Promote the parms
-	for entry in rs_ptg.entries():
-		if rop.parm(entry.name()) : continue
+	for entry in rs_ptg.entries():		
 		if promote_list and entry.name() not in promote_list : continue
+		if rop.parm(entry.name()) : continue
 		rop_ptg.append( entry)	
 		
 	copy_conditionals(rs_ptg,rop_ptg) 
