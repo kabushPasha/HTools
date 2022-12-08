@@ -187,6 +187,12 @@ def CreateCanoeRenderTab(rs):
 		CanoeDisableCondition={
 			"RS_overrideResScale" : "{ Canoe_RS_overrideCameraRes == 0 }"
 			}
+		CanoeLockParms = [
+			"RS_renderCamera",
+			"RS_outputFileNamePrefix",
+			"RS_archive_file"
+		]
+			
 				
 		# Copy Parameters
 		for parm_name in CanoeShortcutParms:
@@ -221,8 +227,10 @@ def CreateCanoeRenderTab(rs):
 			if parm_name == "sep" : continue
 			if rs.parm(parm_name):
 				 rs.parm(parm_name).set(rs.parm("Canoe_" + parm_name))
+				 if parm_name in CanoeLockParms : rs.parm(parm_name).lock(True)
 			else:
 				 rs.parmTuple(parm_name).set(rs.parmTuple("Canoe_" + parm_name))	
+				 if parm_name in CanoeLockParms : rs.parmTuple(parm_name).lock(True)
 
 def LZ_RS_Setup():
 	########## MAIN ##################
@@ -315,6 +323,7 @@ def LZ_RS_Setup3():
 	if rs is None:
 		rs = __import__('roptoolutils').createRenderNode('Redshift_ROP')
 		ipr = __import__('roptoolutils').createRenderNode('Redshift_IPR')
+		ipr.parm("linked_rop").set( "../Redshift_ROP1" )
 		
 		rs.setParms(canoe_rs_parms)
 		AddBasicAovs(rs)
@@ -323,33 +332,6 @@ def LZ_RS_Setup3():
 		CreateCanoeRenderTab(rs)			
 
 	addRenderSettingsPaneTab(rs)	
-	
-	'''
-	# Create RENDER VIEW Floating Panels (currently using 1 monitor)
-	# Check if we have parms and render view already
-	has_render_panel = 0
-	has_rs_parms = 0
-	floatingPanels = hou.ui.floatingPanels()
-	for panel in floatingPanels:
-		if panel.name() == 'RenderView':
-			has_render_panel = 1
-		if panel.name() == 'Render_Settings':
-			has_rs_parms = 1
-		
-	# Open Parms Window
-	if has_rs_parms == 0:
-		dy = [0.05,0.65];
-		dx = [0.57,0.85];
-		panel = lzutil.createFloatingPanel(hou.paneTabType.Parm,'Render_Settings',dx,dy)
-		pane = panel.panes()[0]
-		tab = pane.tabs()[0]
-		tab.setCurrentNode(rs)
-		tab.setPin(1)
-
-	#create RenderView
-	if has_render_panel == 0:
-		lzutil.createRenderView()
-	'''
 
 def addRenderSettingsPaneTab(rs):
 	tab = hou.ui.findPaneTab("rs_render_settings_tab")

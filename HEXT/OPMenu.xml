@@ -6,6 +6,8 @@
 	<subMenu id="lz_OPSubmenu">
 	<label>LZ</label>		
 		
+		
+		
 		<scriptItem id="CompiledBlock">
 		  <label>Compiled Block</label>
 		  <expression>
@@ -14,12 +16,48 @@ return kwargs['node'].type().category().name() == "Sop"
 		  <scriptCode><![CDATA[
 import lzutil
 lzutil.compile_CreateBlock()
-print(kwargs)
 	]]>
 	</scriptCode>
 		</scriptItem>
 		
 
+		<scriptItem id="LookTrough">
+		  <label>Look Trough</label>
+		  <expression>
+import lzutil
+return lzutil.canLookTroughNode(kwargs['node'])
+</expression>
+		  <scriptCode><![CDATA[
+import lzutil
+lzutil.lookTroughLight(kwargs['node'])
+	]]>
+	</scriptCode>
+		</scriptItem>
+		
+		
+		
+		<scriptItem id="add_cam_focus_plane">
+		  <label>Add Focus Plane</label>
+		  <expression>
+return kwargs["node"].type().name() == 'cam'
+</expression>
+		  <scriptCode><![CDATA[
+import lzutil
+lzutil.CamFocusPlane(kwargs["node"])
+	]]>
+	</scriptCode>
+		</scriptItem>
+		
+		
+		
+		<scriptItem id="Parms_FloatingPanel">
+		  <label>Parms FloatingPanel</label>
+		  <scriptCode><![CDATA[
+import lzutil
+lzutil.createParmWindow(kwargs["node"])
+	]]>
+	</scriptCode>
+		</scriptItem>
 		
 		
 		

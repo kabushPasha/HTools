@@ -50,7 +50,8 @@ lzutil.copyToClipboard(p.parmTemplate().asCode())
 		<scriptItem id="color_ramp">
 		  <label>Color Ramp</label>
 		  <expression>
-return kwargs.get('parms',None)[0].parmTemplate().type().name() == 'Ramp'
+if not kwargs.get('parms',None) : return False
+return kwargs.get('parms',None)[0].parmTemplate().type().name() == 'Ramp' 
 </expression>
 		  <scriptCode><![CDATA[
 import lzutil
@@ -64,6 +65,7 @@ lzutil.changeRampType(p)
 		<scriptItem id="open in explorer">
 		  <label>Open in Explorer</label>
 		  <expression>
+if not kwargs.get('parms',None) : return False
 return kwargs.get('parms',None)[0].parmTemplate().type().name() == 'String'
 </expression>
 		  <scriptCode><![CDATA[
@@ -78,6 +80,7 @@ lzutil.openInExplorer(filepath)
 		<scriptItem id="Python parms from code">
 		  <label>Python parms from code</label>
 		  <expression>
+if not kwargs.get('parms',None) : return False
 return kwargs.get('parms',None)[0].parmTemplate().tags().get('editorlang',None) == 'python'
 </expression>
 		  <scriptCode><![CDATA[
@@ -91,6 +94,7 @@ lzutil.lzPython_createParmsFromCode(kwargs['parms'][0])
 <subMenu id="lz_ftp">
 <label>FTP Canoe</label>	
 <expression>
+if not kwargs.get('parms',None) : return False
 return kwargs.get('parms',None)[0].evalAsString().startswith("Z:")
 </expression>
 		<scriptItem id="ftp Donwload from Canoe">

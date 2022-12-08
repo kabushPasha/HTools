@@ -276,38 +276,6 @@ def openFolderFromEnv(env):
 	dir = os.path.abspath(hou.text.expandString(env).replace('/','\\'))
 	subprocess.Popen('explorer "' + dir  + '"')
 
-def setProject():
-	import os
-	# get root dir
-	start_dir = hou.text.expandString("$HMEGA") + "/! Projects/"
-	answer = hou.ui.selectFile(start_directory=start_dir,file_type=hou.fileType.Directory)
-
-	if answer != '':
-		# Make dirs
-		os.makedirs(answer)
-		os.makedirs(answer + "/Hip")
-		os.makedirs(answer + "/Flipbook")
-		os.makedirs(answer + "/Render")
-		os.makedirs(answer + "/Cache")
-		os.makedirs(answer + "/Cache/Abc")
-		os.makedirs(answer + "/Cache/Sim")
-		os.makedirs(answer + "/Cache/Stash")
-		os.makedirs(answer + "/Cache/Redshift")
-		
-		hipname = answer.split("/").pop()
-		
-		hou.appendSessionModuleSource("import lzutil\nlzutil.updateJobFromHipLocation()")
-		
-		hou.hscript('setenv JOBNAME ='+ hipname)
-		#print answer
-		hou.hscript('setenv JOB ='+ answer)	
-		
-		hou.hipFile.save(answer + "/hip/" + hipname +".000" +".hip")  
-		
-		print("Updated JOBNAME to: " + hipname)
-		print("Updated JOB to: " + answer)
-		
-
 def updateJobFromHipLocation():
 	import os
 	hip = hou.hipFile.path()
@@ -477,50 +445,6 @@ def preset(n,preset_name):
 	hou.hscript(cmd)
 
 	
-def createParmWindow(n, dy = [0.1,0.9],dx = [0.05,0.35]):
-	# create Size and Center
-	#dy = [0.1,0.95];
-	#dx = [0.05,0.35];
-	
-	pname = n.path().replace('/','_')
-	for fp in hou.ui.floatingPanels():
-		if fp.name() == pname:
-			fp.close()
-	
-	import ctypes
-	user32 = ctypes.windll.user32
-	sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))
-	pos = (sz[0]+ int(sz[0]*dx[0]),int(sz[1]*(dy[0])))
-	size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
-
-	d = hou.ui.curDesktop() 
-
-	panel = d.createFloatingPanel(hou.paneTabType.Parm,pos,size)	
-	tab = panel.paneTabs()[0]
-	tab.setCurrentNode(n)
-	tab.linkGroup = hou.paneLinkType.Pinned
-	panel.setName(pname)
-	
-def promoteParm(p):
-	n = p.node()
-	pr = n.parent()
-
-	pt = p.parmTemplate()
-	pt.setName(n.name() + "_" + pt.name())
-	pt.setLabel(n.name() + " " + pt.label())
-	if pt.type() == hou.parmTemplateType.Menu:
-		pt.setDefaultValue(p.eval())
-	else:
-		pt.setDefaultValue((p.eval(),))
-
-	ptg = pr.parmTemplateGroup()
-	ptg.addParmTemplate(pt)
-
-	pr.setParmTemplateGroup(ptg)
-
-	np = pr.parm(pt.name())
-	p.set(np)
-
 def dublicateParm(p):
 	n = p.node()
 	pt = p.parmTemplate()
@@ -1098,9 +1022,59 @@ def PromoteParmsToParent(n, promote_list = []):
 		
 		parm.deleteAllKeyframes()
 		parm.set(rop_parm)  
+
+def promoteParm(parm):
+	''' Promotes parm to parent and sets default values to current values '''
+	# Should add a fix for processing buttons
+	# Toggles do not save default value
+	n = parm.node()
+	parent = n.parent()
+
+	pt = parm.parmTemplate()
+	parm = n.parm(pt.name()) or n.parmTuple(pt.name())
+	pt.setName(pt.name() + "_" + n.name() )
+	pt.setLabel(pt.label() + "_" + n.name() )
 		
-import toolutils
+	# UPDATE DEFAULT VALUES
+	if isinstance(parm,hou.Parm): 
+		if parm.keyframes():
+			pt.setDefaultExpression(parm.expression())
+			pt.setDefaultExpressionLanguage(parm.expressionLanguage())
+		else:
+			if pt.type() == hou.parmTemplateType.Menu:
+				pt.setDefaultValue(parm.eval())
+			elif pt.type().name() == "String":
+				pt.setDefaultValue(parm.unexpandedString())
+			else:
+				pt.setDefaultValue((parm.eval(),))	
+	else:
+		pt.setDefaultValue(parm.eval())
+				
+	ptg = parent.parmTemplateGroup()
+	ptg.addParmTemplate(pt)
+	parent.setParmTemplateGroup(ptg)
+	
+	# Update Our Parm Value
+	pparm = parent.parm(pt.name()) or parent.parmTuple(pt.name())	
+	pparm.deleteAllKeyframes()
+	if isinstance(parm,hou.Parm) and parm.keyframes():
+		pparm.setExpression(parm.expression() , parm.expressionLanguage())
+	else:
+		if parm.parmTemplate().type().name() == "String":
+			pparm.set(parm.unexpandedString())
+		else:
+			pparm.set(parm.eval())
+	
+	parm.deleteAllKeyframes()
+	parm.set(pparm) 	
+		
 def ne_findParentObjnet(n = None):
+	'''
+	Searches for the first parent of type Obj manager in the current network editor. 
+	Sould be called like:
+	
+	obj = ne_findParentObjnet()	
+	'''
 	if n == None:
 		n = toolutils.networkEditor().pwd() 
 	if n.path() == "/":
@@ -1109,3 +1083,82 @@ def ne_findParentObjnet(n = None):
 		return n
 	else:
 		return ne_findParentObjnet(n.parent())
+		
+def createFloatingPanel(dim = [0.7,0.95,0.5,0.95] , panetype = hou.paneTabType.SceneViewer, name = 'LightView' ):
+	'''
+	Create a Floating Panel in the dimensions [xmin,xmax,ymin,ymax] and returns it.
+	Ex:
+	panel = createFloatingPanel([0.7,0.95,0.5,0.95] , hou.paneTabType.SceneViewer , "LightView")
+	'''
+	d = hou.ui.curDesktop()
+
+	# get screen size
+	import ctypes
+	user32 = ctypes.windll.user32
+	sz = int (user32.GetSystemMetrics(0)),int( user32.GetSystemMetrics(1))	  
+	dx = dim[0:2]
+	dy = dim[2:4]
+	
+	pos = int(sz[0]*dx[0]),int(sz[1]*(1 - dy[1]))
+	size = int(sz[0]*(dx[1] - dx[0])),int(sz[1]*(dy[1]-dy[0]))
+	
+	panel = d.createFloatingPanel(panetype,pos,size)
+	panel.setName(name)
+	return panel
+
+def createParmWindow(n, dy = [0.1,0.9],dx = [0.05,0.35]):
+	
+	pname = n.path().replace('/','_')
+	for fp in hou.ui.floatingPanels():
+		if fp.name() == pname:
+			fp.close()	
+
+	panel = createFloatingPanel( [0.7,0.95,0.15,0.8],hou.paneTabType.Parm,pname)
+	tab = panel.paneTabs()[0]
+	tab.setCurrentNode(n)
+	tab.linkGroup = hou.paneLinkType.Pinned
+
+
+def lookTroughLight(n):
+	'''
+	Creates a floating scene view and locks view trough the provided node.
+	Usefull to create a second camera look, or to adjust light position.
+	'''
+	if not canLookTroughNode(n): return
+	# create floating panel
+	panel = createFloatingPanel([0.7,0.95,0.5,0.95] , hou.paneTabType.SceneViewer , "LightView")
+
+	vp = panel.paneTabs()[0].curViewport()
+	vp.setCamera(n)
+	vp.lockCameraToView(True)
+	
+def getLights():
+	'''	Returns a list of all the lights in the scene.	'''
+	b = hou.nodeBundle("Lights")
+	if b is None:
+		b = hou.addNodeBundle("Lights")
+		b.setFilter(hou.nodeTypeFilter.ObjLight)
+		b.setPattern("*")
+	return b.nodes()
+	
+def getCams():
+	'''	Returns a list of all the Cameras in the scene.	'''
+	b = hou.nodeBundle("Cams")	
+	if b is None:
+		b = hou.addNodeBundle("Cams")
+		b.setFilter(hou.nodeTypeFilter.ObjCamera)
+		b.setPattern("*")
+	return b.nodes()
+
+def isLight(n):	
+	'''	Checks if node is a Light.	'''
+	return n in getLights()
+
+def isCam(n):	
+	'''	Checks if node is a Camera.	'''
+	return n in getCams()
+	
+def canLookTroughNode(n):
+	'''	Checks if we can loook trough the node. (If its a light or a camera) '''
+	return  isLight(n) or isCam(n)
+	

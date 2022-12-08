@@ -65,9 +65,20 @@ lzutil.sopPyroAddDivisionsParm(kwargs["node"])
 		</scriptItem>		
 		
 		
+		<subMenu id="lz_parms_submenu">
+		<label>PARMS</label>
 		
-		
-		
+		<scriptItem id="hide_all_parms">
+		  <label>Hide All Parms</label>
+		  <scriptCode><![CDATA[
+import lzutil
+lzutil.HideAllParms(kwargs["node"])
+	]]>
+	</scriptCode>
+		</scriptItem>			
+		</subMenu>	
+	
+	
 	</subMenu>	
   </menu>
 </menuDocument>
