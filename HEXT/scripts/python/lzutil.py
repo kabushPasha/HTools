@@ -913,8 +913,10 @@ def ftp_downloadFolderFromCanoeServer(local_file,upload = False):
 ### LZ PYTHON ###
 	
 def lzPython_createParmsFromCode(code_parm):
-	# replaces all parms of type
-	# test_parm = "path to file" #defparm file	
+	'''
+	Creates parms from lines of code of type:
+	test_parm = "path to file" #defparm file	
+	'''
 	n = code_parm.node()
 	ptg = n.parmTemplateGroup()
 	code_name = code_parm.name()
@@ -944,6 +946,7 @@ def lzPython_createParmsFromCode(code_parm):
 	
 ## LZ Compile ###
 def compile_CreateBlock():
+	''' Create Compiled Block aroung the selected nodes '''
 	for n in hou.selectedNodes():
 		if len(n.outputs()) == 0 or not( n.outputs()[0] in hou.selectedNodes()): 
 			old = n.outputs()[0] if len(n.outputs()) > 0 else None
@@ -971,6 +974,7 @@ def compile_CreateBlock():
 
 # PARM TEMPLATES UTILS	
 def copy_conditionals(ptg,target):
+	''' copy all conditionals from one parmTemplateGroup to target ParmTemplateGroup'''
 	for entry in ptg.parmTemplates():
 		if(entry.conditionals()):
 			#print( entry.conditionals())
@@ -984,6 +988,7 @@ def copy_conditionals(ptg,target):
 			copy_conditionals(entry,target)
 			
 def HideAllParms(n):
+	''' Hides all parms on a node '''
 	ptg = n.parmTemplateGroup()
 	for entry in ptg.entries():
 		entry.hide(True)	
@@ -992,6 +997,7 @@ def HideAllParms(n):
 	n.setParmTemplateGroup(ptg)
 	
 def PromoteParmsToParent(n, promote_list = []):
+	''' Promotes all parsm of node to parent, or only the ones that are in the promote list if provided.'''
 	rop = n.parent()
 	rs_ptg = n.parmTemplateGroup()
 	rop_ptg = rop.parmTemplateGroup()
@@ -1106,18 +1112,17 @@ def createFloatingPanel(dim = [0.7,0.95,0.5,0.95] , panetype = hou.paneTabType.S
 	panel.setName(name)
 	return panel
 
-def createParmWindow(n, dy = [0.1,0.9],dx = [0.05,0.35]):
-	
+def createParmWindow(n, dim = [0.7,0.95,0.15,0.8]):
+	''' Create A floating panel for the selected parm '''	
 	pname = n.path().replace('/','_')
 	for fp in hou.ui.floatingPanels():
 		if fp.name() == pname:
 			fp.close()	
 
-	panel = createFloatingPanel( [0.7,0.95,0.15,0.8],hou.paneTabType.Parm,pname)
+	panel = createFloatingPanel( dim,hou.paneTabType.Parm,pname)
 	tab = panel.paneTabs()[0]
 	tab.setCurrentNode(n)
 	tab.linkGroup = hou.paneLinkType.Pinned
-
 
 def lookTroughLight(n):
 	'''
