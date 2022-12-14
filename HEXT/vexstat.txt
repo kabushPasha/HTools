@@ -97,7 +97,7 @@
     "primpoints": 6,
     "primuv": 39,
     "qconvert": 11,
-    "qrotate": 39,
+    "qrotate": 40,
     "quaternion": 12,
     "re_replace": 26,
     "re_split ": 7,
@@ -121,7 +121,7 @@
     "sprintf ": 1,
     "uvsample": 13,
     "volumegradient": 14,
-    "volumesample": 38,
+    "volumesample": 39,
     "volumesampleV": 4,
     "xyzdist": 51
 }

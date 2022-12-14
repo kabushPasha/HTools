@@ -93,5 +93,10 @@
         "Focus_plane": {
             "load_node": "Focus_plane"
         }
+    },
+    "_Other": {
+        "Gears": {
+            "load_node": "Gears"
+        }
     }
 }
