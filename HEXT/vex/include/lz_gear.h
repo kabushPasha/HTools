@@ -12,17 +12,26 @@ struct gear
 	// Extractable
 	float pscale;
 	
-	void init(int _pt)
-	{
+	void init(int _pt)	{
 		this.pt = _pt;
 		this.P = point( this.geo, "P", this.pt );		
 	}
 	
-	void init(int _pt; float _tooth_length)
-	{
+	void init(int _pt; float _tooth_length)	{
 		this.pt = _pt;
 		this.P = point( this.geo, "P", this.pt );
 		this.tooth_length = _tooth_length;		
+	}
+	
+	void setGear()	{
+		setpointattrib(0,"transform",this.pt,this.t);
+		setpointattrib(0,"n_cuts",this.pt,this.n_teeth);
+		setpointattrib(0,"tooth_length",this.pt,this.tooth_length);
+		setpointattrib(0,"P",this.pt,this.P);
+		setpointattrib(0,"motor",this.pt,this.motor);
+		
+		setpointattrib(0,"name",this.pt,"gear_" + itoa(this.n_teeth));		
+		//setpointattrib(0,"N",this.pt,this->getN());
 	}
 	
 	vector getN()	{
@@ -34,8 +43,7 @@ struct gear
 	vector getX()	{
 		return normalize(this.t*{1,0,0});
 	}
-	float fixScale()
-	{			
+	float fixScale()	{			
 		float old_scale = this.pscale;
 		this.n_teeth = (int)rint(PI*this.pscale/this.tooth_length);
 		this.pscale = this.tooth_length*this.n_teeth/(PI);	
@@ -49,25 +57,20 @@ struct gear
 	int scale2t ( float _pscale)	{
 		return (int)rint(PI*_pscale/this._tooth_length);
 	}	
-	float t2scale ( int _n_teeth; float _tooth_length)	
-	{
+	float t2scale ( int _n_teeth; float _tooth_length)		{
 		return _tooth_length*_n_teeth/(PI);
 	}	
-	int scale2t ( float _pscale; float _tooth_length)	
-	{
+	int scale2t ( float _pscale; float _tooth_length)		{
 		return (int)rint(PI*_pscale/_tooth_length);
 	}
 	
 		
-	void fromTeeth(int _n_teeth)
-	{
+	void fromTeeth(int _n_teeth)	{
 		this.n_teeth = _n_teeth;
 		this.pscale = this.tooth_length*this.n_teeth/(PI);	
 		this.t = maketransform({0,0,1},{0,1,0}) * this.pscale;		
 	}
-		
-	void fromPscale(float _pscale)
-	{
+	void fromPscale(float _pscale)	{
 		this.pscale = _pscale;
 		// Fix the real scale based on the tooth_length
 		this->fixScale();		
@@ -77,7 +80,6 @@ struct gear
 	float getRate(gear g) 	{
 		return g.pscale/this.pscale;
 	}
-	
 	void setMotor(gear g)	{		
 		this.motor = -g.motor * this->getRate(g);
 	}
@@ -184,8 +186,23 @@ struct gear
 		this->setMotor(g);	
 	}	
 	
-	void fromPoint(int _geo;int _pt)
-	{
+	void ShaftFromGear(gear g; int _n_teeth; float offset)
+	{		
+		// Copy Tooth length since gears hould have the same
+		this.tooth_length = g.tooth_length;
+		
+		vector p0 = g.P;
+		this.P = g.P + g->getN()*offset;				
+				
+		this.n_teeth = _n_teeth;
+		this.pscale = this->t2scale(n_teeth);	
+		this.t = g.t * (this.pscale/g.pscale);				
+		
+		this.motor = g.motor;
+		this->setGear();
+	}
+	
+	void fromPoint(int _geo;int _pt)	{
 		this.pt = _pt;
 		this.geo = _geo;
 		
@@ -198,24 +215,8 @@ struct gear
 		
 	}
 		
-	void setGear()
-	{
-		setpointattrib(0,"transform",this.pt,this.t);
-		setpointattrib(0,"n_cuts",this.pt,this.n_teeth);
-		setpointattrib(0,"tooth_length",this.pt,this.tooth_length);
-		setpointattrib(0,"P",this.pt,this.P);
-		setpointattrib(0,"motor",this.pt,this.motor);
+
 		
-		setpointattrib(0,"name",this.pt,"gear_" + itoa(this.n_teeth));		
-		//setpointattrib(0,"N",this.pt,this->getN());
-	}
-	
-	void rotate( float ammount)
-	{
-		rotate(this.t, ammount , normalize(this.t*{0,1,0}));		
-		setpointattrib(0,"transform",this.pt,this.t);
-	}
-	
 	// Creation shortcuts
 	void fromPoint(int _pt; int _geo0;int _pt0)
 	{
@@ -228,7 +229,7 @@ struct gear
 	
 	void fromPscale(int _pt;float _tooth_length; float _pscale)
 	{
-		this->init(0,_tooth_length);
+		this->init(_pt,_tooth_length);
 		this->fromPscale(_pscale);
 		this->setGear();			
 	}
@@ -312,7 +313,7 @@ struct gear
 	void addFromPscale(vector pos;float _tooth_length; float _pscale)
 	{
 		int pt = addpoint(0,pos);
-		this->init(0,_tooth_length);
+		this->init(pt,_tooth_length);
 		this.P  = pos;
 		this->fromPscale(_pscale);
 		this->setGear();	
@@ -391,4 +392,20 @@ gear addFromPoint(float angle;int _n_teeth;int _geo;int _pt){
 	gear g1;
 	g1->addFromPoint(angle,_n_teeth,_geo,_pt);
 	return g1;	
+}
+
+gear createShaft(gear g; int _n_teeth; float offset)
+{
+	int pt = addpoint(0,0);		
+	gear g0;
+	g0->init(pt);
+	g0->ShaftFromGear(g,_n_teeth,offset);
+	return 	g0;
+}
+
+gear getGear(int _geo;int _pt)
+{
+	gear g;
+	g->fromPoint(_geo,_pt);
+	return g;
 }

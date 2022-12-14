@@ -30,6 +30,7 @@
     "Focus_plane": 7,
     "Focus_plane_1": 2,
     "GS_Import_simple": 1,
+    "Gears": 1,
     "Hex plastic": 2,
     "ILM Cluster": 1,
     "Liquid_Sculpt": 3,
