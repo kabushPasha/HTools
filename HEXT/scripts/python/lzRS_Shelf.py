@@ -494,7 +494,7 @@ def toggleAovs(rs, aovs , on):
 def AddBasicAovs(rs):
 	aov_dict = [
 	["beauty" , 39],
-	["diffuse",18],
+	["diffuse",5],
 	["specular" , 8],
 	["reflection" , 11],
 	["refraction" , 14],
