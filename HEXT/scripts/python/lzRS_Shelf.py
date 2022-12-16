@@ -597,6 +597,20 @@ def createShotSubnet():
 	subnet.moveToGoodPosition()
 	lzutil.HideAllParms(subnet)
 
+	# Create Show ChildrenToggle
+	ptg = subnet.parmTemplateGroup()
+	show_content = hou.ToggleParmTemplate("show_contents", "Show contents", default_value=False)
+	show_content.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+	show_content.setScriptCallback("hou.pwd().parm(\"visibleobjects\").set(\"*\" if kwargs[\"script_value0\"]=='on' else \"\")")
+	ptg.append(show_content)
+		
+	# Create Open In Tab
+	hou_parm_template = hou.ButtonParmTemplate("create_tab", "Create TAB")
+	hou_parm_template.setScriptCallback("import toolutils;toolutils.networkEditor().pane().createTab(hou.paneTabType.NetworkEditor).setPwd(hou.pwd())")
+	hou_parm_template.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+	ptg.append(hou_parm_template)
+	subnet.setParmTemplateGroup(ptg)
+	
 	# Create Ropnet
 	createRopnetRS(subnet)
 
