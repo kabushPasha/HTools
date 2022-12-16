@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="LZ_Hidden" label="LZ Hidden">
+    <memberTool name="script"/>
+  </toolshelf>
+
+  <tool name="script" label="Script" icon="hicon:/SVGIcons.index?MISC_python.svg">
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>LZ</toolSubmenu>
+    <script scriptType="python"><![CDATA[import lzutil,toolutils
+cn = lzutil.getCurrentContextNode()
+script = cn.createNode("null","Script")
+#center = toolutils.networkEditor().visibleBounds().center()
+center = toolutils.networkEditor().cursorPosition()
+script.setPosition(center)     
+
+if script.type().category().name() == "Object":
+    lzutil.HideAllParms(script)
+
+lzutil.addPythonSnippet(script)
+script.setCurrent(True)]]></script>
+  </tool>
+</shelfDocument>

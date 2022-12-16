@@ -83,9 +83,17 @@ def addCodeToPythonSnippet(n,code,code_name = "Python"):
 			new_null.parm('code').set(code)
 	'''
 	code_name = code_name.replace(" ","_")
-	if n.type().name() != 'null':
-		n = n.createOutputNode("null",code_name)
-		HideAllParms(n)
+	if hou.selectedNodes():
+		n = hou.selectedNodes()[0]
+		if n.type().name() != 'null':
+			n = n.createOutputNode("null",code_name)
+			HideAllParms(n)	
+	else:
+		cn = getCurrentContextNode()
+		n = cn.createNode("null",code_name)
+		center = toolutils.networkEditor().visibleBounds().center()
+		n.setPosition(center) 
+		HideAllParms(n)	
 		
 	for code_snippet in code:
 		index = addPythonSnippet(n)
@@ -589,16 +597,7 @@ def loadRsAssetSimple(path = "",animated = False,versions = 1):
 	
 	return holder
 
-#----------------------------------
 
-def getCurrentContextNode():
-	current_node = toolutils.networkEditor().currentNode()
-	if current_node.type().name() == 'geo':
-		return current_node
-	else:
-		return current_node.parent()
-
-		
 	
 #-----------------------------------------
 # PARMS AND MENUS
@@ -713,9 +712,10 @@ def addPythonSnippet(n):
 		PythonSnippet_addFolderWithParmTemplates(ptg,index)
 	else:   
 		# add simple snippet
-		[lzPython_code,lzPython_run] = PythonSnippet_CreateParmTemplates()	
-		ptg.append(lzPython_code)
-		ptg.append(lzPython_run)	
+		#[lzPython_code,lzPython_run] = PythonSnippet_CreateParmTemplates()	
+		#ptg.append(lzPython_code)
+		#ptg.append(lzPython_run)	
+		PythonSnippet_addFolderWithParmTemplates(ptg) 
 		index = 0
 		
 	n.setParmTemplateGroup(ptg)
@@ -781,11 +781,7 @@ def updateNodeToLatestDefinition(n):
 #-------------------------------------------
 # NODE Saving and Loading
 def getCurrentContextNode():
-	current_node = toolutils.networkEditor().currentNode()
-	if current_node.type().name() in ['geo','obj']:
-		return current_node
-	else:
-		return current_node.parent()
+	return toolutils.networkEditor().pwd()
 		
 def load_nodes(filename):
 	filename = hou.text.expandString(filename)	
@@ -931,15 +927,29 @@ def lzPython_createParmsFromCode(code_parm):
 				if parm_type == 'file':
 					# if parm already transformed 
 					if 'parm("' in default_value:
-						default_value = parm_options[1]					  
+						default_value = parm_options[1].replace('"',"")					  
 					else:				
 						default_value = default_value.strip().replace('"',"")						
-						new_code_line = f'{parm_name} = hou.pwd().parm("{parm_name}").eval() #defparm {parm_type} {default_value}' 
+						new_code_line = f'{parm_name} = hou.pwd().parm("{parm_name}").eval() #defparm {parm_type} "{default_value}"' 
 						code_str = code_str.replace(code_line,new_code_line)
 						
 					if not n.parm(parm_name):	
 						new_parm = hou.StringParmTemplate(parm_name,parm_name,1,string_type = hou.stringParmType.FileReference,default_value = [default_value])					
 						ptg.insertAfter(code_name,new_parm)  
+						
+				if parm_type == 'toggle':
+					# if parm already transformed 
+					if 'parm("' in default_value:
+						default_value = int(parm_options[1])
+					else:				
+						default_value = int(default_value.strip())
+						new_code_line = f'{parm_name} = hou.pwd().parm("{parm_name}").eval() #defparm {parm_type} {default_value}' 
+						code_str = code_str.replace(code_line,new_code_line)
+						
+					if not n.parm(parm_name):	
+						new_parm = hou.ToggleParmTemplate(parm_name,parm_name,default_value)					
+						ptg.insertAfter(code_name,new_parm)  		
+						
 
 	code_parm.set(code_str)
 	n.setParmTemplateGroup(ptg)	
