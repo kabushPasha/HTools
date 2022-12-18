@@ -12,6 +12,8 @@ import os
 import hou,toolutils
 import glob,json,shutil
 
+hidden_tabs = ["nodePreset"]
+
 class LZ_vex_interface(QtWidgets.QWidget):
     def __init__(self,scipt = 'lz_quick_vex',rows = 4):
         super(LZ_vex_interface, self).__init__() 
@@ -23,7 +25,10 @@ class LZ_vex_interface(QtWidgets.QWidget):
         
         for json_file in  glob.glob(hext + "/megavex/*txt"):
             tab = QtWidgets.QWidget()            
-            tabLayout = QtWidgets.QGridLayout()      
+            tabLayout = QtWidgets.QGridLayout()   
+            tab_name = os.path.basename(json_file).replace(".txt","")
+            if tab_name in hidden_tabs and not lzutil.isAdmin():
+                continue
             
             json_obj = json.load(open(json_file))
             
@@ -64,8 +69,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
                 tabLayout.addLayout(layout,i/rows,i%rows)
                 i += 1        
             
-            tab.setLayout(tabLayout)
-            tab_name = os.path.basename(json_file).replace(".txt","")
+            tab.setLayout(tabLayout)            
             self.tabs.addTab(tab,tab_name)
         
         #set Layout

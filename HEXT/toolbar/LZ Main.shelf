@@ -28,7 +28,6 @@
     <memberTool name="wrangle"/>
     <memberTool name="change_asset_version"/>
     <memberTool name="volume data"/>
-    <memberTool name="pyhon"/>
     <memberTool name="nulls2Points"/>
     <memberTool name="Render View"/>
     <memberTool name="fileCache finder"/>
@@ -789,15 +788,6 @@ print (script)
         
         
     ]]></script>
-  </tool>
-
-  <tool name="pyhon" label="Pyhton" icon="SOP_python">
-    <script scriptType="python"><![CDATA[import toolutils
-n = toolutils.sceneViewer().currentNode()
-wr = n.createOutputNode('python')
-wr.setRenderFlag(1)
-wr.setDisplayFlag(1)
-wr.setCurrent(1)]]></script>
   </tool>
 
   <tool name="nulls2Points" label="Nulls2Points" icon="hicon:/SVGIcons.index?SOP_add.svg">

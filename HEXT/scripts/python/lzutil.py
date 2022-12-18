@@ -47,6 +47,8 @@ def enableHouModule():
 enableHouModule()
 """
 
+def isAdmin():
+	return hou.text.expandString("$LZ_USER")=="Admin"
 
 def createTopoHelper(topobuild):
 	n = topobuild
@@ -65,45 +67,42 @@ def removeTopoHelper(topobuild):
 	n = topobuild
 	geo = n.parent().parent().node(n.name()+'_temp_vis').destroy()
 
+def nullPythonScriptDecorate(script):
+	HideAllParms(script)
+	if script.type().category().name() == "Object":		
+		script.setSelectableInViewport(0)
+		script.setDisplayFlag(0)
+		for child in script.children():
+			child.destroy()  
+		
+	script.setCurrent(True)
+	script.setColor(hou.Color([0.1,0.75,0.55]))
+
 def addCodeToPythonSnippet(n,code,code_name = "Python"):
-	'''
-	code_name = code_name.replace(" ","_")
-	snippet = n.parm('code')
-	if snippet is not None:	
-		snippet.set(snippet.eval() + '\n' + code)
-	else:	
-		# if its a null create 	
-		if n.type().name() == 'null':
-			addPythonSnippet(n)
-			n.parm('code').set(code)
-		# else create output null
-		else:
-			new_null = n.createOutputNode("null",code_name)
-			addPythonSnippet(new_null)
-			new_null.parm('code').set(code)
-	'''
+	# Create Node if needed and decorate
 	code_name = code_name.replace(" ","_")
 	if hou.selectedNodes():
 		n = hou.selectedNodes()[0]
 		if n.type().name() != 'null':
 			n = n.createOutputNode("null",code_name)
-			HideAllParms(n)	
+			nullPythonScriptDecorate(n)	
+		elif not n.parm("lzPython_code"):
+			nullPythonScriptDecorate(n)		
+			
 	else:
 		cn = getCurrentContextNode()
 		n = cn.createNode("null",code_name)
 		center = toolutils.networkEditor().visibleBounds().center()
 		n.setPosition(center) 
-		HideAllParms(n)	
+		nullPythonScriptDecorate(n)	
 		
 	for code_snippet in code:
 		index = addPythonSnippet(n)
 		index_str = str(index) if index > 0 else ""
 		n.parm("lzPython_code" + index_str).set(code_snippet)
 		RenamePythonSnippetFromFirstLine(n,index)
-
-
-
-	
+		lzPython_createParmsFromCode(n.parm("lzPython_code" + index_str))
+		
 	
 # Snippets and noises	
 def snippetAddCodeAtStart(n,code):
@@ -641,14 +640,14 @@ def PythonSnippet_CreateParmTemplates( index = 0 ):
 	run_in_console_script = f"""import subprocess,os
 n = kwargs['node']
 python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))
-code = "_shell=True\\n" + n.parm("{code_name}").eval()
+code = "_shell=True\\n" + n.parm(kwargs['parmtuple'].name()).eval()
 subprocess.Popen([python_path,"-i","-c",code])
 """
 	lzPython_code.setTags({"editor": "1", "editorlang": "python", "editorlines": "30-50", "script_action": run_in_console_script})
   
 
 	lzPython_run = hou.ButtonParmTemplate("lzPython_run" + index, "Run")
-	script_callback = f"exec( \"_shell=False\\n\" + hou.pwd().parm(\"{code_name}\").eval())"
+	script_callback = f"exec( \"_shell=False\\n\" + hou.pwd().parm(kwargs[\"parm_name\"].replace(\"run\",\"code\")).eval())"
 	lzPython_run.setScriptCallback(script_callback)
 	lzPython_run.setScriptCallbackLanguage(hou.scriptLanguage.Python)
 	#lzPython_run.setTags({"script_callback": script_callback, "script_callback_language": "python"})
@@ -661,20 +660,34 @@ def PythonSnippet_addFolderWithParmTemplates(ptg,index = 0):
 	pts[1].setJoinWithNext(True)
 	
 	# create rename buttons
-	rename_button_pt = hou.ButtonParmTemplate("lzPyhton_updateName" + (str(index) if index > 0 else ""), "Update Name")
+	rename_button_pt = hou.ButtonParmTemplate("lzPython_updateName" + (str(index) if index > 0 else ""), "Update Name")
 	rename_button_pt.setHelp("updates name from first line comment")
-	rename_button_script = f"import lzutil;lzutil.RenamePythonSnippetFromFirstLine(hou.pwd(),{index})"
+	rename_button_script = f"import lzutil;lzutil.RenamePythonSnippetFromFirstLine(hou.pwd(),int(kwargs[\"parm_name\"].replace(\"lzPython_updateName\",\"\") or \"0\"))"
 	rename_button_pt.setScriptCallback(rename_button_script)
 	rename_button_pt.setScriptCallbackLanguage(hou.scriptLanguage.Python)
 	rename_button_pt.setJoinWithNext(True)
 	pts.append(rename_button_pt)
 	
 	# create Delete Button
-	delete_button_pt = hou.ButtonParmTemplate("lzPyhton_delete" + (str(index) if index > 0 else ""), "Delete")
-	delete_button_script = f"import lzutil;lzutil.deletePythonSnippet(hou.pwd(),{index})"
+	delete_button_pt = hou.ButtonParmTemplate("lzPython_delete" + (str(index) if index > 0 else ""), "Delete")
+	delete_button_script = f"import lzutil;lzutil.deletePythonSnippet(hou.pwd(),int(kwargs[\"parm_name\"].replace(\"lzPython_delete\",\"\") or \"0\"))"
 	delete_button_pt.setScriptCallback(delete_button_script)
 	delete_button_pt.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+	delete_button_pt.setJoinWithNext(True)
 	pts.append(delete_button_pt)
+	
+	# Add Button
+	hou_parm_template = hou.ButtonParmTemplate("lzPython_add" + (str(index) if index > 0 else ""), "Add")
+	hou_parm_template.setScriptCallback("import lzutil;lzutil.addPythonSnippet(kwargs['node'])")
+	hou_parm_template.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+	hou_parm_template.setJoinWithNext(True)
+	pts.append(hou_parm_template)
+	
+	# Code for parameter template
+	hou_parm_template = hou.ButtonParmTemplate("lzPython_parms" + (str(index) if index > 0 else ""), "Create Parms")
+	hou_parm_template.setScriptCallback("import lzutil;lzutil.lzPython_createParmsFromCode(kwargs['node'].parm(kwargs[\"parm_name\"].replace(\"parms\",\"code\")))")
+	hou_parm_template.setScriptCallbackLanguage(hou.scriptLanguage.Python)
+	pts.append(hou_parm_template)
 	
 	index = str(index) if index>0 else ""	
 	folder_pt = hou.FolderParmTemplate("lzPython_folder" + index,"Python" + index,folder_type = hou.folderType.Tabs,parm_templates = pts)
@@ -739,18 +752,7 @@ def deletePythonSnippet(n,index):
 		for parm in folder.parmTemplates():		
 			old_name = parm.name()
 			name = parm.name().rstrip(string.digits) + new_index_str
-			parm.setName(name)
-			# replace script callbacks
-			if name.startswith("lzPython_run"):				  
-				parm.setScriptCallback( parm.scriptCallback().replace( "lzPython_code" + str(index),"lzPython_code" +new_index_str) )			
-			if  name.startswith("lzPyhton_updateName"):
-				parm.setScriptCallback(f"import lzutil;lzutil.RenamePythonSnippetFromFirstLine(hou.pwd(),{index-1})")
-			if  name.startswith("lzPyhton_delete"):
-				parm.setScriptCallback(f"import lzutil;lzutil.deletePythonSnippet(hou.pwd(),{index-1})")
-			if name.startswith("lzPython_code"):
-				tags = parm.tags()
-				tags['script_action'] = tags['script_action'].replace( "lzPython_code" + str(index),"lzPython_code" +new_index_str)
-				parm.setTags(tags)			
+			parm.setName(name)	
 			ptg.replace(old_name,parm)
 		index += 1
 		
@@ -927,7 +929,9 @@ def lzPython_createParmsFromCode(code_parm):
 				if parm_type == 'file':
 					# if parm already transformed 
 					if 'parm("' in default_value:
-						default_value = parm_options[1].replace('"',"")					  
+						default_value = ""
+						if parm_options[1:0]:
+							default_value = parm_options[1].replace('"',"")					  
 					else:				
 						default_value = default_value.strip().replace('"',"")						
 						new_code_line = f'{parm_name} = hou.pwd().parm("{parm_name}").eval() #defparm {parm_type} "{default_value}"' 
@@ -940,7 +944,9 @@ def lzPython_createParmsFromCode(code_parm):
 				if parm_type == 'toggle':
 					# if parm already transformed 
 					if 'parm("' in default_value:
-						default_value = int(parm_options[1])
+						default_value = 0
+						if parm_options[1:2]:
+							default_value = int(parm_options[1])
 					else:				
 						default_value = int(default_value.strip())
 						new_code_line = f'{parm_name} = hou.pwd().parm("{parm_name}").eval() #defparm {parm_type} {default_value}' 

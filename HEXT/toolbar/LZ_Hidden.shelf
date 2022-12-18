@@ -16,6 +16,7 @@
     </toolMenuContext>
     <toolSubmenu>LZ</toolSubmenu>
     <script scriptType="python"><![CDATA[import lzutil,toolutils
+      
 cn = lzutil.getCurrentContextNode()
 script = cn.createNode("null","Script")
 #center = toolutils.networkEditor().visibleBounds().center()
@@ -24,8 +25,13 @@ script.setPosition(center)
 
 if script.type().category().name() == "Object":
     lzutil.HideAllParms(script)
+    script.setSelectableInViewport(0)
+    script.setDisplayFlag(0)
+    for child in script.children():
+        child.destroy()    
 
 lzutil.addPythonSnippet(script)
-script.setCurrent(True)]]></script>
+script.setCurrent(True)
+scrip.setColor(hou.Color([0,0.85,0.5]))]]></script>
   </tool>
 </shelfDocument>
