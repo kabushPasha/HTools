@@ -21,17 +21,9 @@ cn = lzutil.getCurrentContextNode()
 script = cn.createNode("null","Script")
 #center = toolutils.networkEditor().visibleBounds().center()
 center = toolutils.networkEditor().cursorPosition()
-script.setPosition(center)     
+script.setPosition(center) 
 
-if script.type().category().name() == "Object":
-    lzutil.HideAllParms(script)
-    script.setSelectableInViewport(0)
-    script.setDisplayFlag(0)
-    for child in script.children():
-        child.destroy()    
-
-lzutil.addPythonSnippet(script)
-script.setCurrent(True)
-scrip.setColor(hou.Color([0,0.85,0.5]))]]></script>
+lzutil.nullPythonScriptDecorate(script)
+lzutil.addPythonSnippet(script)]]></script>
   </tool>
 </shelfDocument>

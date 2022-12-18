@@ -76,7 +76,7 @@ def nullPythonScriptDecorate(script):
 			child.destroy()  
 		
 	script.setCurrent(True)
-	script.setColor(hou.Color([0.1,0.75,0.55]))
+	script.setColor(hou.Color([ 0.616, 0.871, 0.769 ]))
 
 def addCodeToPythonSnippet(n,code,code_name = "Python"):
 	# Create Node if needed and decorate

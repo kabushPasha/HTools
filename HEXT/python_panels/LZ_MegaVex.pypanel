@@ -21,7 +21,8 @@ class LZ_vex_interface(QtWidgets.QWidget):
         self.callbackDict = {}        
         self.tabs = QtWidgets.QTabWidget() 
         hext = hou.text.expandString('$HEXT')
-        stats_json = json.load(open(hext + "/vexstat.txt"))   
+        stats_json = json.load(open(hext + "/vexstat.txt"))  
+        avg_clicks = (sum( [v for _, v in stats_json.items()] )/ len(stats_json))
         
         for json_file in  glob.glob(hext + "/megavex/*txt"):
             tab = QtWidgets.QWidget()            
@@ -50,6 +51,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
                     # get Colro based on stats 
                     if key in stats_json:
                         value  = hou.hmath.fit(stats_json[key],0,stats_json["MAXIMUM_CLICKS"],100, 250)                        
+                        value  = hou.hmath.fit(stats_json[key],0,avg_clicks,100, 200)                        
                     else:  
                         value = 100
                     list_item.setTextColor(QtGui.QColor(value,value,value))

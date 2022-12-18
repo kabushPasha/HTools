@@ -81,9 +81,6 @@
         }
     },
     "05 UTIL Scripts": {
-        "01. Include lzn.h": {
-            "action": "lzutil.includeAddSafe(n,'lzn')"
-        },
         "02. Remove by Tres": {
             "code": "if(rand(@ptnum)<chf('tres')) removepoint(0,@ptnum);"
         },
