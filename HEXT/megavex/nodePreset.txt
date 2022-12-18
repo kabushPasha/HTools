@@ -26,6 +26,9 @@
         "Crowd_Along_Line": {
             "load_node": "Crowd_Along_Line"
         },
+        "Magical Dust": {
+            "load_node": "Magical Dust"
+        },
         "Setup_GPU_explosion": {
             "load_node": "Setup_GPU_explosion"
         },
@@ -59,6 +62,9 @@
         },
         "FastestSmoke_Flames": {
             "load_node": "FastestSmoke_Flames"
+        },
+        "FastestSmoke_Follow": {
+            "load_node": "FastestSmoke_Follow"
         },
         "Pbd_Cloth_Tear": {
             "load_node": "Pbd_Cloth_Tear"

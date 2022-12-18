@@ -113,7 +113,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
         if 'load_node' in item:
             custom_node_name = item['load_node']
             filename ="$HEXT/megavex/nodes/" + custom_node_name + ".cpio"
-            lz.lzutil.load_nodes(filename)  
+            lzutil.load_nodes(filename)  
         # load python code
         if 'python_code' in item:
             lzutil.addCodeToPythonSnippet(n,item['python_code'],action)        

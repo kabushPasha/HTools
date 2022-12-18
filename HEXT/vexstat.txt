@@ -11,7 +11,7 @@
     "03. Dont Export N": 1,
     "03. Read Texture": 11,
     "05. Create Rest": 3,
-    "05. Maketransform": 1,
+    "05. Maketransform": 2,
     "05. Move To Points": 3,
     "06. Move To Simmed Pieces": 5,
     "06. Restore Rest": 2,
@@ -26,7 +26,8 @@
     "Download scene from FTP": 7,
     "FLOW V": 1,
     "FTP scripts": 24,
-    "FastestSmoke": 7,
+    "FastestSmoke": 10,
+    "FastestSmoke_Follow": 1,
     "Focus_plane": 7,
     "Focus_plane_1": 2,
     "GS_Import_simple": 1,
@@ -46,6 +47,7 @@
     "PadZero4": 6,
     "Polar Transforms": 5,
     "PropogationSolver_v1": 2,
+    "Pyro_Instanceing_explosions": 1,
     "RS Display Only ProxiesOnDisk Expression": 3,
     "RS_EnvironmentFogNoise": 5,
     "Random Proxy Version": 1,
@@ -54,7 +56,7 @@
     "Remove Primless Points": 12,
     "Rotate Packeds": 1,
     "Rotate along root": 5,
-    "Setup_GPU_explosion": 3,
+    "Setup_GPU_explosion": 4,
     "Simple Bullet": 4,
     "Simple FLIP": 2,
     "Slide CenterWidth Mask": 11,
@@ -126,5 +128,6 @@
     "volumegradient": 14,
     "volumesample": 40,
     "volumesampleV": 4,
-    "xyzdist": 51
+    "xyzdist": 51,
+    "zero pivot": 1
 }
