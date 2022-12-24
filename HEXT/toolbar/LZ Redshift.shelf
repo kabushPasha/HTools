@@ -29,7 +29,7 @@
 
   <tool name="rs_cam_from_view" label="Rs camera from view" icon="hicon:/SVGIcons.index?OBJ_camera.svg">
     <script scriptType="python"><![CDATA[import objecttoolutils
-import lz
+import lzRS_Shelf
 
 # If we contrl click we add parms to the selected cameras
 if not kwargs["ctrlclick"]:
@@ -41,7 +41,7 @@ if not kwargs["ctrlclick"]:
     newnode.parm("resx").set(1920)
     newnode.parm("resy").set(1080)
         
-    lz.lzRS_Shelf.addCameraParms(newnode,add_comment = True) 
+    lzRS_Shelf.addCameraParms(newnode,add_comment = True) 
 else:
     for node in hou.selectedNodes():
         if node.type().name() == 'cam':
@@ -94,8 +94,8 @@ newnode.setDisplayFlag(False)]]></script>
   </tool>
 
   <tool name="LZ RS Setup" label="LZ RS Setup" icon="ROP_Redshift_ROP">
-    <script scriptType="python"><![CDATA[import lz
-lz.lzRS_Shelf.LZ_RS_Setup3()]]></script>
+    <script scriptType="python"><![CDATA[import lzRS_Shelf
+lzRS_Shelf.LZ_RS_Setup3()]]></script>
   </tool>
 
   <tool name="LZ RS LightDome" label="LZ RS LightDome" icon="RS_lightDome_icon">

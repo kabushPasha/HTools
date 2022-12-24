@@ -10,12 +10,10 @@
     <memberTool name="OpenJOB"/>
     <memberTool name="LZ QuickVex PyPanel"/>
     <memberTool name="Edit LZ Util"/>
-    <memberTool name="Gallerer"/>
     <memberTool name="Particle Display Type"/>
     <memberTool name="Reload Textures"/>
     <memberTool name="LZ N2S"/>
     <memberTool name="lz_box"/>
-    <memberTool name="box_new"/>
     <memberTool name="makeVerb"/>
     <memberTool name="create_ref"/>
     <memberTool name="quick_gal"/>
@@ -695,37 +693,6 @@ wr.setCurrent(1)
 #wr.setColor(hou.Color(0.475,0.812,0.204))]]></script>
   </tool>
 
-  <tool name="Gallerer" label="Gallerer" icon="hicon:/SVGIcons.index?SHELF_flower.svg">
-    <script scriptType="python"><![CDATA[import toolutils
-sv = toolutils.sceneViewer()
-n = sv.currentNode().parent()
-
-
-if not kwargs['ctrlclick']:
-    if n.node("LZ_gallerer") is None:    
-        gal = n.createNode("LZ_gallerer","LZ_gallerer")
-        gal.setPosition(hou.Vector2((-20,15)))
-        gal.parm("getScripter").pressButton()
-    else:
-        n.node("LZ_gallerer").parm("scripter").pressButton()
-else:
-    # Close Gallerer
-    if n.node("LZ_gallerer") is not None:
-        # Close Floating panel and remove node
-        def clean(n):
-            pname = n.path().replace('/','_')
-            for fp in hou.ui.floatingPanels():
-                if fp.name() == pname:
-                    fp.close() 
-            n.destroy()   
-        
-        n = n.node("LZ_gallerer")
-        clean(n.outputs()[0])  
-        clean(n)
-
-]]></script>
-  </tool>
-
   <tool name="volume data" label="Volume Data" icon="hicon:/SVGIcons.index?SOP_volumeanalysis.svg">
     <script scriptType="python"><![CDATA[for n in hou.selectedNodes():
     g =  n.geometry()
@@ -962,80 +929,14 @@ QApplication.clipboard().setText(script)
   </tool>
 
   <tool name="lz_box" label="BOX" icon="hicon:/SVGIcons.index?SOP_box.svg">
-    <script scriptType="python"><![CDATA[n = hou.selectedNodes()[0]
+    <script scriptType="python"><![CDATA[import lzutil,toolutils
+      
+cn = lzutil.getCurrentContextNode()
+script = cn.createNode("LZ_Blockout")
+center = toolutils.networkEditor().visibleBounds().center()
+script.setPosition(center) 
 
-import toolutils
-sv = toolutils.sceneViewer()
-sv.setSnappingMode(hou.snappingMode.Prim)
-pos = sv.selectPositions(number_of_positions=2)
-
-minx = min(pos[0].x(),pos[1].x())
-maxx = max(pos[0].x(),pos[1].x())
-wx = maxx - minx;
-tx = minx + wx*0.5;
-
-miny = min(pos[0].y(),pos[1].y())
-maxy = max(pos[0].y(),pos[1].y())
-wy = maxy - miny;
-ty = miny + wy*0.5;
-
-minz = min(pos[0].z(),pos[1].z())
-maxz = max(pos[0].z(),pos[1].z())
-wz = maxz - minz;
-tz = minz + wz*0.5;
-
-dn = n.parent().displayNode()
-# change to boolean if you want boolean operation
-merge = dn.createOutputNode('merge')
-box = merge.createInputNode(1,'box')
-box.parmTuple("t").set(hou.Vector3([tx,ty,tz]))
-box.parmTuple("size").set(hou.Vector3([wx,wy,wz]))
-
-sv.setSnappingMode(hou.snappingMode.Off)
-box.setSelected(True,True)
-merge.setDisplayFlag(True)
-sv.enterCurrentNodeState()   ]]></script>
-  </tool>
-
-  <tool name="box_new" label="Box New" icon="PLASMA_App">
-    <script scriptType="python"><![CDATA[import toolutils
-sv = toolutils.sceneViewer()
-n = sv.currentNode()
-if n.type().name() == "obj":
-    n = n.createNode("geo")
-    n.moveToGoodPosition()
-if n.type().name() != "geo":
-    n = n.parent()
-
-import toolutils
-sv = toolutils.sceneViewer()
-sv.setSnappingMode(hou.snappingMode.Prim)
-pos = sv.selectPositions(number_of_positions=2)
-
-minx = min(pos[0].x(),pos[1].x())
-maxx = max(pos[0].x(),pos[1].x())
-wx = maxx - minx;
-tx = minx + wx*0.5;
-
-miny = min(pos[0].y(),pos[1].y())
-maxy = max(pos[0].y(),pos[1].y())
-wy = maxy - miny;
-ty = miny + wy*0.5;
-
-minz = min(pos[0].z(),pos[1].z())
-maxz = max(pos[0].z(),pos[1].z())
-wz = maxz - minz;
-tz = minz + wz*0.5;
-
-# change to boolean if you want boolean operation
-box = n.createNode('box')
-box.parmTuple("t").set(hou.Vector3([tx,ty,tz]))
-box.parmTuple("size").set(hou.Vector3([wx,wy,wz]))
-
-sv.setSnappingMode(hou.snappingMode.Off)
-box.setSelected(True,True)
-box.setDisplayFlag(True)
-sv.enterCurrentNodeState()   ]]></script>
+]]></script>
   </tool>
 
   <tool name="change_asset_version" label="Change Asset Version" icon="PLASMA_App">

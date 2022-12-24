@@ -1,5 +1,8 @@
 {
     "Modelling": {
+        "CC_split_for_GS": {
+            "load_node": "CC_split_for_GS"
+        },
         "GS_Import_simple": {
             "load_node": "GS_Import_simple"
         },
