@@ -1,5 +1,16 @@
 #include <voplib.h>
 	
+// Vnoise
+int vseed(vector P)
+{
+	int seed;
+	float f1,f2;
+	vector p1,p2;
+	vnoise(P,1,seed,f1,f2,p1,p2);
+
+	return random_fhash( float(rand(p1)) );	
+}
+	
 // WORLEY NOISES
 float wseed(vector P)	
 {

@@ -126,12 +126,12 @@ def CreateDeadlineButtons(folder):
 	folder.addParmTemplate(deadline_jobname)
 	
 	DeadlineFastRender_btn = hou.ButtonParmTemplate("submit_to_deadline_allGpus", "Deadline Render")
-	DeadlineFastRender_btn.setScriptCallback("import lz;lz.lzDeadline.submitRS2Deadline(hou.pwd(),one_task_per_gpu=False)")
+	DeadlineFastRender_btn.setScriptCallback("import lzDeadline;lzDeadline.submitRS2Deadline(hou.pwd(),one_task_per_gpu=False)")
 	DeadlineFastRender_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
 	folder.addParmTemplate(DeadlineFastRender_btn)
 	
 	DeadlineRender_btn = hou.ButtonParmTemplate("submit_to_deadline", "Deadline Render (1f per GPU)")
-	DeadlineRender_btn.setScriptCallback("import lz;lz.lzDeadline.submitRS2Deadline(hou.pwd())")
+	DeadlineRender_btn.setScriptCallback("import lzDeadline;lzDeadline.submitRS2Deadline(hou.pwd())")
 	DeadlineRender_btn.setScriptCallbackLanguage(hou.scriptLanguage.Python)
 	folder.addParmTemplate(DeadlineRender_btn)
 	

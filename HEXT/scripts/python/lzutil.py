@@ -141,7 +141,8 @@ def addNoiseScriptAndParmsToSnippet(n,dim = 'float',fun = 'pfn'):
 		new_code = "{n_dim} n{id} = ch('a{id}') * {n_fun}(@P * ch('f{id}'));".format(id = noise_id,n_dim = dim,n_fun=fun)
 		snippetAddCode(n,new_code)   
 		ptg.appendToFolder(parm,noise_folder)	
-		n.setParmTemplateGroup(ptg)  	
+		n.setParmTemplateGroup(ptg)  
+		
 # Curl Noise(ALL PARAMETERS)
 def createCurlNoiseFolderParmTemplate(id):
 	a_parm = hou.FloatParmTemplate('a'+id,'Amp'+id,1,default_value = (1,))
@@ -229,7 +230,6 @@ def addCurlNoiseToSnippet(n):
 		snippetAddCode(n,new_code)   
 		ptg.appendToFolder(parm,noise_folder)	
 		n.setParmTemplateGroup(ptg)		
-
 
 
 def addNoiseToSnippet(n,type,v = 1):
@@ -643,6 +643,22 @@ python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))
 code = "_shell=True\\n" + n.parm(kwargs['parmtuple'].name()).eval()
 subprocess.Popen([python_path,"-i","-c",code])
 """
+	# Here we add lz path to sys.path so that we can use the lzlibs
+	run_in_console_script = """
+import subprocess,os,lz
+n = kwargs['node']
+
+lz_scripts_path = os.path.dirname(os.path.abspath(lz.__file__))      
+code = f"import sys\\n" \\
+f"sys.path.append('{lz_scripts_path}')\\n" \\
+"_shell=True\\n" \\
+f"{n.parm(kwargs['parmtuple'].name()).eval()}\\n"
+
+python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))
+subprocess.Popen([python_path,"-i","-c",code])
+	"""
+
+
 	lzPython_code.setTags({"editor": "1", "editorlang": "python", "editorlines": "30-50", "script_action": run_in_console_script})
   
 

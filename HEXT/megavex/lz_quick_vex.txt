@@ -37,6 +37,9 @@
         },
         "Other: 1D: Worley Seed": {
             "action": "lzutil.addNoiseScriptAndParmsToSnippet(n,'float','wseed')"
+        },
+		"Other: 1D: VSeed": {
+            "action": "lzutil.addNoiseScriptAndParmsToSnippet(n,'int','vseed')"
         }
     },
     "03 Noise Process": {
