@@ -3,6 +3,9 @@
         "CC_split_for_GS": {
             "load_node": "CC_split_for_GS"
         },
+        "Dist_Subdiv": {
+            "load_node": "Dist_Subdiv"
+        },
         "GS_Import_simple": {
             "load_node": "GS_Import_simple"
         },
