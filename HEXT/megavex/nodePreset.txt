@@ -18,6 +18,9 @@
         "Remove_close_inside_polys": {
             "load_node": "Remove_close_inside_polys"
         },
+        "Unshared_edges": {
+            "load_node": "Unshared_edges"
+        },
         "autouv": {
             "load_node": "autouv"
         },

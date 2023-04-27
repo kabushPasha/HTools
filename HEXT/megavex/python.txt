@@ -7,6 +7,11 @@
         }
     },
     "Snippets": {
+        "ABC Load Cameras": {
+            "python_code": [
+                "# Load only cams\nimport lzutil\nn = hou.pwd()\naa = n.inputs()[0]\n\naa.parm(\"fileName\").set(aa.parm(\"fileName\").eval())\n\naa.parm(\"objectPath\").set(\"\")\naa.parm(\"buildHierarchy\").pressButton()\n\ncams_str = \"\"\nfor cam in lzutil.getCams():\n    if cam.path().startswith(aa.path()):\n        cams_str += \"/\" + aa.relativePathTo(cam) + \" \"\n        \naa.parm(\"objectPath\").set(cams_str)\naa.parm(\"buildHierarchy\").pressButton()"
+            ]
+        },
         "ABC split paths": {
             "python_code": [
                 "import toolutils, nodegraphalign\neditor = toolutils.networkEditor()\nn = hou.pwd()\ng = n.inputs()[0].geometry()\npath_att = g.findPrimAttrib(\"path\")\n\ndef getNodeOutputNames(n):\n    return [ x.name() for x in n.outputs()]\n\ndef getOutputByName(n,name):\n    for out in n.outputs():\n        if out.name() == name:\n            return out\n    return None\n\n# Create blast tree\nout_nulls = []\nfor str in path_att.strings():\n    _node = n\n    _path = \"\"\n    for str_part in str.split(\"/\"):\n        _path += str_part + \"/\"\n        if str_part:\n            if str_part in getNodeOutputNames(_node):\n                _node = getOutputByName(_node,str_part)\n            else:\n                _node = _node.createOutputNode(\"blast\",str_part)\n                _node.setParms({\"group\":f\"@path={_path}*\",\"grouptype\":4,\"negate\":1})\n                \n    out_null = _node.createOutputNode(\"null\",str.replace(\"/\",\"__\"))\n    out_nulls.append(out_null)\n            \n# align our nodes         \nnodegraphalign.alignConnected(editor,n,None,\"down\")\n\n# Find min y pos for out_nulls\nmin_y = None\nfor out in out_nulls:\n    if min_y == None : \n        min_y = out.position()[1] \n    else:\n        min_y = min(min_y, out.position()[1])\n\n# create obj Merges\ni = 0    \nfor out in out_nulls:    \n    out.setPosition(hou.Vector2( out.position()[0],min_y - 2.0))\n    #create merge\n    merge_node = hou.node(\"/obj\").createNode(\"geo\",out.name())\n    merge = merge_node.createNode(\"object_merge\",out.name())\n    merge.parm(\"objpath1\").set(out.path()) \n    # move to good position\n    merge_node.setPosition( out.parent().position() + hou.Vector2( 4 , i*-0.5  ) )\n    i += 1\n    \n    \n    \n    \n\n"
@@ -29,6 +34,11 @@
                 "#Fix texture paths\n\nold_path = hou.pwd().parm(\"old_path\").eval() #defparm file \"\"\nnew_path = hou.pwd().parm(\"new_path\").eval() #defparm file \"\"\n\ncommand = f\"opchange {old_path} {new_path}\"\nhou.hscript(command)",
                 "# Quickmats based on Mats\n\ng = hou.pwd().inputs()[0].geometry()\nmat = hou.pwd()\n\nmaterials = g.findPrimAttrib(\"shop_materialpath\").strings()\n\nfor i in range(0,len(materials)):\n    str = materials[i]                    \n\n    mat = mat.createOutputNode(\"Rs_quickMat\",str)\n    mat.parm('basegroup').set(f\"@shop_materialpath={str}\")\n    \n    c = hou.Color()\n    hue =  i * 360 / len(materials)\n    c.setHSV( (hue , 0.75, 0.75) )\n    \n    mat.setColor(c)\n    dif = mat.parmTuple(\"mat/mat/ogl_diff\")\n    dif.deleteAllKeyframes()\n    dif.set(c.rgb())\n    \n    \n    ",
                 "# Create Multimat Network\n# Currentlynot working, just some tets\n\ng = hou.pwd().inputs()[0].geometry()\nmat = []\n\nmaterials = g.findPrimAttrib(\"shop_materialpath\").strings()\n\nmatnet = hou.node(\"/mat\")\n\n\nfor i in range(0,len(materials)):\n    str = materials[i]                    \n\n    new_mat = matnet.createNode(\"redshift_material\",str)\n    \n    \n    if mat:\n        new_mat.setPosition(mat.position() + hou.Vector2(0,2))\n    mat = new_mat\n    \n    #mat.createInputNode(0,\"null\")\n    \n    \n"
+            ]
+        },
+        "ProcessPreviews": {
+            "python_code": [
+                "#Process All Previews\nimport os,subprocess\njob = \"S:/MEGA/Projects/2020/003_Work/006_Rawman\"\nsrc_folder = job + \"/Render/Previews\"\n\n\nfiles = os.listdir(src_folder)\n\nfor folder in files:\n    full_path = os.path.join(src_folder, folder)\n    if os.path.isdir(full_path):\n        if not folder + \".mp4\" in files:\n            print(full_path)\n            \n            start_frame = os.listdir(full_path)[0].replace(\".jpg\",\"\")\n            print(start_frame)\n            subprocess.run([\"lzff\",start_frame],cwd = full_path,shell=True)  \n            "
             ]
         },
         "RS Display Only ProxiesOnDisk Expression": {
