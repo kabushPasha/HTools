@@ -112,6 +112,9 @@
     "_Other": {
         "Gears": {
             "load_node": "Gears"
+        },
+        "LZ_CurveHair": {
+            "load_node": "LZ_CurveHair"
         }
     }
 }

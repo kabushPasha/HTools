@@ -36,6 +36,11 @@
                 "# Create Multimat Network\n# Currentlynot working, just some tets\n\ng = hou.pwd().inputs()[0].geometry()\nmat = []\n\nmaterials = g.findPrimAttrib(\"shop_materialpath\").strings()\n\nmatnet = hou.node(\"/mat\")\n\n\nfor i in range(0,len(materials)):\n    str = materials[i]                    \n\n    new_mat = matnet.createNode(\"redshift_material\",str)\n    \n    \n    if mat:\n        new_mat.setPosition(mat.position() + hou.Vector2(0,2))\n    mat = new_mat\n    \n    #mat.createInputNode(0,\"null\")\n    \n    \n"
             ]
         },
+        "Loading Example": {
+            "python_code": [
+                "# Loading Example\nimport time\n\nmins = 30\nnum_tasks = 60* mins\n\n\n\nwith hou.InterruptableOperation(\"Downloadin assets\", open_interrupt_dialog=True) as operation:\n    for i in range(num_tasks):\n        #\n        # PERFORM TASK HERE.\n        #\n\n        # Update operation progress.\n        time.sleep(1)\n        \n        percent = float(i) / float(num_tasks)\n        operation.updateProgress(percent)"
+            ]
+        },
         "ProcessPreviews": {
             "python_code": [
                 "#Process All Previews\nimport os,subprocess\njob = \"S:/MEGA/Projects/2020/003_Work/006_Rawman\"\nsrc_folder = job + \"/Render/Previews\"\n\n\nfiles = os.listdir(src_folder)\n\nfor folder in files:\n    full_path = os.path.join(src_folder, folder)\n    if os.path.isdir(full_path):\n        if not folder + \".mp4\" in files:\n            print(full_path)\n            \n            start_frame = os.listdir(full_path)[0].replace(\".jpg\",\"\")\n            print(start_frame)\n            subprocess.run([\"lzff\",start_frame],cwd = full_path,shell=True)  \n            "

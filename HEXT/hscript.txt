@@ -18,6 +18,9 @@ string p3() return opinputpath("..",2);
 string p1() return opinputpath("..",0);
 string p4() return opinputpath("..",3);
 
+string po(in,out) return strcat(opinputpath("..",in),strcat("/output",ftrim(out)));
+string pot(in) return strcat(opinputpath("..",in),"/objnet/Transform");
+
 string ii(i1,i2) return  opinputpath(opinputpath(".",i1),i2);
 string pii(i1,i2) return  opinputpath(opinputpath("..",i1),i2);
 
