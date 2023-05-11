@@ -115,6 +115,9 @@
         },
         "LZ_CurveHair": {
             "load_node": "LZ_CurveHair"
+        },
+        "LZ_CurveHair_v2": {
+            "load_node": "LZ_CurveHair_v2"
         }
     }
 }
