@@ -212,6 +212,9 @@
         }
     },
     "Roatation": {
+        "Tree Orient": {
+            "code": "vector center = chv('center');\nfloat maxangle = chf('maxangle');\nvector dir = sample_direction_cone(center,maxangle,rand(@ptnum));\nmatrix3 t = maketransform(normalize(cross(dir,set(dir.y,dir.z,dir.x))),dir);\n\np@orient = quaternion(t);\np@orient = qmultiply(p@orient,quaternion(radians(chf(\"angle\")*360),{0,1,0}));\n\n"
+        },
         "qconvert": {
             "code": "matrix3 t = qconvert(p@orient);"
         },

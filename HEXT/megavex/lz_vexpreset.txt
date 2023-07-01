@@ -123,6 +123,9 @@
         },
         "orient to N and up": {
             "addcode": "v@N = qrotate(p@orient,{0,0,1});\nv@up = qrotate(p@orient,{0,1,0});"
+        },
+        "y to z": {
+            "python_code": "3@t = matrix();\nmatrix3 r90 = {{1, 0, 0}, {0, 0, -1}, {0, 1, 0}};\nmatrix3 flipz = {{1, 0, 0}, {0, 1, 0}, {0, 0, -1}};\n3@t *= r90*flipz;\n"
         }
     },
     "Utility": {

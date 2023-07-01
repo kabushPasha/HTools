@@ -55,6 +55,9 @@
         "Hex plastic": {
             "load_node": "Hex plastic"
         },
+        "LZ_RS_BLEND": {
+            "load_node": "LZ_RS_BLEND"
+        },
         "Metal Rib Holes": {
             "load_node": "Metal Rib Holes"
         },
