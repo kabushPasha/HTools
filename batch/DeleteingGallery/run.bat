@@ -1,3 +1,3 @@
 start pythonw main.py
-::pause
+pause
 ::exit

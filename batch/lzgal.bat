@@ -1,1 +1,1 @@
-start pythonw %~dp0/DeleteingGallery/main.py
+start pythonw %~dp0/DeleteingGallery/main.py %cd%
