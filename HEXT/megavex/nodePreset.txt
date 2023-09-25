@@ -1,5 +1,8 @@
 {
     "Modelling": {
+        "All_points_to_closed_line": {
+            "load_node": "All_points_to_closed_line"
+        },
         "CC_split_for_GS": {
             "load_node": "CC_split_for_GS"
         },
@@ -12,14 +15,26 @@
         "Liquid_Sculpt": {
             "load_node": "Liquid_Sculpt"
         },
+        "Random_Curve_Track": {
+            "load_node": "Random_Curve_Track"
+        },
         "Reference_Image": {
             "load_node": "Reference_Image"
         },
         "Remove_close_inside_polys": {
             "load_node": "Remove_close_inside_polys"
         },
+        "Slide_ALong_Curve": {
+            "load_node": "Slide_ALong_Curve"
+        },
+        "Tubes2Lines_deform": {
+            "load_node": "Tubes2Lines_deform"
+        },
         "Unshared_edges": {
             "load_node": "Unshared_edges"
+        },
+        "Wire2Line": {
+            "load_node": "Wire2Line"
         },
         "autouv": {
             "load_node": "autouv"
@@ -108,6 +123,9 @@
         }
     },
     "_Helpers": {
+        "Camera From Curve": {
+            "load_node": "Camera From Curve"
+        },
         "Focus_plane": {
             "load_node": "Focus_plane"
         }

@@ -13,6 +13,9 @@
         },
         "Y Normal Mask": {
             "addcode": "f@mask = chramp(\"Y_mask\",0.5+0.5*dot(v@N,{0,1,0}));\nv@Cd = f@mask;\n\n\n\n"
+        },
+        "attribute max spread": {
+            "python_code": "int nbrs[] = neighbours(0,@ptnum);\n\nforeach(int nbr; nbrs){\nv@Cd = max(v@Cd,point(0,\"Cd\",nbr));\n}"
         }
     },
     "Modelling": {

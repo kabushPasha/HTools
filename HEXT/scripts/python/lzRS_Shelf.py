@@ -397,7 +397,7 @@ def addCameraParms(cam,add_comment = False):
 	# use our custom dof
 	#cam.parm("RS_campro_dofUseHoudiniCamera").set(0)
 	cam.parm('RS_campro_dofDistance').set(cam.parm("f2t"))
-	cam.parm("RS_campro_dofCoC").set(0.02)
+	#cam.parm("RS_campro_dofCoC").set(0.02)
 	
 def AddHDRLoader(newnode):
 	# Add LZ Controlls
