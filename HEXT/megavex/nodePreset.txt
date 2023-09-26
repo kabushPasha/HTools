@@ -1,4 +1,21 @@
 {
+    "Curves": {
+        "Auto_Bezier_Curve": {
+            "load_node": "Auto_Bezier_Curve"
+        },
+        "Random_Curve_Track": {
+            "load_node": "Random_Curve_Track"
+        },
+        "Slide_ALong_Curve": {
+            "load_node": "Slide_ALong_Curve"
+        },
+        "Tubes2Lines_deform": {
+            "load_node": "Tubes2Lines_deform"
+        },
+        "Wire2Line": {
+            "load_node": "Wire2Line"
+        }
+    },
     "Modelling": {
         "All_points_to_closed_line": {
             "load_node": "All_points_to_closed_line"
@@ -15,26 +32,14 @@
         "Liquid_Sculpt": {
             "load_node": "Liquid_Sculpt"
         },
-        "Random_Curve_Track": {
-            "load_node": "Random_Curve_Track"
-        },
         "Reference_Image": {
             "load_node": "Reference_Image"
         },
         "Remove_close_inside_polys": {
             "load_node": "Remove_close_inside_polys"
         },
-        "Slide_ALong_Curve": {
-            "load_node": "Slide_ALong_Curve"
-        },
-        "Tubes2Lines_deform": {
-            "load_node": "Tubes2Lines_deform"
-        },
         "Unshared_edges": {
             "load_node": "Unshared_edges"
-        },
-        "Wire2Line": {
-            "load_node": "Wire2Line"
         },
         "autouv": {
             "load_node": "autouv"
