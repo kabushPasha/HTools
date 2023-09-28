@@ -3,6 +3,9 @@
         "Auto_Bezier_Curve": {
             "load_node": "Auto_Bezier_Curve"
         },
+        "Camera2Curve": {
+            "load_node": "Camera2Curve"
+        },
         "Random_Curve_Track": {
             "load_node": "Random_Curve_Track"
         },
