@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+<body>
+<video autoplay muted width="100%" height="auto" controls>
+<source src="movie.mp4" type="video/mp4">
+</video>
+
+
+
+<!-- 
+dir /b | clip
+-->
+
+<p id="demo" width = 100>
+REPLACE_LIST
+</p>
+
+<div class="slidecontainer">
+	<button onclick="setSwapTime(1)"> 1s </button>
+	<button onclick="setSwapTime(2)"> 2s </button>
+	<button onclick="setSwapTime(3)"> 3s </button>
+	<button onclick="setSwapTime(5)"> 5s </button>
+	<button onclick="setSwapTime(10)"> 10s </button>
+	<button onclick="setSwapTime(0)"> Whole </button>
+</div>
+
+
+<script>
+src_path = "REPLACE_PATH"
+swap_time = 0
+
+function setSwapTime(swapTime) 
+{
+	swap_time = swapTime;
+}
+
+const images = document.getElementById("demo").innerHTML.split("\n");
+var vods = []
+
+images.forEach(addImage);
+function addImage(item) {
+	if (item)
+	{
+	vods.push(src_path + item)	
+	}
+}
+
+// add pause callback
+const video = document.querySelector("video");
+
+// set first
+var item = vods[Math.floor(Math.random()*vods.length)];
+video.src = item;
+video.play();
+
+video.addEventListener("pause", (event) => {
+  var item = vods[Math.floor(Math.random()*vods.length)];
+  // alert(`Key pressed ${item}`);
+  video.src = item;
+  video.play();
+});
+
+video.addEventListener('timeupdate', () => {
+    var hasPlayedTime = video.currentTime;
+	//console.log(hasPlayedTime)
+	if (swap_time && hasPlayedTime > swap_time)
+	{
+		var item = vods[Math.floor(Math.random()*vods.length)];
+		video.src = item;
+		video.play();	
+	}	
+});
+
+
+
+document.getElementById("demo").innerHTML = ""
+
+</script>
+
+</body>
+</html>

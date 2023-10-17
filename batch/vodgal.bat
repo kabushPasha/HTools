@@ -1,1 +1,1 @@
-start python %~dp0/VodGal/main.py "%cd%"
+start python %~dp0/VodGal/main.py "%cd%" %*
