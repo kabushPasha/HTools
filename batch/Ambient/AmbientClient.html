@@ -1,0 +1,150 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+<title>Document</title> 
+
+</head> 
+<body> 
+
+<div id="SongName"><h2>SongName</h2></div>
+<!--<div id="Stats"><p>Likes : 2<br />Disles: 4<br />Score : 6</p></div>-->
+<!--<div id="Volume"><p>Volume: 100%</p></div>-->
+
+<script>
+console.log("test")
+var connection = new WebSocket('ws://192.168.0.23:50000');
+
+connection.onopen = function () {
+	console.log("Connected")
+	// Update Current Song Info
+	connection.send('get_info');
+	// Find Body
+	var body = document.getElementsByTagName("body")[0];
+	// Buttons List
+	var buttons = [
+	{ type:"button", label: "Like", msg: "like" },
+	{ type:"html", inner: "<font id='likes'>5</font>" },
+	{},
+	{ type:"button", label: "Dislike", msg: "dis" },
+	{ type:"html", inner: "<font id='dislikes'>5</font>" },
+	{},
+	{},
+	{ type:"button", label: "Play", msg: "play" },
+	{ type:"button", label: "Pause", msg: "pause" },
+	{ type:"button", label: "Next", msg: "next" },
+	{ type:"button", label: "Prev", msg: "previous" },
+	{},
+	{ type:"slider"},
+	{},
+	//{ type:"button", label: "Vol+", msg: "volume_up" },
+	//{ type:"button", label: "Vol-", msg: "volume_down" },
+	//{ type:"button", label: "Vol 100", msg: "volume_100" },
+	//{},
+	{},
+	{ type:"button", label: "Shuffle", msg: "restart_player" },
+	{ type:"button", label: "Info", msg: "get_info" },
+	{},
+	{},
+	];
+
+
+	// Create Buttons
+	 buttons.forEach(button_description => {
+		//console.log(button_description)
+		if (button_description.type==undefined){
+			body.appendChild( document.createElement("br"));
+		}
+		if (button_description.type=="button"){
+		  var button = document.createElement("button");
+		  button.innerHTML = button_description.label;
+		  body.appendChild(button);
+		  button.addEventListener ("click", function() { connection.send(button_description.msg);connection.send("get_info");});
+		  button.id = button_description.msg + "_btn"
+		  button.style.width = "60px"
+		  button.style.height = "25px"
+		}
+		if (button_description.type=="html"){
+			var elem = document.createElement('label');
+			elem.innerHTML = button_description.inner;
+			elem.style.marginLeft = "10px"
+			body.appendChild(elem);
+		}
+		if (button_description.type=="slider"){
+			var slider = document.createElement('input');
+			slider.id = "volume";
+			slider.type = 'range';
+			slider.min = 0;
+			slider.max = 200;
+			slider.value = 100;
+			slider.step = 5;
+			slider.style.width = "240px"
+			document.body.appendChild(slider);
+
+			slider.oninput = function() {
+				console.log(this.value);
+				connection.send("set_volume:" + this.value)
+			}
+		}
+	});
+
+	// Add Playlist Element
+	var playlist_div = document.createElement("div");
+	playlist_div.id = "playlist";
+	body.appendChild(playlist_div);
+};
+
+connection.onmessage = function (event) {
+  console.log(event.data);  
+  var info = JSON.parse(event.data);  
+  // Update Song Name
+  songName = document.getElementById('SongName');
+  songName.innerHTML = "<h2>" + info.track + "</h2>";
+  // Update Like/Dislikes
+  //stats = document.getElementById('Stats');
+  //stats.innerHTML = "<p>Likes : "+info.stats.likes+"<br />Dislikes: "+info.stats.dislikes+"<br />Score : "+info.stats.score+"</p>"
+  document.getElementById('likes').innerHTML = "<font id='likes'>"+info.stats.likes+"</font>"
+  document.getElementById('dislikes').innerHTML = "<font id='dislikes'>"+info.stats.dislikes+"</font>"
+
+  // Update Volume
+  //volume_div = document.getElementById('Volume');
+  //volume_div.innerHTML = "<p>Volume: "+info.volume+"%</p>";
+
+	like_btn = document.getElementById('like_btn')
+	dis_btn = document.getElementById('dis_btn')
+
+	switch(info.my) {
+	case -1:
+		like_btn.style.backgroundColor = null
+		dis_btn.style.backgroundColor = "red"
+		break;
+	case 1:	
+		like_btn.style.backgroundColor = "green"
+		dis_btn.style.backgroundColor = null
+		break;
+	default:
+		like_btn.style.backgroundColor = null
+		dis_btn.style.backgroundColor = null
+		break;
+	}
+
+	// Update Playlist
+	//console.log(info.playlist)
+	playlist_div = document.getElementById('playlist')
+	playlist_div.innerHTML = "";
+	info.playlist.forEach(song => {
+		var elem = document.createElement('label');
+		elem.innerText = song;
+		elem.style.marginLeft = "10px"
+		playlist_div.appendChild(elem);
+
+		if(info.track == song)
+			elem.style.color = "green"
+
+		playlist_div.appendChild( document.createElement("br"));
+	});
+
+}
+
+</script> 
+</body> 
+</html>

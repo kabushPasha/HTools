@@ -1,0 +1,108 @@
+<!DOCTYPE html> 
+
+<head> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>WebSocker Client</title> 
+</head>
+ 
+<!-- MAIN PLAYER -->
+<video autoplay muted width="100%" height="auto" controls>
+	<source src="movie.mp4" type="video/mp4">
+</video>
+
+<!-- // BUTTONS -->
+<div class="slidecontainer">
+	<button onclick="setSwapTime(1)"> 1s </button>
+	<button onclick="setSwapTime(2)"> 2s </button>
+	<button onclick="setSwapTime(3)"> 3s </button>
+	<button onclick="setSwapTime(5)"> 5s </button>
+	<button onclick="setSwapTime(10)"> 10s </button>
+	<button onclick="setSwapTime(0)"> Whole </button>
+	<button id="LoopButton" onclick="setLoop()"> LOOP </button>
+	<button id="DeleteButton" onclick="setDelete()"> Delete </button>
+</div>
+
+
+ 
+<script> 
+	// set BG Color
+	document.body.style.backgroundColor = "black";
+
+	// find Video
+	const video = document.querySelector("video");
+	const LoopButton = document.getElementById("LoopButton");
+	var delete_enabled = false 
+
+	// swap time for shorter playback
+	swap_time = 0		
+	function setSwapTime(swapTime) {swap_time = swapTime;}
+	function setLoop() {video.loop = !video.loop; LoopButton.style.background= !video.loop ? '#8c8c8c' : '#e6e6e6'; }
+	function setDelete() {delete_enabled = !delete_enabled; DeleteButton.style.background= delete_enabled ? '#A52A2A' : '#e6e6e6'; }
+
+	// set loop
+	video.loop = true
+	
+	// set random video funstion
+	function setRandomVideo(){
+		if (vods.length > 0){ video.src = vods.pop();video.play();	}
+		else {	video.src = "";	}
+	}
+	
+	// Random on pause
+	video.addEventListener("pause", (event) => {setRandomVideo();});
+
+	// Play nex if swap_time
+	video.addEventListener('timeupdate', () => {		
+		if (swap_time && video.currentTime > swap_time && !video.loop)	setRandomVideo();	
+	});		
+
+	// Keyboard Events
+	document.addEventListener('keyup', (event) => {
+	if (video.loop)
+	{
+		var name = event.key;
+		var code = event.code;
+		console.log(name, code);
+
+		// delete video
+		if (code == "KeyD" && delete_enabled){
+			console.log("delete", video.src);
+			connection.send( JSON.stringify(["delete",video.src]));			
+			setRandomVideo();
+		}			
+		// skip video
+		if (code == 'KeyA') {setRandomVideo();}
+		// save video
+		if (code == 'KeyS') {
+			connection.send( JSON.stringify(["save",video.src]));	
+			setRandomVideo();
+		}
+		if (code == 'KeyR') {video.currentTime = 0;}
+		
+	} 
+	}, false);
+
+
+
+	// SERVER 
+	// connect to server
+    const connection = new WebSocket('ws://localhost:8000');	
+	connection.onopen = function () {
+		connection.send( JSON.stringify(['GET_Files']));
+	};
+	
+	connection.onmessage = function (event) { 
+	
+		console.log("STARTED APP")
+		console.log(JSON.parse(event.data));
+		
+		// MAIN FUNCTION
+		vods = JSON.parse(event.data)		
+		
+		// pick first video
+		setRandomVideo();		
+	};
+	
+
+ 
+</script> 

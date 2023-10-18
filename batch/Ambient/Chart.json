@@ -1,0 +1,55 @@
+{
+    "Persona%203%20ost%20-%20Afternoon%20Break%20%5BExtended%5D.mp3": {
+        "192.168.0.36": 1,
+        "total": {
+            "dislikes": 0,
+            "likes": 1,
+            "score": 1
+        }
+    },
+    "Persona%203%20ost%20-%20Iwatodai%20Dorm%20%5BExtended%5D.mp3": {
+        "192.168.0.26": 1,
+        "192.168.0.34": 1,
+        "192.168.0.36": 1,
+        "total": {
+            "dislikes": 0,
+            "likes": 3,
+            "score": 3
+        }
+    },
+    "Persona%203%20ost%20-%20The%20Poem%20for%20Everyones%20Souls%20%5BExtended%5D.mp3": {
+        "192.168.0.20": 1,
+        "192.168.0.34": -1,
+        "192.168.0.36": -1,
+        "total": {
+            "dislikes": 2,
+            "likes": 1,
+            "score": -1
+        }
+    },
+    "angus-julia-stone-paper-aeroplane-official-music-video.mp3": {
+        "192.168.0.34": 1,
+        "192.168.0.36": 1,
+        "total": {
+            "dislikes": 0,
+            "likes": 2,
+            "score": 2
+        }
+    },
+    "jose-gonzalez-heartbeats-lyric-video.mp3": {
+        "192.168.0.36": 1,
+        "total": {
+            "dislikes": 0,
+            "likes": 1,
+            "score": 1
+        }
+    },
+    "nirvana-the-man-who-sold-the-world-mtv-unplugged.mp3": {
+        "192.168.0.36": 1,
+        "total": {
+            "dislikes": 0,
+            "likes": 1,
+            "score": 1
+        }
+    }
+}
