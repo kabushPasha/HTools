@@ -122,7 +122,7 @@
     "primintrinsic": 16,
     "primpoint": 8,
     "primpoints": 6,
-    "primuv": 65,
+    "primuv": 66,
     "qconvert": 11,
     "qrotate": 54,
     "quaternion": 13,
@@ -151,6 +151,6 @@
     "volumegradient": 16,
     "volumesample": 45,
     "volumesampleV": 4,
-    "xyzdist": 85,
+    "xyzdist": 86,
     "zero pivot": 1
 }

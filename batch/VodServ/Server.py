@@ -1,15 +1,18 @@
 # COMMANDLINE ARGS
 # o - open html page
 # r - random order
+# m - multitab open
 
 import asyncio 
 import websockets
 import glob, json, os, subprocess, sys ,random
 import urllib
 
-html_file = os.path.dirname(__file__) + "\client.html" 
-print(html_file)
 if "o" in sys.argv:
+	html_file = os.path.dirname(__file__) + "\client.html" 
+	os.system(html_file.replace("\\","/") )
+if "m" in sys.argv:
+	html_file = os.path.dirname(__file__) + "\client_Multi.html" 
 	os.system(html_file.replace("\\","/") )
 
 src_folder = sys.argv[1]
