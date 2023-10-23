@@ -27,6 +27,7 @@ REPLACE_LIST
 	<button onclick="setSwapTime(5)"> 5s </button>
 	<button onclick="setSwapTime(10)"> 10s </button>
 	<button onclick="setSwapTime(0)"> Whole </button>
+	<button id="LoopButton" onclick="setLoop()"> LOOP </button>
 </div>
 
 
@@ -52,6 +53,8 @@ function addImage(item) {
 
 // add pause callback
 const video = document.querySelector("video");
+function setLoop() {video.loop = !video.loop; LoopButton.style.background= !video.loop ? '#8c8c8c' : '#e6e6e6'; }
+video.loop = true
 
 // set first
 var item = vods[Math.floor(Math.random()*vods.length)];
@@ -66,9 +69,7 @@ video.addEventListener("pause", (event) => {
 });
 
 video.addEventListener('timeupdate', () => {
-    var hasPlayedTime = video.currentTime;
-	//console.log(hasPlayedTime)
-	if (swap_time && hasPlayedTime > swap_time)
+	if (swap_time && video.currentTime > swap_time && !video.loop)
 	{
 		var item = vods[Math.floor(Math.random()*vods.length)];
 		video.src = item;
