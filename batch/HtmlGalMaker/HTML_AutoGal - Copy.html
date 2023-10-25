@@ -4,25 +4,6 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-	.block {
-	  display: block;
-	  width: 100%;
-	  border: none;
-	  background-color: #04AA6D;
-	  padding: 14px 28px;
-	  font-size: 16px;
-	  cursor: pointer;
-	  text-align: center;
-	  height: 70%;
-	  opacity: 0%;	  
-	  position: absolute;
-	  top: 0;
-	  right: 0;
-	}
-}
-</style>
-
 </head>
 <body>
 
@@ -30,7 +11,7 @@
 <source src="movie.mp4" type="video/mp4">
 </video>
 
-<button type="button" class="block" onclick="setRandomVideo()">Click Me!</button>
+
 
 <!-- 
 dir /b | clip
@@ -87,10 +68,11 @@ function setRandomVideo() {
   video.play();
 }
 
-// Video pauses at the end if not looped
+
 video.addEventListener("pause", (event) => {
 	setRandomVideo();
 });
+
 
 video.addEventListener('timeupdate', () => {
 	if (swap_time && video.currentTime > swap_time && !video.loop)
