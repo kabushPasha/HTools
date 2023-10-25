@@ -47,3 +47,7 @@ class CanoeAmbientServer():
 
 CanoeAmbientServer()
 
+
+
+
+# ffmpeg -skip_frame nokey -i KornBlitz.mp4 -vsync 0 -frame_pts true -r 1000 out%d.png

@@ -11,7 +11,7 @@
 <style>
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .grid-container {
@@ -74,8 +74,8 @@ document.addEventListener('keyup', (event) => {
 	// save video
 	if (code == 'KeyS') {
 		current_id = parseInt(selected_divs[0].id)
-		start_frame = framedata[current_id][3]
-		end_frame = framedata[current_id+1][1]
+		start_frame = framedata[current_id] + 0.160
+		end_frame = framedata[current_id+1] - 0.160
 		console.log(vod_src,start_frame,end_frame)
 		
 		connection.send( JSON.stringify(["save",[vod_src,start_frame,end_frame,current_id]]));	
@@ -94,8 +94,8 @@ connection.onopen = function () {
 };
 
 connection.onmessage = function (event) { 	
-		//console.log("STARTED APP")
-		//console.log(JSON.parse(event.data));
+		console.log("STARTED APP")
+		console.log(JSON.parse(event.data));
 		
 		// MAIN FUNCTION
 		vods = JSON.parse(event.data);	
@@ -104,17 +104,20 @@ connection.onmessage = function (event) {
 		img_size = vods[0][2];
 		framedata = vods[0][3];
 		
+		console.log("FRAMEDATA", framedata)
+		
 		
 		// Create FRAMES
 		n_frames = framedata.length
 		size_y = img_size[1]
-		img_height = size_y/n_frames
-		
+		img_height = size_y/n_frames		
 		video.src = vod_src;
+		
+		console.log(n_frames,size_y,img_height)
 		
 		// Fill Gallery
 		for (let i = 0; i < n_frames; i++) {
-			out_txt = `<div class="grid-item" id="${i}" style="box-sizing:border-box;width:${img_size[0]};height:${img_height};background:url('${img_src}');no-repeat;background-position:0px ${-img_height*i}px;">`
+			out_txt = `<div class="grid-item" id="${i}" style="box-sizing:border-box;width:${img_size[0]};height:${img_height};background-size: cover;background:url('${img_src}');no-repeat;background-position:0px ${-img_height*i}px;">`
 			
 			var new_button = document.createElement('div');
 			new_button.innerHTML = out_txt
@@ -123,9 +126,9 @@ connection.onmessage = function (event) {
 			new_button.addEventListener("click", (event) => {		 
 				var targetElement = event.target || event.srcElement;
 				console.log(framedata[i]);
-				video.currentTime = framedata[i][2];
-				cut_start_time = framedata[i][2];
-				cut_end_time = framedata[i+1][2];
+				video.currentTime = framedata[i];
+				cut_start_time = framedata[i];
+				cut_end_time = framedata[i+1];
 				targetElement.style.border = "5px solid red";
 				clear_selected();
 				selected_divs.push(targetElement);		
