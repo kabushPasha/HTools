@@ -1,0 +1,146 @@
+
+<video autoplay muted width="100%" height="auto" controls>	<source src="movie.mp4" type="video/mp4"></video>
+
+<div class="slider" id="slider" style="width:50%;height:5px;background-Color:red">
+</div>
+
+
+<div id="buttons_container" class="grid-container" style="overflow-y: scroll; height:400px;width: 100vw;">
+</div>
+
+<style>
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-container {
+  display: inline-grid;
+}
+</style>
+
+
+<script>
+// set BG Color
+document.body.style.backgroundColor = "black";
+
+const video = document.querySelector("video");	
+const buttons_container = document.getElementById("buttons_container")
+const slider = document.getElementById("slider")
+
+cut_start_time = 0;
+cut_end_time = 9999;
+
+selected_divs = []
+
+function clear_selected(){
+	selected_divs.forEach(clearSelected);	
+	selected_divs = []
+}
+
+function clearSelected(selected_div){
+	selected_div.style.border = "";	
+}
+
+/*
+// video time update
+video.addEventListener('timeupdate', () => {
+	if ( video.currentTime > cut_end_time)
+	{
+		video.currentTime = cut_start_time;	
+	}	
+	
+	slider.style.width = (100*(video.currentTime - cut_start_time)/(cut_end_time - cut_start_time)).toString()  + "%";	
+});
+*/
+
+window.onload = function() {            
+     function update() {
+        if ( video.currentTime > cut_end_time)
+		{
+			video.currentTime = cut_start_time;	
+		}			
+		slider.style.width = (100*(video.currentTime - cut_start_time)/(cut_end_time - cut_start_time)).toString()  + "%"; 
+     }
+     setInterval(update, 5);
+ }
+
+	// Keyboard Events
+document.addEventListener('keyup', (event) => {
+{
+	var code = event.code;
+	console.log(code);
+	
+	// save video
+	if (code == 'KeyS') {
+		current_id = parseInt(selected_divs[0].id)
+		start_frame = framedata[current_id][3]
+		end_frame = framedata[current_id+1][1]
+		console.log(vod_src,start_frame,end_frame)
+		
+		connection.send( JSON.stringify(["save",[vod_src,start_frame,end_frame,current_id]]));	
+	}
+	
+} 
+}, false);
+
+
+
+// SERVER 
+// connect to server
+const connection = new WebSocket('ws://localhost:8000');
+connection.onopen = function () {
+	connection.send( JSON.stringify(['GET_Files']));
+};
+
+connection.onmessage = function (event) { 	
+		//console.log("STARTED APP")
+		//console.log(JSON.parse(event.data));
+		
+		// MAIN FUNCTION
+		vods = JSON.parse(event.data);	
+		vod_src = vods[0][0];
+		img_src = vods[0][1];
+		img_size = vods[0][2];
+		framedata = vods[0][3];
+		
+		
+		// Create FRAMES
+		n_frames = framedata.length
+		size_y = img_size[1]
+		img_height = size_y/n_frames
+		
+		video.src = vod_src;
+		
+		// Fill Gallery
+		for (let i = 0; i < n_frames; i++) {
+			out_txt = `<div class="grid-item" id="${i}" style="box-sizing:border-box;width:${img_size[0]};height:${img_height};background:url('${img_src}');no-repeat;background-position:0px ${-img_height*i}px;">`
+			
+			var new_button = document.createElement('div');
+			new_button.innerHTML = out_txt
+			document.getElementById("buttons_container").appendChild(new_button);
+			
+			new_button.addEventListener("click", (event) => {		 
+				var targetElement = event.target || event.srcElement;
+				console.log(framedata[i]);
+				video.currentTime = framedata[i][2];
+				cut_start_time = framedata[i][2];
+				cut_end_time = framedata[i+1][2];
+				targetElement.style.border = "5px solid red";
+				clear_selected();
+				selected_divs.push(targetElement);		
+				});	
+		}
+	};
+
+
+
+
+
+
+
+
+
+</script>
+
+
