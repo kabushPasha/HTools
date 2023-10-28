@@ -32,9 +32,13 @@ class CanoeAmbientServer():
 				await websocket.send(json.dumps(all_items))
 			if msg[0] == "save":
 				print("save", msg[1])
+				#out_file = '"{os.path.splitext(msg[1][0])[0]}_{str(msg[1][3])}.mkv"'
+				out_dir = os.path.dirname(msg[1][0]) + "/Cuts/"
+				if not os.path.isdir(out_dir) :  os.mkdir(out_dir)
+				out_file = out_dir + os.path.splitext(os.path.basename(msg[1][0]))[0] + f"_{str(msg[1][3])}.mkv"
 				
 				#subprocess.run(["ffmpeg","-ss",msg[1][1],"-to",msg[1][2],"-i",msg[1][0],"-c","copy",os.path.splitext(msg[1][0]) + "_" + str(msg[1][3]) + ".mkv"], shell=True)
-				cmd = f'ffmpeg -ss {msg[1][1]} -to {msg[1][2]} -i "{msg[1][0]}" -c copy "{os.path.splitext(msg[1][0])[0]}_{str(msg[1][3])}.mkv"'
+				cmd = f'ffmpeg -ss {msg[1][1]} -to {msg[1][2]} -i "{msg[1][0]}" -c copy "{out_file}"'
 				print(cmd)
 				subprocess.Popen(cmd)
 

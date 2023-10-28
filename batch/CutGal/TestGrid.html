@@ -1,14 +1,26 @@
 
+
 <video autoplay muted width="100%" height="auto" controls>	<source src="movie.mp4" type="video/mp4"></video>
 
 <div class="slider" id="slider" style="width:50%;height:5px;background-Color:red">
 </div>
 
 
-<div id="buttons_container" class="grid-container" style="overflow-y: scroll; height:400px;width: 100vw;">
+<div id="buttons_container" class="grid-container" style="overflow-y: scroll; height:400px;width: 100%;">
+</div>
+
+<div  style="color:grey">
+HOTKEYS:
+S - save current selected |
+N - load next |
+[] - increase/decrease columns |
+Arrow Keys - navigate |
+click - pick |
+Shift+click - pick range |
 </div>
 
 <style>
+
 .grid-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -17,6 +29,11 @@
 .grid-container {
   display: inline-grid;
 }
+
+.grid-item {
+
+}
+
 </style>
 
 
@@ -28,10 +45,20 @@ const video = document.querySelector("video");
 const buttons_container = document.getElementById("buttons_container")
 const slider = document.getElementById("slider")
 
-cut_start_time = 0;
-cut_end_time = 9999;
+function updateColumns( _columns)
+{
+	columns = _columns
+	console.log(columns)
+	buttons_container.style.gridTemplateColumns = `repeat(${_columns}, 1fr)`;
+}
 
-selected_divs = []
+
+function reset(){
+	cut_start_time = 0;
+	cut_end_time = 9999;
+	selected_divs = []
+	last_seleved_div = null
+	}
 
 function clear_selected(){
 	selected_divs.forEach(clearSelected);	
@@ -54,6 +81,23 @@ video.addEventListener('timeupdate', () => {
 });
 */
 
+columns = 2
+updateColumns(columns);
+reset();
+
+// ON Resize change slider box size
+window.onload = window.onresize = function () {
+	buttons_container.style.height = window.innerHeight - video.offsetHeight - 50
+}
+
+// Remove default bindings for arrows
+window.addEventListener("keydown", function(e) {
+    if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+        e.preventDefault();
+    }
+}, false);
+
+// Update Slider that shows progress
 window.onload = function() {            
      function update() {
         if ( video.currentTime > cut_end_time)
@@ -65,6 +109,71 @@ window.onload = function() {
      setInterval(update, 5);
  }
 
+function pickElementByOffset(offset,add){
+	current_id = parseInt(last_seleved_div.id)		
+	if ((current_id + offset > n_frames-1) || (current_id + offset < 0))  return;
+	targetElement = document.getElementById(current_id+offset)
+	video.currentTime = framedata[current_id + offset];
+	
+	
+	if(add){
+		i = current_id + offset;
+		// If we have only one selected then add it
+		if (selected_divs.length == 1){
+			id0 = parseInt(selected_divs[0].id);
+			targetElement.style.border = "5px solid red";
+			
+			if(i > id0){
+				cut_end_time = framedata[i+1];							
+				selected_divs.push(targetElement);
+				}
+			else{
+				cut_start_time = framedata[i];
+				selected_divs.unshift(targetElement);
+				}	
+			}
+		// If we have two selected then check
+		else{
+			id0 = parseInt(selected_divs[0].id);
+			id1 = parseInt(selected_divs[1].id);						
+			targetElement.style.border = "5px solid red";
+			
+			// we're trimming start
+			if (id0 == current_id ){				
+				if (i >= id1 ) return
+				cut_start_time = framedata[i];							
+				selected_divs[0].style.border = "";
+				selected_divs[0] = targetElement;	
+				}
+			// we're trimming end
+			else{
+				if (i <= id0 ) return
+				cut_end_time = framedata[i+1];							
+				selected_divs[1].style.border = "";
+				selected_divs[1] = targetElement;			
+				}
+			}
+		}
+	else{
+		clear_selected();	
+		cut_start_time = framedata[current_id + offset];
+		cut_end_time = framedata[current_id+1+offset];
+		
+		targetElement = document.getElementById(current_id+offset)
+		targetElement.style.border = "5px solid red";
+		selected_divs.push(targetElement);		
+		}
+	
+	last_seleved_div = targetElement;
+
+	// move to see the element
+	offset_up = targetElement.getBoundingClientRect().y - video.offsetHeight
+	if ( offset_up < 0 ) buttons_container.scrollBy( 0,offset_up);
+	offset_down = -targetElement.getBoundingClientRect().y + targetElement.parentElement.getBoundingClientRect().bottom - targetElement.getBoundingClientRect().height;
+	if (offset_down < 0) buttons_container.scrollBy(0, -offset_down);
+		
+	}
+
 	// Keyboard Events
 document.addEventListener('keyup', (event) => {
 {
@@ -73,17 +182,26 @@ document.addEventListener('keyup', (event) => {
 	
 	// save video
 	if (code == 'KeyS') {
-		current_id = parseInt(selected_divs[0].id)
-		start_frame = framedata[current_id] + 0.160
-		end_frame = framedata[current_id+1] - 0.160
-		console.log(vod_src,start_frame,end_frame)
+		output_id = selected_divs.length > 1 ? selected_divs[0].id + "_" + selected_divs[1].id : selected_divs[0].id
+		start_frame = cut_start_time + 0.160
+		end_frame = cut_end_time - 0.160		
 		
-		connection.send( JSON.stringify(["save",[vod_src,start_frame,end_frame,current_id]]));	
-	}
+		console.log(vod_src,start_frame,end_frame,output_id)		
+		connection.send( JSON.stringify(["save",[vod_src,start_frame,end_frame,output_id]]));	
+			}
+	// Next Video
+	if (code == 'KeyN') {		
+		loadNextVod();	
+			}
+	if (code == 'ArrowRight'){	pickElementByOffset(1,event.shiftKey);	}	
+	if (code == 'ArrowLeft'){	pickElementByOffset(-1,event.shiftKey);	}	
+	if (code == 'ArrowDown'){	pickElementByOffset( columns,event.shiftKey); }
+	if (code == 'ArrowUp'){	pickElementByOffset( -columns,event.shiftKey); }
 	
+	if (code == 'BracketLeft'){	updateColumns(columns - 1 ); }
+	if (code == 'BracketRight'){ updateColumns(columns + 1); }
 } 
 }, false);
-
 
 
 // SERVER 
@@ -93,55 +211,108 @@ connection.onopen = function () {
 	connection.send( JSON.stringify(['GET_Files']));
 };
 
+function loadNextVod(){
+	reset();
+
+	// clear old framese
+	buttons_container.innerHTML = '';
+	
+	// load next vod
+	vod = vods.shift()
+	vod_src = vod[0];
+	img_src = vod[1];
+	img_size = vod[2];
+	framedata = vod[3];		
+	
+	// Create FRAMES
+	n_frames = framedata.length
+	size_y = img_size[1]
+	img_height = size_y/n_frames		
+	video.src = vod_src;
+	aspect = img_size[0]/img_height;
+	
+	// Update Size
+	buttons_container.style.height = window.innerHeight - video.offsetHeight - 50
+	
+	console.log(n_frames,size_y,img_height)
+	
+	// Fill Gallery
+	for (let i = 0; i < n_frames; i++) {
+
+		var new_button = document.createElement('div');
+		new_button.class = "grid-item"
+		new_button.id = i
+		new_button.style.cssText = `aspect-ratio:${aspect};background:url('${img_src}');background-position:0px ${100*(i)/(n_frames-1)}%;background-size:cover;	box-sizing:border-box;no-repeat;`
+				
+		buttons_container.appendChild(new_button);
+		
+		// Button On Click
+		new_button.addEventListener("click", (event) => {		 
+			var targetElement = event.target || event.srcElement;
+			last_seleved_div = targetElement;
+			
+			if (event.shiftKey){
+				// If we have only one selected then add it
+				if (selected_divs.length == 1){
+					id0 = parseInt(selected_divs[0].id);
+					targetElement.style.border = "5px solid red";
+					
+					if(i > id0){
+						video.currentTime = framedata[i];
+						cut_end_time = framedata[i+1];							
+						selected_divs.push(targetElement);						
+						}
+					else{
+						video.currentTime = framedata[i];
+						cut_start_time = framedata[i];
+						selected_divs.unshift(targetElement);
+						}							
+					}
+				// If we have two selected then check
+				else{
+					id0 = parseInt(selected_divs[0].id);
+					id1 = parseInt(selected_divs[1].id);						
+					targetElement.style.border = "5px solid red";
+					
+					if (i > id0 ){
+						video.currentTime = framedata[i];
+						cut_end_time = framedata[i+1];							
+						selected_divs[1].style.border = "";
+						selected_divs[1] = targetElement;
+						}
+					if (i < id0 ){
+						video.currentTime = framedata[i];
+						cut_start_time = framedata[i];							
+						selected_divs[0].style.border = "";
+						selected_divs[0] = targetElement;							
+						}		
+					}				
+				}
+			else{
+				clear_selected();
+				
+				video.currentTime = framedata[i];
+				cut_start_time = framedata[i];
+				cut_end_time = framedata[i+1];
+				targetElement.style.border = "5px solid red";
+				selected_divs.push(targetElement);
+				}	
+			});	
+		}
+	
+	
+	}
+
+
 connection.onmessage = function (event) { 	
 		console.log("STARTED APP")
 		console.log(JSON.parse(event.data));
 		
 		// MAIN FUNCTION
-		vods = JSON.parse(event.data);	
-		vod_src = vods[0][0];
-		img_src = vods[0][1];
-		img_size = vods[0][2];
-		framedata = vods[0][3];
+		vods = JSON.parse(event.data);		
+		loadNextVod();
 		
-		console.log("FRAMEDATA", framedata)
-		
-		
-		// Create FRAMES
-		n_frames = framedata.length
-		size_y = img_size[1]
-		img_height = size_y/n_frames		
-		video.src = vod_src;
-		
-		console.log(n_frames,size_y,img_height)
-		
-		// Fill Gallery
-		for (let i = 0; i < n_frames; i++) {
-			out_txt = `<div class="grid-item" id="${i}" style="box-sizing:border-box;width:${img_size[0]};height:${img_height};background-size: cover;background:url('${img_src}');no-repeat;background-position:0px ${-img_height*i}px;">`
-			
-			var new_button = document.createElement('div');
-			new_button.innerHTML = out_txt
-			document.getElementById("buttons_container").appendChild(new_button);
-			
-			new_button.addEventListener("click", (event) => {		 
-				var targetElement = event.target || event.srcElement;
-				console.log(framedata[i]);
-				video.currentTime = framedata[i];
-				cut_start_time = framedata[i];
-				cut_end_time = framedata[i+1];
-				targetElement.style.border = "5px solid red";
-				clear_selected();
-				selected_divs.push(targetElement);		
-				});	
-		}
 	};
-
-
-
-
-
-
-
 
 
 </script>

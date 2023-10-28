@@ -63,9 +63,20 @@
             "load_node": "scatter_pscale_orient"
         }
     },
+    "Procedural Setups": {
+        "MOSS": {
+            "load_node": "MOSS"
+        },
+        "Simple_DUST": {
+            "load_node": "Simple_DUST"
+        }
+    },
     "SETUPS": {
         "Activate_NoiseMask": {
             "load_node": "Activate_NoiseMask"
+        },
+        "CHAINS_Bullet": {
+            "load_node": "CHAINS_Bullet"
         },
         "Crowd_Along_Line": {
             "load_node": "Crowd_Along_Line"
