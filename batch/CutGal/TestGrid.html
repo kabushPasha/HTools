@@ -109,6 +109,17 @@ window.onload = function() {
      setInterval(update, 5);
  }
 
+function tempAlert(msg,duration){
+	 var el = document.createElement("div");
+	 el.setAttribute("style","position:absolute;top:10px;left:10px;background-color:Grey;");
+	 el.innerHTML = msg;
+	 setTimeout(function(){
+	  el.parentNode.removeChild(el);
+	 },duration);
+	 document.body.appendChild(el);
+	}
+
+
 function pickElementByOffset(offset,add){
 	current_id = parseInt(last_seleved_div.id)		
 	if ((current_id + offset > n_frames-1) || (current_id + offset < 0))  return;
@@ -154,15 +165,7 @@ function pickElementByOffset(offset,add){
 				}
 			}
 		}
-	else{
-		clear_selected();	
-		cut_start_time = framedata[current_id + offset];
-		cut_end_time = framedata[current_id+1+offset];
-		
-		targetElement = document.getElementById(current_id+offset)
-		targetElement.style.border = "5px solid red";
-		selected_divs.push(targetElement);		
-		}
+	else{ pickSingleElem(current_id + offset); }
 	
 	last_seleved_div = targetElement;
 
@@ -185,14 +188,20 @@ document.addEventListener('keyup', (event) => {
 		output_id = selected_divs.length > 1 ? selected_divs[0].id + "_" + selected_divs[1].id : selected_divs[0].id
 		start_frame = cut_start_time + 0.160
 		end_frame = cut_end_time - 0.160		
+		tempAlert("Saved",500);
 		
 		console.log(vod_src,start_frame,end_frame,output_id)		
 		connection.send( JSON.stringify(["save",[vod_src,start_frame,end_frame,output_id]]));	
-			}
+		}
 	// Next Video
-	if (code == 'KeyN') {		
-		loadNextVod();	
-			}
+	if (code == 'KeyN') {loadNextVod();	}
+	if (code == 'KeyQ') {
+	window.close();
+	window.open("https://www.sidefx.com/docs/houdini/index.html"); }
+	if (code == 'KeyM') { 
+		connection.send( JSON.stringify(["move",vod_src]) );
+		loadNextVod();}
+	
 	if (code == 'ArrowRight'){	pickElementByOffset(1,event.shiftKey);	}	
 	if (code == 'ArrowLeft'){	pickElementByOffset(-1,event.shiftKey);	}	
 	if (code == 'ArrowDown'){	pickElementByOffset( columns,event.shiftKey); }
@@ -288,21 +297,24 @@ function loadNextVod(){
 						}		
 					}				
 				}
-			else{
-				clear_selected();
-				
-				video.currentTime = framedata[i];
-				cut_start_time = framedata[i];
-				cut_end_time = framedata[i+1];
-				targetElement.style.border = "5px solid red";
-				selected_divs.push(targetElement);
-				}	
+			else {pickSingleElem(i);}	
 			});	
 		}
 	
-	
+	// pick first	
+	pickSingleElem(0);
 	}
 
+function pickSingleElem( i ){
+	targetElement = document.getElementById(i)
+	clear_selected();
+	video.currentTime = framedata[i];
+	cut_start_time = framedata[i];
+	cut_end_time = framedata[i+1];
+	targetElement.style.border = "5px solid red";
+	selected_divs.push(targetElement);
+	last_seleved_div = targetElement;
+	}
 
 connection.onmessage = function (event) { 	
 		console.log("STARTED APP")
@@ -310,8 +322,7 @@ connection.onmessage = function (event) {
 		
 		// MAIN FUNCTION
 		vods = JSON.parse(event.data);		
-		loadNextVod();
-		
+		loadNextVod();		
 	};
 
 
