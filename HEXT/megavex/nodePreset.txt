@@ -1,4 +1,12 @@
 {
+    "CHARACTER": {
+        "EYE": {
+            "load_node": "EYE"
+        },
+        "Sweater_Knit": {
+            "load_node": "Sweater_Knit"
+        }
+    },
     "Curves": {
         "Auto_Bezier_Curve": {
             "load_node": "Auto_Bezier_Curve"
@@ -49,6 +57,9 @@
         },
         "Remove_close_inside_polys": {
             "load_node": "Remove_close_inside_polys"
+        },
+        "Reverse_inverted_geo": {
+            "load_node": "Reverse_inverted_geo"
         },
         "Scales": {
             "load_node": "Scales"
