@@ -39,6 +39,8 @@ Shift+click - pick range |
 
 <script>
 // set BG Color
+window.resizeTo(600,800);
+window.moveTo(4000,4000);
 document.body.style.backgroundColor = "black";
 
 const video = document.querySelector("video");	
@@ -196,8 +198,9 @@ document.addEventListener('keyup', (event) => {
 	// Next Video
 	if (code == 'KeyN') {loadNextVod();	}
 	if (code == 'KeyQ') {
-	window.close();
-	window.open("https://www.sidefx.com/docs/houdini/index.html"); }
+	//window.close();
+	//window.open("https://www.sidefx.com/docs/houdini/index.html"); }
+	window.location = "https://www.sidefx.com/docs/houdini/index.html"; }
 	if (code == 'KeyM') { 
 		connection.send( JSON.stringify(["move",vod_src]) );
 		loadNextVod();}
