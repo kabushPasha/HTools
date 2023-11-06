@@ -5,12 +5,18 @@
 
 import asyncio 
 import websockets
-import glob, json, os, subprocess, sys ,random
+import glob, json, os, subprocess, sys ,random,time
 import urllib
 
 if "o" in sys.argv:
 	html_file = os.path.dirname(__file__) + "\client.html" 
-	os.system(html_file.replace("\\","/") )
+	#os.system(html_file.replace("\\","/") )
+	
+	page = "file:///" + html_file.replace("\\","/")
+	open_command = r'start chrome --profile-directory="Default" '
+	open_command += r'--app=' + page	
+	os.system(open_command)
+	
 if "m" in sys.argv:
 	html_file = os.path.dirname(__file__) + "\client_Multi.html" 
 	os.system(html_file.replace("\\","/") )
@@ -43,6 +49,7 @@ class CanoeAmbientServer():
 				src_path = urllib.parse.unquote(msg[1].replace("file:///",""))
 				dest_path = os.path.dirname(src_path) + "/picked/" + os.path.basename(src_path)
 				if not os.path.isdir(os.path.dirname(dest_path)): os.mkdir(os.path.dirname(dest_path))
+				time.sleep(0.1)
 				os.rename(src_path, dest_path)
 
 	def startServer(self):

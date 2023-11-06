@@ -19,26 +19,32 @@
 	<button onclick="setSwapTime(10)"> 10s </button>
 	<button onclick="setSwapTime(0)"> Whole </button>
 	<button id="LoopButton" onclick="setLoop()"> LOOP </button>
-	<button id="DeleteButton" onclick="setDelete()"> Delete </button>
+	<div  style="color:grey">
+	HOTKEYS:
+	S - save current
+	N - load next 
+	Arrow Keys - navigate
+	Q - quit
+	</div>
 </div>
 
 
  
 <script> 
 	// set BG Color
+	window.resizeTo(600,400);
+	window.moveTo(4000,4000);	
 	document.body.style.backgroundColor = "black";
 
 	// find Video
 	const video = document.querySelector("video");
 	const LoopButton = document.getElementById("LoopButton");
-	var delete_enabled = false 
 
 	// swap time for shorter playback
 	swap_time = 0		
 	function setSwapTime(swapTime) {swap_time = swapTime;}
 	function setLoop() {video.loop = !video.loop; LoopButton.style.background= !video.loop ? '#8c8c8c' : '#e6e6e6'; }
-	function setDelete() {delete_enabled = !delete_enabled; DeleteButton.style.background= delete_enabled ? '#A52A2A' : '#e6e6e6'; }
-
+	
 	// set loop
 	video.loop = true
 	
@@ -49,7 +55,7 @@
 	}
 	
 	// Random on pause
-	video.addEventListener("pause", (event) => {setRandomVideo();});
+	//video.addEventListener("pause", (event) => {setRandomVideo();});
 
 	// Play nex if swap_time
 	video.addEventListener('timeupdate', () => {		
@@ -65,19 +71,25 @@
 		console.log(name, code);
 
 		// delete video
-		if (code == "KeyD" && delete_enabled){
-			console.log("delete", video.src);
-			connection.send( JSON.stringify(["delete",video.src]));			
+		if (code == "KeyD"){
+			video_to_send = video.src;
 			setRandomVideo();
+			console.log("delete", video_to_send);
+			connection.send( JSON.stringify(["delete",video_to_send]));			
 		}			
 		// skip video
-		if (code == 'KeyA') {setRandomVideo();}
+		if (code == 'KeyN') {setRandomVideo();}
 		// save video
 		if (code == 'KeyS') {
-			connection.send( JSON.stringify(["save",video.src]));	
+			video_to_send = video.src
 			setRandomVideo();
+			connection.send( JSON.stringify(["save",video_to_send]));
 		}
-		if (code == 'KeyR') {video.currentTime = 0;}
+		if (code == 'KeyR') {video.currentTime = 0;}	
+		if (code == 'ArrowRight'){	video.currentTime += video.duration * 0.1;	}	
+		if (code == 'ArrowLeft'){	video.currentTime -= video.duration * 0.1;	}
+		
+		if (code == 'KeyQ') {window.location = "https://www.sidefx.com/docs/houdini/index.html"; }
 		
 	} 
 	}, false);
