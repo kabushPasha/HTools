@@ -55,19 +55,19 @@
 	<button onclick="setSwapTime(0)"> Whole </button>
 	<button id="LoopButton" onclick="setLoop()"> LOOP </button>
 	<button id="DeleteButton" onclick="setDelete()"> Delete </button>
-	<button id="prev_btn" onclick="load_prev_all()"> PREV (<) </button>
-	<button id="next_btn" onclick="load_new_all()"> NEXT (>) </button>
-	
-	
-	<b id="progress" style="color:grey">TOTAL:</b>
-	<p style="color:grey">Click/Numpad:Save  Arrows:Navigate Down:Reset S:SaveALL D:DeleteAll</p>
+	<button id="load_new_all_btn" onclick="load_new_all()"> LoadNEW_ALL </button>
+	<p style="color:grey">Click: save</p>
+	<p style="color:grey">A: skip all</p>
+	<p style="color:grey">S: SAVE all</p>
+	<p style="color:grey">D: DELETE all</p>
+	<p style="color:grey">R: Reset all</p>
 </div>
 
 
  
 <script> 
 	// set BG Color
-	window.resizeTo(700,650);
+	window.resizeTo(600,400);
 	window.moveTo(4000,4000);	
 	document.body.style.backgroundColor = "black";
 	var delete_enabled = false 
@@ -83,7 +83,7 @@
 		// Random on pause
 		video.addEventListener("pause", (event) => {
 			if (!document.hidden){
-			if (video.src) {connection.send( JSON.stringify(["save",video.src]));}
+			connection.send( JSON.stringify(["save",video.src]));	
 			video.src = "";
 			//setRandomVideo(video);
 			}
@@ -106,88 +106,44 @@
 		});	
 	}
 	function setDelete() {delete_enabled = !delete_enabled; DeleteButton.style.background= delete_enabled ? '#A52A2A' : '#e6e6e6'; }
-
+	
 	
 	// set random video funstion
-	// LOADS NEXT VIDEO
 	function setRandomVideo(video){
-		if (vods.length > 0)	{ if (video.src) {prev_vods.push(video.src)};video.src = vods.pop();video.play(); }
-		else {	video.src = "";	}		
-		updateProgress();
-	}	
-	
-	function loadPrevVideo(video){
-		if (prev_vods.length > 0)	{ if (video.src) {vods.push(video.src)};video.src = prev_vods.pop();video.play(); }
-		//else {	video.src = "";	}	
-		updateProgress();
-	}
-	
-	function updateProgress(){
-		progress_text = document.getElementById("progress");
-		progress_text.innerText = prev_vods.length + "/" + (vods.length + prev_vods.length);
+		if (vods.length > 0)	{ video.src = vods.pop();video.play(); }
+		else {	video.src = "";	}
 	}	
 	
 	function load_new_all(){
 		videos.forEach((video) => {setRandomVideo(video);})
 	}
-	function load_prev_all(){
-		reversed = Array.from(videos).reverse();	
-		reversed.forEach((video) => {loadPrevVideo(video);})
-	}
-
-	numpad_notation = {"Numpad7" : 0 , "Numpad4" : 1, "Numpad1" : 2, "Numpad8" : 3, "Numpad5" : 4, "Numpad2" : 5};
 
 
 	// Keyboard Events
 	document.addEventListener('keyup', (event) => {
-	
-	videos.forEach((video,index) => {
+	videos.forEach((video) => {
 		if (video.loop)
 		{
 			var name = event.key;
 			var code = event.code;
-			console.log(name, code,index);
+			//console.log(name, code);
 
 			// deletes all video
 			if (code == 'KeyD' && delete_enabled ){
 				console.log("delete All");
-				if (video.src) {connection.send( JSON.stringify(["delete",video.src]));}				
+				connection.send( JSON.stringify(["delete",video.src]));				
 				setRandomVideo(video);
 			}			
 			// skip video
-			if ( code == 'ArrowRight') {setRandomVideo(video); }
-			//if (code == 'ArrowLeft'){	loadPrevVideo(video);	}
-			
-			// save video			
-			if (code == 'KeyS' ) {
-			if (video.src) {connection.send( JSON.stringify(["save",video.src]));}
+			if (code == 'KeyA' || code == 'ArrowRight') {setRandomVideo(video); }
+			// save video
+			if (code == 'KeyS') {
+			connection.send( JSON.stringify(["save",video.src]));	
 			setRandomVideo(video);}
-			
-			// save from numpad dont load new
-			numpad_save = (numpad_notation[code] == index);			
-			if ( numpad_save ) {
-			if (video.src) {connection.send( JSON.stringify(["save",video.src]));}
-			video.src = "";}
-			
 			// reset from start
-			if (code == 'KeyR' || code == 'ArrowDown') {video.currentTime = 0;}
+			if (code == 'KeyR') {video.currentTime = 0;}
 		} 			
-		});
-		
-	//console.log(videos)
-	reversed = Array.from(videos).reverse()	
-		
-	reversed.forEach((video) => {
-		//console.log(video);
-		if (video.loop)
-		{
-			var name = event.key;
-			var code = event.code;
-			if (code == 'ArrowLeft'){	loadPrevVideo(video);	} 			
-		}
-		});
-		
-	}, false);
+	});}, false);
 	
 
 	// SERVER 
@@ -204,8 +160,7 @@
 		console.log(JSON.parse(event.data));
 		
 		// MAIN FUNCTION
-		vods = JSON.parse(event.data)	
-		prev_vods = [];
+		vods = JSON.parse(event.data)		
 		
 		// pick first video
 		videos.forEach((video) => {
