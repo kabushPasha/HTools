@@ -68,10 +68,15 @@ class CanoeAmbientServer():
 					os.rename(src_path, dest_path)
 					
 			if msg[0] == "copy":
-				print("copy", msg[1])
+				print("copy", msg);
+				sub_folder = "/copy/"
+				if len(msg) > 2: 
+					if msg[2]:
+						sub_folder = "/" + msg[2]	+ "/"
 				src_path = urllib.parse.unquote(msg[1].replace("file:///",""))
 				src_path = os.path.normpath(src_path)
-				dest_path = os.path.dirname(src_path) + "/copy/" + os.path.basename(src_path)
+				dest_path = os.path.dirname(src_path) + sub_folder + os.path.basename(src_path)
+				print(dest_path)
 				if not os.path.isdir(os.path.dirname(dest_path)): os.mkdir(os.path.dirname(dest_path))
 				time.sleep(0.1)
 				

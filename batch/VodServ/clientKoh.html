@@ -29,7 +29,9 @@
   <div class="column" style="background-color:black;">
     <p id="c0">
 	<video my-id=0 autoplay muted width="100%" height="auto" controls>	<source src="movie.mp4" type="video/mp4"></video>
+	<div class="slider" id="slider0" style="width:50%;height:5px;background-Color:DarkRed"></div>	 
 	<video my-id=1 autoplay muted width="100%" height="auto" controls>	<source src="movie.mp4" type="video/mp4"></video>
+	<div class="slider" id="slider1" style="width:50%;height:5px;background-Color:DarkRed"></div>	
 	</p>
   </div>
 </div>
@@ -61,6 +63,7 @@
 
 	// find Video
 	const videos = document.querySelectorAll("video");	
+	const sliders = document.getElementsByClassName("slider");	
 	console.log("VIDEO Divs", videos)
 	
 	// foreach Video
@@ -93,8 +96,19 @@
 			}
 			else {video.src = "";}
 		}		
-		updateProgress();
+		updateProgress();		
+		checkSaveTop();
 	}	
+		
+	function checkSaveTop(){
+		// check save top
+		if( top_saved ) return;
+		if((picked_vods.length + vods.length) == 1  )
+		{
+			save_picked("TOP3");
+			top_saved = 1;		
+		}		
+	}
 		
 	function updateProgress(){
 		progress_text = document.getElementById("progress");
@@ -127,11 +141,11 @@
 	function saveAll(){
 		videos.forEach((video) => {if (video.src) {connection.send( JSON.stringify(["copy",video.src]));}})
 	}
-	
-	function save_picked(){
-		videos.forEach((video) => {if (video.src) {connection.send( JSON.stringify(["copy",video.src]));}})
-		picked_vods.forEach((video) => {if (video.src) {connection.send( JSON.stringify(["copy",video.src]));}})
-		vods.forEach((video) => {if (video.src) {connection.send( JSON.stringify(["copy",video.src]));}})		
+		
+	function save_picked(sub_folder = "copy"){
+		videos.forEach((video) => {if (video.src) {connection.send( JSON.stringify(["copy",video.src,sub_folder]));}})
+		picked_vods.forEach((video) => {if (video) {connection.send( JSON.stringify(["copy",video,sub_folder]));}})
+		vods.forEach((video) => {if (video) {connection.send( JSON.stringify(["copy",video,sub_folder]));}})			
 	}
 	
 	function swap(){
@@ -181,12 +195,25 @@
 		shuffleArray(vods);
 		total_vods = vods.length;
 		picked_vods = [];
+		top_saved = false
 		
 		// pick first video
 		videos.forEach((video) => {
 			loadNextVideo(video);
 			});		
 	};	
+	
+	// Update Slider that shows progress
+	window.onload = function() {    
+		 
+		 function update() {
+			videos.forEach((video) => {
+				id = video.getAttribute('my-id');
+				sliders[id].style.width = (100*video.currentTime/video.duration).toString()  + "%"; 
+			});
+		 }
+		 setInterval(update, 5);
+	}
 	
 	
 </script> 
