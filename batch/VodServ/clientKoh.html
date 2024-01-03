@@ -1,0 +1,192 @@
+<!DOCTYPE html> 
+
+<head> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>WebSocker Client</title> 
+</head>
+
+<style>
+* {
+  box-sizing: border-box;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.column {
+  float: left;
+  width: 100%;
+}
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+}
+</style>
+</head>
+
+<body>
+<div class="row">
+  <div class="column" style="background-color:black;">
+    <p id="c0">
+	<video my-id=0 autoplay muted width="100%" height="auto" controls>	<source src="movie.mp4" type="video/mp4"></video>
+	<video my-id=1 autoplay muted width="100%" height="auto" controls>	<source src="movie.mp4" type="video/mp4"></video>
+	</p>
+  </div>
+</div>
+
+
+
+
+<!-- // BUTTONS -->
+<div class="slidecontainer">
+
+	<button id="Save" onclick="saveAll()"> SAVE </button>
+	<button id="Swap" onclick="swap()"> SWAP </button>
+	<button id="SAVE_ALL" onclick="save_picked()"> SAVE PICKED </button>
+
+	
+	
+	<b id="progress" style="color:grey">TOTAL:</b>
+	<p style="color:grey">Click/UP/DOWN:Pick  Ctrl:reset Num0:QUIT S:SaveALL</p>
+</div>
+
+
+ 
+<script> 
+	// set BG Color
+	window.resizeTo(600	,750);
+	window.moveTo(4000,4000);	
+	document.body.style.backgroundColor = "black";
+	var delete_enabled = false 
+
+	// find Video
+	const videos = document.querySelectorAll("video");	
+	console.log("VIDEO Divs", videos)
+	
+	// foreach Video
+	videos.forEach((video) => {
+		// set loop
+		video.loop = true
+		// Random on pause
+		video.addEventListener("pause", (event) => {
+			if (!document.hidden){
+				if (video.src) {picked_vods.push(videos.src);load_new_all();}
+				}
+			});		
+	});	
+	
+	// stop server on close
+	window.onbeforeunload = function () {connection.send( JSON.stringify(["CLOSE"]));	};
+		
+		
+	// --------------------------------------------
+	// HELPER FUNCTIONS
+	function loadNextVideo(video){
+		if (vods.length > 0)	{ video.src = vods.pop();video.play(); }
+		else {	
+			if( picked_vods.length > 0)
+			{
+				vods = picked_vods;
+				picked_vods = [];
+				shuffleArray(vods);							
+				video.src = vods.pop();video.play();
+			}
+			else {video.src = "";}
+		}		
+		updateProgress();
+	}	
+		
+	function updateProgress(){
+		progress_text = document.getElementById("progress");
+		//progress_text.innerText = picked_vods.length + "/" + (vods.length + picked_vods.length);
+		progress_text.innerText = picked_vods.length + "/" + vods.length + "/" + total_vods;
+	}	
+	
+	function load_new_all(){
+		videos.forEach((video) => {loadNextVideo(video);})
+	}
+
+	function pickVideo(id){
+		picked_vods.push( videos[id].src );
+		//console.log(picked_vods);
+		load_new_all();
+	}	
+	
+	function pickAll(id){
+		videos.forEach((video) => {picked_vods.push( video.src );})	
+		load_new_all();
+	}
+	
+	function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+	}
+	
+	function saveAll(){
+		videos.forEach((video) => {if (video.src) {connection.send( JSON.stringify(["copy",video.src]));}})
+	}
+	
+	function save_picked(){
+		videos.forEach((video) => {if (video.src) {connection.send( JSON.stringify(["copy",video.src]));}})
+		picked_vods.forEach((video) => {if (video.src) {connection.send( JSON.stringify(["copy",video.src]));}})
+		vods.forEach((video) => {if (video.src) {connection.send( JSON.stringify(["copy",video.src]));}})		
+	}
+	
+	function swap(){
+		console.log("sawp");
+		vods = picked_vods;
+		picked_vods = [];
+		shuffleArray(vods);	
+		total_vods = vods.length;
+		load_new_all()
+	}	
+
+	// --------------------------------------------
+	// Keyboard Events
+	document.addEventListener('keyup', (event) => {
+	
+	var name = event.key;
+	var code = event.code;
+	console.log(name,code);
+	
+	if ( code == 'ArrowUp')	 { pickVideo(0); }
+	if ( code == 'ArrowDown'){ pickVideo(1); }
+	if ( code == 'ArrowLeft'){ load_new_all(1); }
+	if ( code == 'ArrowRight'){ pickAll(1); }
+	
+	if (code == 'KeyS' ) { saveAll(); }
+	if (code == 'Numpad0') {window.close();}
+	if (code == 'ControlRight' ) { videos.forEach((video) => {video.currentTime = 0;}) }
+		
+	}, false);
+	
+	// --------------------------------------------
+	// SERVER 
+	// connect to server
+    const connection = new WebSocket('ws://localhost:8000');	
+	connection.onopen = function () {
+		connection.send( JSON.stringify(['GET_Files']));
+	};
+	
+	
+	connection.onmessage = function (event) { 
+	
+		console.log("STARTED APP")
+		console.log(JSON.parse(event.data));
+		
+		// MAIN FUNCTION
+		vods = JSON.parse(event.data);
+		shuffleArray(vods);
+		total_vods = vods.length;
+		picked_vods = [];
+		
+		// pick first video
+		videos.forEach((video) => {
+			loadNextVideo(video);
+			});		
+	};	
+	
+	
+</script> 

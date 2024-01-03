@@ -44,6 +44,9 @@ window.resizeTo(600,800);
 window.moveTo(4000,4000);
 document.body.style.backgroundColor = "black";
 
+// stop server on close
+window.onbeforeunload = function () {connection.send( JSON.stringify(["CLOSE"]));	};
+
 const video = document.querySelector("video");	
 const buttons_container = document.getElementById("buttons_container")
 const slider = document.getElementById("slider")
@@ -202,6 +205,9 @@ document.addEventListener('keyup', (event) => {
 	//window.close();
 	//window.open("https://www.sidefx.com/docs/houdini/index.html"); }
 	window.location = "https://www.sidefx.com/docs/houdini/index.html"; }
+	if (code == 'Numpad0') {window.close();}
+	
+	
 	if (code == 'KeyM') { 
 		connection.send( JSON.stringify(["move",vod_src]) );
 		loadNextVod();}

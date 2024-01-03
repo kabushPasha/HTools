@@ -5,7 +5,7 @@
 
 import asyncio 
 import websockets
-import glob, json, os, subprocess, sys ,random,time
+import glob, json, os, subprocess, sys ,random,time,shutil
 import urllib
 
 
@@ -18,6 +18,9 @@ if True:
 	if "m" in sys.argv:
 		html_file = os.path.dirname(__file__) + "\client_Multi.html" 
 		#os.system(html_file.replace("\\","/") )
+		
+	if "k" in sys.argv:
+		html_file = os.path.dirname(__file__) + "\clientKoh.html" 
 	
 	page = "file:///" + html_file.replace("\\","/")
 	open_command = r'start chrome --profile-directory="Default" '
@@ -63,6 +66,21 @@ class CanoeAmbientServer():
 				# move if the file is in the same folder
 				if os.path.dirname(src_path) == src_folder:				
 					os.rename(src_path, dest_path)
+					
+			if msg[0] == "copy":
+				print("copy", msg[1])
+				src_path = urllib.parse.unquote(msg[1].replace("file:///",""))
+				src_path = os.path.normpath(src_path)
+				dest_path = os.path.dirname(src_path) + "/copy/" + os.path.basename(src_path)
+				if not os.path.isdir(os.path.dirname(dest_path)): os.mkdir(os.path.dirname(dest_path))
+				time.sleep(0.1)
+				
+				# move if the file is in the same folder
+				if os.path.dirname(src_path) == src_folder:				
+					shutil.copyfile(src_path, dest_path)
+					
+			if msg[0] == 'CLOSE':
+				asyncio.get_event_loop().stop()
 
 	def startServer(self):
 		start_server = websockets.serve(self.serve, "localhost", 8000)

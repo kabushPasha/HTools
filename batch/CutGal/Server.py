@@ -8,14 +8,15 @@ import websockets
 import glob, json, os, subprocess, sys ,random,shutil
 import urllib
 
-if "o" in sys.argv:
-	html_file = os.path.dirname(__file__) + "\TestGrid.html" 	
-	#os.system(html_file.replace("\\","/") )
-	
-	page = "file:///" + html_file.replace("\\","/")
-	open_command = r'start chrome --profile-directory="Default" '
-	open_command += r'--app=' + page	
-	os.system(open_command)
+#if "o" in sys.argv:
+# OPEN Anyway
+html_file = os.path.dirname(__file__) + "\TestGrid.html" 	
+#os.system(html_file.replace("\\","/") )
+
+page = "file:///" + html_file.replace("\\","/")
+open_command = r'start chrome --profile-directory="Default" '
+open_command += r'--app=' + page	
+os.system(open_command)
 
 
 src_folder = sys.argv[1].replace(os.sep,"/")
@@ -61,6 +62,9 @@ class CanoeAmbientServer():
 				files = glob.glob( os.path.splitext(msg[1])[0] + "*" )	
 				for file in files:				
 					shutil.move( file,out_dir );
+					
+			if msg[0] == 'CLOSE':
+				asyncio.get_event_loop().stop()
 				
 
 	def startServer(self):

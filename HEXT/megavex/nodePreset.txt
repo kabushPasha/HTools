@@ -8,6 +8,9 @@
         }
     },
     "Curves": {
+        "All_points_to_closed_line": {
+            "load_node": "All_points_to_closed_line"
+        },
         "Auto_Bezier_Curve": {
             "load_node": "Auto_Bezier_Curve"
         },
