@@ -9,12 +9,14 @@
 <div id="image_container" class="scroll-container" style="height:300px;overflow: hidden;white-space: nowrap;">
 	
 </div>
+<p style="color:grey">HOTKEYS </p>
 
  
 <script> 
 	// set BG Color
 	window.resizeTo(600,400);
 	window.moveTo(4000,4000);	
+	window.name = "test";
 	document.body.style.backgroundColor = "black";
 
 	// stop server on close
@@ -28,7 +30,7 @@
 	});
 	
 	//resize
-	window.onload = window.onresize = function () {	document.getElementById("image_container").style.height = (window.innerHeight-30) + "px";	}
+	window.onload = window.onresize = function () {	document.getElementById("image_container").style.height = (window.innerHeight-50) + "px";	}
 
 	// Keyboard Events
 	document.addEventListener('keyup', (event) => {
@@ -42,6 +44,7 @@
 		if (code == 'ArrowRight'){	removeImage(scrollContainer.children[0]);	}
 		if (code == 'ArrowLeft'){	window.close();	}
 		if (code == 'Numpad0') {window.close();}
+		if (code == 'N') {window.close();}
 
 	}, false);
 
@@ -49,6 +52,13 @@
 	{
 		console.log("delete",img);
 		connection.send( JSON.stringify(["delete",img.src]));
+		removeImage(img);
+	}
+	
+	function copyImage(img)
+	{
+		console.log("copy",img);
+		connection.send( JSON.stringify(["copy",img.src]));
 		removeImage(img);
 	}
 	
@@ -74,7 +84,7 @@
 		
 		// Left Click
 		img.addEventListener('click', function (e) {
-			saveImage(img);
+			copyImage(img);
 		  });
 		  
 		// Right Click
