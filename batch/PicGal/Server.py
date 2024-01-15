@@ -13,6 +13,13 @@ import urllib
 #if "o" in sys.argv:
 if True:
 	html_file = os.path.dirname(__file__) + "\client.html" 
+	
+	if "k" in sys.argv:
+		html_file = os.path.dirname(__file__) + "\clientKoh.html" 
+		
+	if "a" in sys.argv:
+		html_file = os.path.dirname(__file__) + "\clientA.html" 
+	
 	page = "file:///" + html_file.replace("\\","/")
 	open_command = r'start chrome --profile-directory="Default" '
 	open_command += r'--app=' + page	
