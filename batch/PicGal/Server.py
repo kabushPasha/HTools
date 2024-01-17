@@ -27,10 +27,26 @@ if True:
 	
 	
 src_folder = os.path.normpath(sys.argv[1])
+print("src folder",src_folder)
 
 files = sorted(glob.glob( src_folder + "/*.jpg" ) + glob.glob( src_folder + "/*.jpeg" ),reverse=True)
-if "r" in sys.argv: random.shuffle(files)
+print("olf_dilfes",files)
 
+# NEW GLOB SUB folders
+if "s" in sys.argv or files==[]:
+	my_exts = ['*.jpg', 'jpeg', '*.png']
+	files = [glob.glob(src_folder + '/**/'+ x, recursive=True) for x in my_exts] 
+	files = sum(files, [])
+	
+	print("pres_sort",files)
+	files = [file for file in files if '\\picked\\' not in file]
+	files = [file for file in files if '\\copy\\' not in file]	
+	print("post_sort",files)
+	
+	files = sorted(files,reverse=True)
+	
+
+if "r" in sys.argv: random.shuffle(files)
 
 class CanoeAmbientServer():
 	def __init__(self):
@@ -51,18 +67,23 @@ class CanoeAmbientServer():
 				current_file = os.path.normpath(current_file)
 				time.sleep(0.1)			
 
-				if os.path.dirname(current_file) == src_folder:	
+				#if os.path.dirname(current_file) == src_folder:					
+				if current_file.startswith(src_folder):
 					os.remove( current_file )
 			if msg[0] == "save":
 				print("save", msg[1])
 				src_path = urllib.parse.unquote(msg[1].replace("file:///",""))
 				src_path = os.path.normpath(src_path)
-				dest_path = os.path.dirname(src_path) + "/picked/" + os.path.basename(src_path)
+				#dest_path = os.path.dirname(src_path) + "/picked/" + os.path.basename(src_path)				
+				#dest_path = src_folder + "/picked/" + os.path.basename(src_path)
+				dest_name = src_path.replace(src_folder + os.path.sep,"").replace(os.path.sep,"_")
+				dest_path = src_folder + "/picked/"  + dest_name
 				if not os.path.isdir(os.path.dirname(dest_path)): os.mkdir(os.path.dirname(dest_path))
 				time.sleep(0.1)
 				
 				# move if the file is in the same folder
-				if os.path.dirname(src_path) == src_folder:				
+				#if os.path.dirname(src_path) == src_folder:	
+				if src_path.startswith(src_folder):				
 					os.rename(src_path, dest_path)
 					
 			if msg[0] == "copy":
@@ -74,13 +95,17 @@ class CanoeAmbientServer():
 						sub_folder = "/" + msg[2]	+ "/"
 				src_path = urllib.parse.unquote(msg[1].replace("file:///",""))
 				src_path = os.path.normpath(src_path)
-				dest_path = os.path.dirname(src_path) + sub_folder + os.path.basename(src_path)
+				#dest_path = os.path.dirname(src_path) + sub_folder + os.path.basename(src_path)
+				#dest_path = src_folder + sub_folder + os.path.basename(src_path)
+				dest_name = src_path.replace(src_folder + os.path.sep,"").replace(os.path.sep,"_")
+				dest_path = src_folder + sub_folder + dest_name
 				print(dest_path)
 				if not os.path.isdir(os.path.dirname(dest_path)): os.mkdir(os.path.dirname(dest_path))
 				time.sleep(0.1)
 				
 				# move if the file is in the same folder
-				if os.path.dirname(src_path) == src_folder:				
+				#if os.path.dirname(src_path) == src_folder:	
+				if src_path.startswith(src_folder):					
 					shutil.copyfile(src_path, dest_path)
 				
 				
