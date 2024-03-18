@@ -1199,3 +1199,10 @@ def canLookTroughNode(n):
 	'''	Checks if we can loook trough the node. (If its a light or a camera) '''
 	return  isLight(n) or isCam(n)
 	
+def createMatsBasedOnPrimName(n):
+	mat = hou.node("/mat")
+	for name in n.geometry().findPrimAttrib("name").strings():
+		if not mat.node(name):
+			new_node = mat.createNode("principledshader",name)
+		#new_node.moveToGoodPosition()
+
