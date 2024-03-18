@@ -160,7 +160,7 @@ class LZ_vex_interface(QtWidgets.QWidget):
                 self.BackupJSON(key)
                                 
                 my_json = json.load(open(key[0]))       
-                my_json[key[1]][snippet_name] = {"python_code" : code}     
+                my_json[key[1]][snippet_name] = {"code" : code}     
                 with open(key[0], 'w') as outfile:
                     json.dump(my_json, outfile,sort_keys=True, indent=4, separators=(',', ': '))
             # SAVE Python Code

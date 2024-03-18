@@ -66,6 +66,9 @@
         }
     },
     "Connectivity": {
+        "Get FirstTwo PrimPoints": {
+            "code": "int pt0 = primpoint(0,@primnum,0);\nint pt1 = primpoint(0,@primnum,1);\nvector P0 = point(0,\"P\",pt0);\nvector P1 = point(0,\"P\",pt1);"
+        },
         "neighbour": {
             "code": "int nbr = neighbour(0,@ptnum,neighbourId);"
         },
@@ -195,13 +198,13 @@
         "PadZero4": {
             "code": "sprintf('%04d',"
         },
-        "re_replace": {
+        "re_replace_vex": {
             "code": "string s1 =  re_replace('__my__',sprintf('%04d',i@id),chs('str'));"
         },
-        "re_split ": {
+        "re_split_vex": {
             "code": "string s1[] =  re_split ('/',chs('str'));"
         },
-        "split ": {
+        "split_vex": {
             "code": "string s1 =  split(chs('str'),'/');"
         },
         "splitpath ": {
@@ -243,6 +246,9 @@
         }
     },
     "Volume": {
+        "move outside of sdf": {
+            "code": "float d = volumesample(1,0,@P);\nvector g = volumegradient(1,0,@P);\nv@P += -normalize(g)*d * (d<0);\n\n"
+        },
         "volumegradient": {
             "code": "vector grad = volumegradient(0,0,@P);"
         },

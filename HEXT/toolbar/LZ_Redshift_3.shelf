@@ -18,6 +18,7 @@
     <memberTool name="look_trough_light"/>
     <memberTool name="shot_subnet"/>
     <memberTool name="lz_rs_ropnet"/>
+    <memberTool name="tool_1"/>
   </toolshelf>
 
   <tool name="lz_rs_viewport" label="RS Viewport IPR" icon="RS_openIPR_icon">

@@ -26,6 +26,7 @@ if True:
 	open_command = r'start chrome --profile-directory="Default" '
 	open_command += r'--app=' + page	
 	os.system(open_command)
+	print("App open")
 	
 	
 src_folder = os.path.normpath(sys.argv[1])

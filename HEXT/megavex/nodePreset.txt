@@ -49,6 +49,9 @@
         "GS_Import_simple": {
             "load_node": "GS_Import_simple"
         },
+        "LZ_Carve_EvenMiddleSplits": {
+            "load_node": "LZ_Carve_EvenMiddleSplits"
+        },
         "Liquid_Sculpt": {
             "load_node": "Liquid_Sculpt"
         },

@@ -9,7 +9,7 @@
 <div id="image_container" class="scroll-container" style="height:300px;overflow: hidden;white-space: nowrap;">
 	
 </div>
-<p style="color:grey">HOTKEYS </p>
+<p style="color:grey">HOTKEYS: UP-save Down-Delete Num0-Close >-Skip1 Click-Copy N-SkipAll </p>
 
  
 <script> 
@@ -44,7 +44,8 @@
 		if (code == 'ArrowRight'){	removeImage(scrollContainer.children[0]);	}
 		if (code == 'ArrowLeft'){	window.close();	}
 		if (code == 'Numpad0') {window.close();}
-		if (code == 'N') {window.close();}
+		if (code == 'KeyN') {console.log(scrollContainer.children)
+			for (i=0;i<5;i++) {removeImage(scrollContainer.children[0]);} }
 
 	}, false);
 
