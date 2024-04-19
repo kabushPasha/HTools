@@ -15,3 +15,5 @@ HEXT/otls/backup
 HEXT/megavex/backup
 *.pyc
 HEXT/otls/mapbox_on_steroids.1.1.hda
+batch/youtube-dl.exe
+batch/yt-dlp.exe
