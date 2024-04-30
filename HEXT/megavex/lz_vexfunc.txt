@@ -215,6 +215,9 @@
         }
     },
     "Roatation": {
+        "Transform oriented points": {
+            "code": "\np@orient = qmultiply(p@orient,quaternion(radians(chv(\"R\").x*360),{1,0,0}));\np@orient = qmultiply(p@orient,quaternion(radians(chv(\"R\").y*360),{0,1,0}));\np@orient = qmultiply(p@orient,quaternion(radians(chv(\"R\").z*360),{0,0,1}));\n\nmatrix3 t = qconvert(p@orient);\nv@P += t*{1,0,0}*chv(\"t\").x;\nv@P += t*{0,1,0}*chv(\"t\").y;\nv@P += t*{0,0,1}*chv(\"t\").z;"
+        },
         "Tree Orient": {
             "code": "vector center = chv('center');\nfloat maxangle = chf('maxangle');\nvector dir = sample_direction_cone(center,maxangle,rand(@ptnum));\nmatrix3 t = maketransform(normalize(cross(dir,set(dir.y,dir.z,dir.x))),dir);\n\np@orient = quaternion(t);\np@orient = qmultiply(p@orient,quaternion(radians(chf(\"angle\")*360),{0,1,0}));\n\n"
         },
