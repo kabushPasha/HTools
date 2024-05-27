@@ -1206,3 +1206,21 @@ def createMatsBasedOnPrimName(n):
 			new_node = mat.createNode("principledshader",name)
 		#new_node.moveToGoodPosition()
 
+def RunPythonCodeStringInSubprocess(code, wait = True, autoclose = True):
+	import lz
+	lz_scripts_path = os.path.dirname(os.path.abspath(lz.__file__))      
+	code = f"import sys\n" \
+	f"sys.path.append('{lz_scripts_path}')\n" \
+	"_shell=True\n" \
+	f"{code}\n"
+
+	python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))
+	if autoclose:
+		p = subprocess.Popen([python_path,"-c",code])
+	else:
+		p = subprocess.Popen([python_path,"-i","-c",code])
+		
+	if wait:
+		(output, err) = p.communicate()  
+		return (output, err)
+	

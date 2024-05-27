@@ -163,6 +163,9 @@
         },
         "Vdb_Sdf_ForeachShatter": {
             "load_node": "Vdb_Sdf_ForeachShatter"
+        },
+        "open_cl_displace_volumes_new": {
+            "load_node": "open_cl_displace_volumes_new"
         }
     },
     "_Examples": {
