@@ -158,6 +158,9 @@
         }
     },
     "VDB Modelling": {
+        "SD_OpenCL_Snippets": {
+            "load_node": "SD_OpenCL_Snippets"
+        },
         "VDB Modelling": {
             "load_node": "VDB Modelling"
         },

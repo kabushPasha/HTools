@@ -38,12 +38,14 @@ if "s" in sys.argv or files==[]:
 	files = [glob.glob(src_folder + '/**/'+ x, recursive=True) for x in my_exts] 
 	files = sum(files, [])
 	
-	print("pres_sort",files)
-	files = [file for file in files if '\\picked\\' not in file]
-	files = [file for file in files if '\\copy\\' not in file]	
-	print("post_sort",files)
+	if not "k" in sys.argv:
+		print("pres_sort",files)
+		files = [file for file in files if '\\picked\\' not in file]
+		files = [file for file in files if '\\copy\\' not in file]	
+		print("post_sort",files)
 	
 	files = sorted(files,reverse=True)
+	
 	
 
 if "r" in sys.argv: random.shuffle(files)
