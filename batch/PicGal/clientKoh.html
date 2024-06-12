@@ -26,7 +26,7 @@
 	
 	
 	<b id="progress" style="color:grey">TOTAL:</b>
-	<p style="color:grey">Click/LEFT/RIGHT:Pick Num0:QUIT S:SaveALL UP:None Down:Both</p>
+	<p style="color:grey">Click/LEFT/RIGHT:Pick Num0:QUIT S:SaveALL UP:Both Down:None</p>
 </div>
 
 
@@ -79,8 +79,8 @@
 		
 		if ( code == 'ArrowLeft')	 { pickImg(0); }
 		if ( code == 'ArrowRight'){ pickImg(1); }
-		if ( code == 'ArrowUp'){ load_new_all(); }
-		if ( code == 'ArrowDown'){ pickAll(); }
+		if ( code == 'ArrowDown'){ load_new_all(); }
+		if ( code == 'ArrowUp'){ pickAll(); }
 		
 		if (code == 'KeyS' ) { saveAll(); }
 		if (code == 'Numpad0') {window.close();}
