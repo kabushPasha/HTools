@@ -17,6 +17,9 @@
         "Camera2Curve": {
             "load_node": "Camera2Curve"
         },
+        "CurveVolume": {
+            "load_node": "CurveVolume"
+        },
         "Leaves_Along_Curve": {
             "load_node": "Leaves_Along_Curve"
         },
