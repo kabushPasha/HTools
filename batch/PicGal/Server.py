@@ -66,7 +66,7 @@ class CanoeAmbientServer():
 			if msg[0] == "delete":
 				print("delete", msg[1])
 				current_file = urllib.parse.unquote(msg[1].replace("file:///",""))
-				current_file = os.path.normpath(current_file)
+				current_file = '"' + os.path.normpath(current_file) + '"'
 				time.sleep(0.1)			
 
 				#if os.path.dirname(current_file) == src_folder:					

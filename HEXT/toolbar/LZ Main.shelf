@@ -30,6 +30,7 @@
     <memberTool name="Render View"/>
     <memberTool name="fileCache finder"/>
     <memberTool name="Export_Nodes"/>
+    <memberTool name="UpdateMode"/>
   </toolshelf>
 
   <tool name="Render View" label="Render View" icon="hicon:/SVGIcons.index?ROP_mantra.svg">
@@ -1012,5 +1013,9 @@ else:
     load_netbox() 
 
             ]]></script>
+  </tool>
+
+  <tool name="UpdateMode" label="Update Mode" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[hou.setUpdateMode( hou.updateMode.Manual if (hou.updateModeSetting()==hou.updateMode.AutoUpdate) else hou.updateMode.AutoUpdate)]]></script>
   </tool>
 </shelfDocument>
