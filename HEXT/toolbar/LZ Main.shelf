@@ -1015,7 +1015,7 @@ else:
             ]]></script>
   </tool>
 
-  <tool name="UpdateMode" label="Update Mode" icon="PLASMA_App">
+  <tool name="UpdateMode" label="Update Mode F6" icon="PLASMA_App">
     <script scriptType="python"><![CDATA[hou.setUpdateMode( hou.updateMode.Manual if (hou.updateModeSetting()==hou.updateMode.AutoUpdate) else hou.updateMode.AutoUpdate)]]></script>
   </tool>
 </shelfDocument>
