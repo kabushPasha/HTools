@@ -9,7 +9,9 @@
     "Snippets": {
         "ABC Load Cameras": {
             "python_code": [
-                "# Load only cams\nimport lzutil\nn = hou.pwd()\naa = n.inputs()[0]\n\naa.parm(\"fileName\").set(aa.parm(\"fileName\").eval())\n\naa.parm(\"objectPath\").set(\"\")\naa.parm(\"buildHierarchy\").pressButton()\n\ncams_str = \"\"\nfor cam in lzutil.getCams():\n    if cam.path().startswith(aa.path()):\n        cams_str += \"/\" + aa.relativePathTo(cam) + \" \"\n        \naa.parm(\"objectPath\").set(cams_str)\naa.parm(\"buildHierarchy\").pressButton()"
+                "# Load only cams\nimport lzutil\nn = hou.pwd()\naa = n.inputs()[0]\n\naa.parm(\"fileName\").set(aa.parm(\"fileName\").eval())\n\naa.parm(\"objectPath\").set(\"\")\naa.parm(\"buildHierarchy\").pressButton()\n\ncams_str = \"\"\nfor cam in lzutil.getCams():\n    if cam.path().startswith(aa.path()):\n        cams_str += \"/\" + aa.relativePathTo(cam) + \" \"\n        \naa.parm(\"objectPath\").set(cams_str)\naa.parm(\"buildHierarchy\").pressButton()",
+                "# Fix All cam Clipping\nnode_type = hou.nodeType(hou.objNodeTypeCategory(),'cam')\ncams =  node_type.instances()\n\nfor cam in cams:\n    cam.parm(\"near\").revertToDefaults()\n    cam.parm(\"far\").revertToDefaults()",
+                "# IMPORT ALL FBX\nimport glob\nfbx = glob.glob(hou.expandString(\"S:/MEGA/Projects/2020/003_Work/014_UEProjects/005_Crowd_test/Cache/AnimFBX/MoreFlies/*.fbx\"))\nfor f in fbx:\n    hou.hipFile.importFBX(f,convert_into_y_up_coordinate_system = True)"
             ]
         },
         "ABC split paths": {

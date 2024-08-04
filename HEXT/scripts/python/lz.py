@@ -39,6 +39,7 @@ def update():
 		mod_name = os.path.splitext(mod_name)[0]
 
 		if mod_name == "lz": continue
+		if mod_name == "FbxCommon": continue
 		
 		fp, pathname, description = imp.find_module(mod_name)
 		new_module = imp.load_module(mod_name,fp, pathname, description)
