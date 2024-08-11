@@ -91,6 +91,14 @@
             "load_node": "Simple_DUST"
         }
     },
+    "RIG": {
+        "SharpBoneWeights": {
+            "load_node": "SharpBoneWeights"
+        },
+        "Unreal Collsion shapes for Skeletal Meshes": {
+            "load_node": "Unreal Collsion shapes for Skeletal Meshes"
+        }
+    },
     "SETUPS": {
         "Activate_NoiseMask": {
             "load_node": "Activate_NoiseMask"

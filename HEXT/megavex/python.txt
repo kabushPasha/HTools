@@ -4,6 +4,20 @@
             "python_code": [
                 "import lzRS_Shelf\nlzRS_Shelf.createShotSubnet()\n\n\n\n\n"
             ]
+        },
+        "Test Python": {
+            "python_code": [
+                "#test Python\nprint(\"hi)"
+            ]
+        },
+        "Test Wrangle": {
+            "code": "#test Script\n"
+        },
+        "TestPreset": {
+            "load_node": "TestPreset"
+        },
+        "Test_Foldered_Preset": {
+            "load_node": "Test_Foldered_Preset"
         }
     },
     "Snippets": {
