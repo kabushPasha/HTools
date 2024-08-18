@@ -5,6 +5,9 @@
         },
         "Sweater_Knit": {
             "load_node": "Sweater_Knit"
+        },
+        "Unreal_Hair": {
+            "load_node": "Unreal_Hair"
         }
     },
     "Curves": {

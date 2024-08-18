@@ -13,6 +13,7 @@
     <toolMenuContext name="network">
       <contextNetType>OBJ</contextNetType>
       <contextNetType>SOP</contextNetType>
+      <contextNetType>LOP</contextNetType>
     </toolMenuContext>
     <toolSubmenu>LZ</toolSubmenu>
     <script scriptType="python"><![CDATA[import lzutil,toolutils
