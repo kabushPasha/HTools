@@ -65,13 +65,13 @@ class CanoeAmbientServer():
 				await websocket.send(json.dumps(files))
 			if msg[0] == "delete":
 				print("delete", msg[1])
-				current_file = urllib.parse.unquote(msg[1].replace("file:///",""))
-				current_file = '"' + os.path.normpath(current_file) + '"'
+				current_file = urllib.parse.unquote(msg[1].replace("file:///",""))				
+				current_file = os.path.normpath(current_file)
 				time.sleep(0.1)			
-
-				#if os.path.dirname(current_file) == src_folder:					
+					
 				if current_file.startswith(src_folder):
 					os.remove( current_file )
+					print("deleted :", msg[1])
 			if msg[0] == "save":
 				print("save", msg[1])
 				src_path = urllib.parse.unquote(msg[1].replace("file:///",""))
