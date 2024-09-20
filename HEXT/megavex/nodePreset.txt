@@ -42,6 +42,11 @@
             "load_node": "Wire2Line"
         }
     },
+    "GravitySketch": {
+        "LZ_GS_VFXMeshes": {
+            "load_node": "LZ_GS_VFXMeshes"
+        }
+    },
     "Modelling": {
         "All_points_to_closed_line": {
             "load_node": "All_points_to_closed_line"
