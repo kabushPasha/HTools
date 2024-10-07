@@ -7,6 +7,7 @@
 
   <toolshelf name="LZ_Hidden" label="LZ Hidden">
     <memberTool name="script"/>
+    <memberTool name="Shot_Cam_View"/>
   </toolshelf>
 
   <tool name="script" label="Script" icon="hicon:/SVGIcons.index?MISC_python.svg">
@@ -26,5 +27,13 @@ script.setPosition(center)
 
 lzutil.nullPythonScriptDecorate(script)
 lzutil.addPythonSnippet(script)]]></script>
+  </tool>
+
+  <tool name="Shot_Cam_View" label="Shot Cam View" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import toolutils
+cam = hou.text.expandString("$SHOT_Cam")
+vp = toolutils.sceneViewer().curViewport()
+if hou.node(cam):
+    vp.setCamera(hou.node(cam))]]></script>
   </tool>
 </shelfDocument>

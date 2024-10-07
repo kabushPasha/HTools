@@ -38,6 +38,12 @@
                 "# Get BBox of full frange\nn = hou.pwd().inputs()[0]\nbb = hou.BoundingBox()\n\nfstart = int(hou.expandString(\"1\"))\nfend = int(hou.expandString(\"360\"))\n\nfor i in range(fstart , fend + 1):\n    g = n.geometryAtFrame(i)\n    bb.enlargeToContain(g.boundingBox())\n    \n    \nbox = hou.pwd().createOutputNode(\"box\",\"bb\")\nbox.parmTuple(\"t\").set(bb.center())\nbox.parmTuple(\"size\").set(bb.sizevec())\n\n\n"
             ]
         },
+        "FBX Camera Utilities": {
+            "python_code": [
+                "# IMPORT ALL FBX\nimport glob\nfbx = glob.glob(hou.expandString(\"S:/MEGA/Projects/2020/003_Work/014_UEProjects/006_Graveshft/Cache/AnimFBX/MoreFlies/*.fbx\"))\nfor f in fbx:\n    hou.hipFile.importFBX(f,convert_into_y_up_coordinate_system = True)",
+                "# Fix All cam Clipping\nnode_type = hou.nodeType(hou.objNodeTypeCategory(),'cam')\ncams =  node_type.instances()\n\nfor cam in cams:\n    cam.parm(\"near\").revertToDefaults()\n    cam.parm(\"far\").revertToDefaults()"
+            ]
+        },
         "FTP scripts": {
             "python_code": [
                 "# Upload HIP\nimport lzutil\nlzutil.ftp_downloadFromCanoeServer(hou.hipFile.path(), upload=True)",
