@@ -32,6 +32,18 @@ print("src folder",src_folder)
 files = sorted(glob.glob( src_folder + "/*.jpg" ) + glob.glob( src_folder + "/*.jpeg" ),reverse=True)
 print("olf_dilfes",files)
 
+def getRating(file):
+	_file = os.path.basename(file)
+	_file = os.path.splitext(_file)[0].rsplit("_PicGalRating_",1)
+	if len(_file) > 1:
+		if _file[1] == "d":
+			return -1
+		else:
+			return int(_file[1])
+	else:
+		return 0
+
+
 # NEW GLOB SUB folders
 if "s" in sys.argv or files==[]:
 	my_exts = ['*.jpg', 'jpeg', '*.png']
@@ -44,8 +56,18 @@ if "s" in sys.argv or files==[]:
 		files = [file for file in files if '\\copy\\' not in file]	
 		print("post_sort",files)
 	
-	files = sorted(files,reverse=True)
+if "h" in sys.argv:
+	rating = int(sys.argv[sys.argv.index("h")+1])
+	files = [file for file in files if   getRating(file)>rating     ]
+if "e" in sys.argv:
+	rating = int(sys.argv[sys.argv.index("e")+1])
+	files = [file for file in files if   getRating(file)==rating     ]
+if "l" in sys.argv:
+	rating = int(sys.argv[sys.argv.index("l")+1])
+	files = [file for file in files if   getRating(file)<rating     ]
+
 	
+	files = sorted(files,reverse=True)
 	
 
 if "r" in sys.argv: random.shuffle(files)
@@ -67,9 +89,10 @@ class CanoeAmbientServer():
 				print("delete", msg[1])
 				current_file = urllib.parse.unquote(msg[1].replace("file:///",""))				
 				current_file = os.path.normpath(current_file)
-				time.sleep(0.1)			
+				time.sleep(0.2)			
 					
 				if current_file.startswith(src_folder):
+					os.chmod(current_file, 0o777)
 					os.remove( current_file )
 					print("deleted :", msg[1])
 			if msg[0] == "save":
@@ -87,7 +110,26 @@ class CanoeAmbientServer():
 				#if os.path.dirname(src_path) == src_folder:	
 				if src_path.startswith(src_folder):				
 					os.rename(src_path, dest_path)
-					
+
+			if msg[0] == "rate":
+				print("Rating", msg[1],msg[2])
+				src_path = urllib.parse.unquote(msg[1].replace("file:///",""))
+				src_path = os.path.normpath(src_path)
+
+				dir_name = os.path.dirname(src_path)
+				[_filename,_ext] = os.path.splitext(os.path.basename(src_path))
+				_filename = _filename.rsplit("_PicGalRating_")[0] + "_PicGalRating_" + msg[2] + _ext
+				dest_path = os.path.join(dir_name,_filename)
+
+				#dest_name = src_path.replace(src_folder + os.path.sep,"").replace(os.path.sep,"_")
+				#dest_path = src_folder + "/picked/"  + dest_name
+				
+
+				# move if the file is in the same folder
+				#if os.path.dirname(src_path) == src_folder:	
+				if src_path.startswith(src_folder):				
+					os.rename(src_path, dest_path)
+
 			if msg[0] == "copy":
 				print("copy", msg);
 				

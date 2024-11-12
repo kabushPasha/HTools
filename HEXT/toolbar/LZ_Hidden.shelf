@@ -42,8 +42,11 @@ shot = hou.node(hou.text.expandString("$SHOT_Node"))
 if shot:
     cam = shot.parm("cam").evalAsNode()
     if cam: toolutils.sceneViewer().curViewport().setCamera(cam)
+    shot.setSelectableTemplateFlag(1)
     
 for ch in shot.parm("env").evalAsNodes():
-    ch.setSelectableTemplateFlag(1)]]></script>
+    ch.setSelectableTemplateFlag(1)
+    
+    ]]></script>
   </tool>
 </shelfDocument>

@@ -47,6 +47,15 @@
 		if (code == 'KeyN') {console.log(scrollContainer.children)
 			for (i=0;i<5;i++) {removeImage(scrollContainer.children[0]);} }
 
+		if (code == 'KeyD'){ rateImage(scrollContainer.children[0], "d"); }
+		if (code == 'Digit1' || code == "Numpad1"){ rateImage(scrollContainer.children[0], "1"); }
+		if (code == 'Digit2' || code == "Numpad2"){ rateImage(scrollContainer.children[0], "2"); }
+		if (code == 'Digit3' || code == "Numpad3"){ rateImage(scrollContainer.children[0], "3"); }
+		if (code == 'Digit4'){ rateImage(scrollContainer.children[0], "4"); }
+		if (code == 'Digit5'){ rateImage(scrollContainer.children[0], "5"); }
+		//event.shiftKey
+		//event.ctrlKey
+
 	}, false);
 
 	function deleteImage(img)
@@ -56,13 +65,20 @@
 		removeImage(img);
 	}
 	
-	function copyImage(img)
+	function rateImage(img,rating)
 	{
-		console.log("copy",img);
-		connection.send( JSON.stringify(["copy",img.src]));
+		console.log("Rate",img,rating);
+		connection.send( JSON.stringify(["rate",img.src,rating]));
 		removeImage(img);
 	}
-	
+
+	function saveImage(img)
+	{
+		console.log("save",img);
+		connection.send( JSON.stringify(["save",img.src]));
+		removeImage(img);
+	}
+
 	function saveImage(img)
 	{
 		console.log("save",img);
