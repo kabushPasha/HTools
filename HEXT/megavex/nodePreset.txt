@@ -66,6 +66,9 @@
         "Liquid_Sculpt": {
             "load_node": "Liquid_Sculpt"
         },
+        "Mesh_to_Optimal_Boxes": {
+            "load_node": "Mesh_to_Optimal_Boxes"
+        },
         "Reference_Image": {
             "load_node": "Reference_Image"
         },
