@@ -1206,19 +1206,26 @@ def createMatsBasedOnPrimName(n):
 			new_node = mat.createNode("principledshader",name)
 		#new_node.moveToGoodPosition()
 
-def RunPythonCodeStringInSubprocess(code, wait = True, autoclose = True):
-	import lz
+def RunPythonCodeStringInSubprocess(code, wait = True, autoclose = True, python_path = ""):
+	import lz,os
 	lz_scripts_path = os.path.dirname(os.path.abspath(lz.__file__))      
 	code = f"import sys\n" \
 	f"sys.path.append('{lz_scripts_path}')\n" \
 	"_shell=True\n" \
 	f"{code}\n"
-
-	python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))
-	if autoclose:
-		p = subprocess.Popen([python_path,"-c",code])
+	
+	new_env = os.environ.copy()	
+	
+	# Change Python_path and Python Home if we use another python versions
+	if python_path == "":
+		python_path = os.path.abspath(hou.text.expandString("$PYTHONHOME\python.exe"))
 	else:
-		p = subprocess.Popen([python_path,"-i","-c",code])
+		new_env["PYTHONHOME"] = os.path.dirname(python_path)
+	
+	if autoclose:
+		p = subprocess.Popen([python_path,"-c",code], env = new_env)
+	else:
+		p = subprocess.Popen([python_path,"-i","-c",code], env = new_env)
 		
 	if wait:
 		(output, err) = p.communicate()  

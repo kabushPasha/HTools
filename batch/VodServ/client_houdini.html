@@ -1,0 +1,77 @@
+<!DOCTYPE html> 
+
+
+
+<head> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>WebSocker Client</title> 
+</head>
+ 
+<!-- MAIN PLAYER -->
+<video autoplay muted width="100%" height="auto" controls>
+	<source src="S:\Mega\Projects\2020\001_Personal\013_UnrealII\Render\numbers.mp4" type="video/mp4">
+</video>
+
+
+<script src="qrc:///qtwebchannel/qwebchannel.js"></srcipt>
+ 
+ <!--
+<script> 
+	var MyChannel = null;
+	new QWebChannel(qt.webChannelTransport, function(channel) {
+					MyChannel = channel.objects.MyChannel;
+	});
+
+
+	// find Video
+	const video = document.querySelector("video");
+
+	// swap time for shorter playback
+	swap_time = 0		
+	function setSwapTime(swapTime) {swap_time = swapTime;}
+	function setLoop() {video.loop = !video.loop; LoopButton.style.background= !video.loop ? '#8c8c8c' : '#e6e6e6'; }
+	
+	// set loop
+	video.loop = true
+	
+	// Play nex if swap_time
+	video.addEventListener('timeupdate', () => {		
+		if (swap_time && video.currentTime > swap_time && !video.loop)	setRandomVideo();	
+	});		
+
+	// Keyboard Events
+	document.addEventListener('keyup', (event) => {
+	if (video.loop)
+	{
+		var name = event.key;
+		var code = event.code;
+		console.log(name, code);
+
+		// delete video
+		if (code == "KeyD"){
+			video_to_send = video.src;
+			setRandomVideo();
+			console.log("delete", video_to_send);
+			connection.send( JSON.stringify(["delete",video_to_send]));			
+		}			
+		// skip video
+		if (code == 'KeyN') {setRandomVideo();}
+		// save video
+		if (code == 'KeyS') {
+			video_to_send = video.src
+			setRandomVideo();
+			connection.send( JSON.stringify(["save",video_to_send]));
+		}
+		if (code == 'KeyR') {video.currentTime = 0;}	
+		if (code == 'ArrowRight'){	video.currentTime += video.duration * 0.05;	}	
+		if (code == 'ArrowLeft'){	video.currentTime -= video.duration * 0.05;	}
+		
+		if (code == 'KeyQ') {window.location = "https://www.sidefx.com/docs/houdini/index.html"; }
+		
+	} 
+	}, false);
+
+
+
+</script> 
+-->

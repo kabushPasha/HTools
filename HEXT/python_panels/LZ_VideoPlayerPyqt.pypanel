@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="LZ_VideoPlayerPyqt" label="LZ VideoPlayerPyqt" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[
+from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PySide2 import QtWidgets,QtWebChannel
+from PySide2.QtCore import *
+
+
+
+class LZ_Browser(QWebEngineView):
+    def __init__(self):
+        self.html = None
+        QWebEngineView.__init__(self)
+        
+        # web channel
+        self.webchannel = QtWebChannel.QWebChannel(self)
+        self.page().setWebChannel(self.webchannel)
+        self.webchannel.registerObject('MyChannel', self)
+        
+        
+        
+        
+        self.load(QUrl.fromLocalFile(r"S:\Htools\batch\VodServ\client_houdini.html"));
+        
+        self.file_path = r"L:\Torrents\Anime\Bakemonogatari\Bakemonogatari - AniLibria.TV [BDRip 1080p HEVC]\Bakemonogatari_[01]_[AniLibria_TV]_[BDRip_1080p_HEVC].mkv"
+        self.file_path = r"S:\Mega\Projects\2020\001_Personal\013_UnrealII\Render\numbers.mp4"
+        
+        self.page().loadFinished.connect(lambda: self.onPageLoaded() )
+        
+        
+    def onPageLoaded(self):
+        print("Loaded")
+
+        
+        script = f'''
+        video = document.querySelector("video");
+        //window.alert(video);   
+        
+        //video.src="{self.file_path}";video.play();
+        
+        '''
+        
+        #self.page().runJavaScript(script)
+        print(script)
+        
+
+def onCreateInterface():
+    
+
+    
+    
+    
+    return LZ_Browser()
+]]></script>
+    <includeInToolbarMenu menu_position="416" create_separator="false"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>

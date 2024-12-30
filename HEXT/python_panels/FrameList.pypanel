@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="LZ_framelist" label="LZ FrameList" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[
+from hutil.Qt import QtWidgets
+from hutil.Qt.QtWidgets import QFileDialog
+from hutil.Qt import QtGui
+from hutil.Qt import QtCore
+
+import cv2,os,hou,pickle
+
+def scale_down(image):
+    down_width = 200
+    down_height = 100
+    down_points = (down_width, down_height)
+    resized_down = cv2.resize(image, down_points, interpolation= cv2.INTER_LINEAR)
+    return resized_down
+
+
+class MyLabel(QtWidgets.QLabel):
+    def __init__(self, parent,frame):
+        QtWidgets.QLabel.__init__(self, parent)
+        self.frame = frame
+
+    def mousePressEvent(self, event):
+        #print(self.frame)
+        hou.setFrame(self.frame + 1)
+
+class PicButton(QtWidgets.QAbstractButton):
+    def __init__(self, pixmap, parent=None):
+        super(PicButton, self).__init__(parent)
+        self.pixmap = pixmap
+        self.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Fixed)
+       
+
+    def paintEvent(self, event):
+        painter = QtGui.QPainter(self)
+        painter.drawPixmap(event.rect(), self.pixmap)
+
+    def sizeHint(self):
+        return self.pixmap.size()
+
+
+class LZ_abc_interface(QtWidgets.QWidget):    
+    def __init__(self):
+        self.images = []
+        self.src_file = None
+        super(LZ_abc_interface, self).__init__() 
+        self.mainLayout = QtWidgets.QGridLayout()            
+        
+        self.updateNode_btn = QtWidgets.QPushButton('Update', self)
+        self.updateNode_btn.clicked.connect(self.updateNode)    
+        self.mainLayout.addWidget(self.updateNode_btn)
+
+        self.setStyleSheet("background-color: hsv(0,0,45);")               
+        self.setLayout(self.mainLayout)
+        
+    def updateNode(self):        
+        file_dialog = QFileDialog(self)
+        file_dialog.setWindowTitle("Open File")
+        file_dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
+        file_dialog.setViewMode(QFileDialog.ViewMode.Detail)
+        
+        if file_dialog.exec():
+            selected_files = file_dialog.selectedFiles()
+            self.src_file = selected_files[0]            
+            
+            self.load_images()            
+            self.createImages()
+                       
+    def load_images(self):
+        vidcap = cv2.VideoCapture(self.src_file)
+        success,image = vidcap.read()
+   
+        i = 0
+        while success:
+            self.images += [scale_down(image)]
+            success,image = vidcap.read()
+            i += 1            
+               
+            if i >= 1000:
+                success = False
+                
+        #self.save_images()
+                
+    def save_images(self):
+        try:
+            with open(os.path.splitext(self.src_file)[0] + ".pickle", "wb") as f:
+                pickle.dump(self.images, f, protocol=pickle.HIGHEST_PROTOCOL)
+        except Exception as ex:
+            print("Error during pickling object (Possibly unsupported):", ex)
+        
+                
+    def createImages(self): 
+        self.scrollArea = QtWidgets.QScrollArea(self)
+        self.scrollArea.setWidgetResizable(True)
+
+        self.scrollArea.horizontalScrollBar().setSingleStep(self.width()*0.5);
+        
+        self.scrollAreaWidgetContents = QtWidgets.QWidget()
+        self.verticalLayout = QtWidgets.QGridLayout(self.scrollAreaWidgetContents)
+           
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.mainLayout.addWidget(self.scrollArea)    
+        
+        
+        i = 0
+        for cvImg in self.images:
+            height, width, channel = cvImg.shape
+            bytesPerLine = 3 * width
+            qImg = QtGui.QImage(cvImg.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+            
+            label = MyLabel(self,i)         
+            pixmap = QtGui.QPixmap(qImg)
+            label.setPixmap(pixmap)
+            label.resize(pixmap.width(),pixmap.height())                
+            self.verticalLayout.addWidget(label,i%4,i/4)
+            i += 1
+        
+        
+                
+        #print("test")
+            
+            
+
+        
+        
+def onCreateInterface():
+    return  LZ_abc_interface()      
+    
+    
+]]></script>
+    <includeInPaneTabMenu menu_position="0" create_separator="false"/>
+    <includeInToolbarMenu menu_position="413" create_separator="false"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>

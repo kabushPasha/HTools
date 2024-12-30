@@ -87,7 +87,7 @@
         },
         "pip install": {
             "python_code": [
-                "import subprocess,os\nmodule = \"bs4\"\npython_path = os.path.abspath(hou.text.expandString(\"C:/PROGRA~1/SIDEEF~1/HOUDIN~1.303/python39\\python.exe\"))\nsubprocess.Popen([python_path,\"-m\",\"pip\",\"install\",module])"
+                "import subprocess,os\nmodule = \"opencv-python\"\npython_path = os.environ.get(\"PYTHONHOME\") + \"/python.exe\"\nsubprocess.Popen([python_path,\"-m\",\"pip\",\"install\",module])\n\n"
             ]
         }
     }

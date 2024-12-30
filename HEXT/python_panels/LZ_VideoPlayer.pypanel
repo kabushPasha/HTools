@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="LZ_VideoPlayer" label="LZ VideoPlayer" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[
+from hutil.PySide import QtWidgets
+from hutil.Qt.QtGui import *
+from hutil.Qt import QtCore
+import cv2
+from hutil.PySide.QtWidgets import *
+import os
+        
+class LZ_abc_interface(QtWidgets.QWidget):
+    def __init__(self,paneTab):
+        self.paneTab = paneTab
+
+
+        #os.environ['QT_MULTIMEDIA_PREFERRED_PLUGINS'] = 'windowsmediafoundation'
+        
+        super(LZ_abc_interface, self).__init__() 
+        self.mainLayout = QtWidgets.QVBoxLayout()            
+        
+        self.updateNode_btn = QtWidgets.QPushButton('Update', self)
+        self.updateNode_btn.clicked.connect(self.updateNode)    
+        self.clear_cache_btn = QtWidgets.QPushButton('Clear Cache', self)
+        
+        self.button_strip = QtWidgets.QWidget(self)
+        self.button_strip_layout = QtWidgets.QHBoxLayout()  
+        self.button_strip.setLayout(self.button_strip_layout)
+        self.button_strip.setFixedHeight(75);
+        
+        self.button_strip_layout.addWidget(self.updateNode_btn)
+        self.button_strip_layout.addWidget(self.clear_cache_btn)
+        self.button_strip.height = 75
+        #self.mainLayout.addWidget(self.button_strip)
+        
+        # Open CV Video
+        self.image_label = QtWidgets.QLabel(self)   
+        
+        self.image_label.setScaledContents(True)
+        self.mainLayout.addWidget(self.image_label)    
+        #self.mainLayout.addStretch()
+            
+        self.setStyleSheet("background-color: hsv(0,0,45);")               
+        self.setLayout(self.mainLayout)
+        
+        self.updateNode()
+        
+    def keyPressEvent(self, event):
+        print(event.key())
+        #if event.key() == QtCore.Qt.Key_Q:
+        #    print "Killing"
+        #    self.deleteLater()
+        #elif event.key() == QtCore.Qt.Key_Enter:
+        #    self.proceed()
+        event.accept()    
+        
+    def showEvent(self, event):
+        hou.playbar.addEventCallback(lambda event,frame: self.setFrame(frame) )
+
+    def hideEvent(self, event):
+        hou.playbar.clearEventCallbacks()
+        
+    def load_video(self,new_vod):   
+        self.vod_path = new_vod
+        self.cap = cv2.VideoCapture(self.vod_path)   
+        
+        # Create Frame Cache
+        self.total_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.frame_cache = [None] * self.total_frames
+        
+        self.setFrame(hou.frame())  
+    
+    def updateNode(self):
+        if len(hou.selectedNodes()) == 0:
+            return        
+        if hou.selectedNodes()[0].type().name() == "Pasha::lz_framelist::1.0":
+            new_vod = hou.selectedNodes()[0].parm("file").eval()
+            self.load_video(new_vod)
+        
+    def setFrame(self,frame):  
+        if self.frame_cache[int(frame-1)] is None:
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame-1)
+            res, cvImg = self.cap.read()
+            
+            height, width, channel = cvImg.shape        
+            bytesPerLine = 3 * width
+            qImg = QImage(cvImg.data, width, height, bytesPerLine, QImage.Format_BGR888)            
+            
+            self.frame_cache[int(frame-1)] = qImg
+            #print(self.frame_cache[int(frame-1)])
+        
+        self.image_label.setPixmap( QPixmap(self.frame_cache[int(frame-1)]))  
+        #self.image_label.setPixmap( QPixmap(self.frame_cache[int(frame-1)]).scaledToWidth(self.width())  )  
+        self.image_label.setPixmap( QPixmap(self.frame_cache[int(frame-1)]).scaled(self.size(),QtCore.Qt.KeepAspectRatio ))  
+        
+        #print(self.image_label.size())
+        self.image_label.setScaledContents(True)
+        #self.image_label.setPixmap( QPixmap(self.frame_cache[int(frame-1)]).scaled(1920,1080) )  
+        self.image_label.setMinimumSize(1,1)
+     
+
+
+        
+        
+def onCreateInterface():
+    interface = LZ_abc_interface(kwargs['paneTab'])      
+    return interface
+
+    
+    
+    
+    ]]></script>
+    <includeInPaneTabMenu menu_position="0" create_separator="false"/>
+    <includeInToolbarMenu menu_position="415" create_separator="false"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>
