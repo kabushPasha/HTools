@@ -43,6 +43,9 @@
         }
     },
     "GravitySketch": {
+        "GS_TO_UnrealInstanced": {
+            "load_node": "GS_TO_UnrealInstanced"
+        },
         "LZ_GS_VFXMeshes": {
             "load_node": "LZ_GS_VFXMeshes"
         }

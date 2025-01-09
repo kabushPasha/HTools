@@ -2,6 +2,9 @@
     "Liquid": {
         "POP_Liquid": {
             "load_node": "POP_Liquid"
+        },
+        "TestPython COde": {
+            "code": "test"
         }
     }
 }
