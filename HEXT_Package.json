@@ -1,0 +1,27 @@
+{
+	"env": [
+		
+		// Main Paths
+        {"HEXT": "S:/HTools/HEXT" },
+		{"HMEGA" : "S:/MEGA"},
+		
+		// Sub Paths
+		{"OTLS" : "$HEXT/otls"},
+		{"LUTS" : "$HEXT/Assets/LUTS"},
+		{"ACES" : "$HEXT/Assets/LUTS/Rec.709_for_ACEScg_Houdini.lut"},
+		{"ACER" : "$HEXT/Assets/LUTS/sRGB_for_ACEScg_Houdini.lut"},
+		{"HASS" : "$HMEGA/Assets"},
+		{"HOUDINI_OCIO_SRGB_FILE_COLORSPACE" : "Output - Rec.709"},
+		
+		
+		// Chrome And N++
+		{"HOUDINI_EXTERNAL_HELP_BROWSER" : "1"},
+		{"EDITOR" : "C:/Program Files (x86)/Notepad++/Notepad++.exe"}
+
+		
+		
+    ],	
+	"hpath" : "$HEXT",
+    "package_path" : "S:/Htools/HEXT/packages",
+	"load_package_once" : true
+}
