@@ -1,0 +1,41 @@
+{
+  "InputImage": {
+    "inputs": {
+      "image": "mtgart-5351 (15).jpg",
+      "upload": "image"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "1010": {
+    "inputs": {
+      "mode": "Color to Normals",
+      "color_to_normals_overlap": "SMALL",
+      "normals_to_curvature_blur_radius": "SMALLEST",
+      "normals_to_height_seamless": true,
+      "image": [
+        "InputImage",
+        0
+      ]
+    },
+    "class_type": "Deep Bump (mtb)",
+    "_meta": {
+      "title": "Deep Bump (mtb)"
+    }
+  },
+  "1012": {
+    "inputs": {
+      "filename_prefix": "Texture/001",
+      "images": [
+        "1010",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  }
+}

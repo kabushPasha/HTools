@@ -13,7 +13,7 @@ from hutil.Qt import QtCore
 import cv2
 from hutil.PySide.QtWidgets import *
 import os
-        
+
 class LZ_abc_interface(QtWidgets.QWidget):
     def __init__(self,paneTab):
         self.paneTab = paneTab
@@ -88,8 +88,20 @@ class LZ_abc_interface(QtWidgets.QWidget):
             res, cvImg = self.cap.read()
             
             height, width, channel = cvImg.shape        
+            
+            
+            height= 200
+            width= 400
+            
+            cvImg = cv2.resize(cvImg, (width,height), interpolation= cv2.INTER_LINEAR)
+            
+            
             bytesPerLine = 3 * width
             qImg = QImage(cvImg.data, width, height, bytesPerLine, QImage.Format_BGR888)            
+     
+            
+            
+            
             
             self.frame_cache[int(frame-1)] = qImg
             #print(self.frame_cache[int(frame-1)])
