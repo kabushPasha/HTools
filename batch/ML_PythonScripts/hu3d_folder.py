@@ -44,7 +44,7 @@ def image_to_3d(image_path='assets/demo.png'):
 	print("Pipeline loaded, Texturing")
 	textured_mesh = texgen_worker(mesh, image)
 	print("Exporting Mesh")
-	textured_mesh.export( "out/" + os.path.basename(image_path) + '.glb',include_normals=True)
+	#textured_mesh.export( "out/" + os.path.basename(image_path) + '.glb',include_normals=True)
 	textured_mesh.export( image_path + '.glb',include_normals=True)
 
 
