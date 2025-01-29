@@ -46,6 +46,9 @@
         "GS_TO_UnrealInstanced": {
             "load_node": "GS_TO_UnrealInstanced"
         },
+        "LOAD_Hu3D": {
+            "load_node": "LOAD_Hu3D"
+        },
         "LZ_GS_VFXMeshes": {
             "load_node": "LZ_GS_VFXMeshes"
         }
