@@ -309,6 +309,10 @@ def copyToClipboard(str):
 	from PySide2.QtWidgets  import  QApplication
 	QApplication.clipboard().setText(str)
 	
+def getClipboardText():
+	from PySide2.QtWidgets  import  QApplication
+	return QApplication.clipboard().text()
+	
 def copyToClipboardExpanded(str):
 	''' Expands str and copies it to clipboard
 	'''
