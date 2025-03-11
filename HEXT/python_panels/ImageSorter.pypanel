@@ -9,22 +9,99 @@
     <script><![CDATA[
 from hutil.PySide import QtWidgets
 from hutil.Qt import QtGui
+from hutil.Qt.QtWidgets import QApplication, QLabel, QWidget, QHBoxLayout,QSizePolicy,QSplitter
+from hutil.Qt.QtGui import QPixmap
+from hutil.Qt.QtCore import Qt,QSize
+from hutil.Qt import QtCore
 
-def onCreateInterface():   
-    pic = QtWidgets.QLabel("label")
+class ScaledPixmapLabel(QLabel):
+    def __init__(self):
+        super().__init__()
+        self.setScaledContents(True)
+        
     
-    pixmap = QtGui.QPixmap(src_path)
-    pic.setPixmap(pixmap)
+    def paintEvent(self, event):
+        if self.pixmap():
+            pm = self.pixmap()
+            originalRatio = pm.width() / pm.height()
+            currentRatio = self.width() / self.height()
+            if originalRatio != currentRatio:
+                qp = QtGui.QPainter(self)
+                pm = self.pixmap().scaled(self.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
+                rect = QtCore.QRect(0, 0, pm.width(), pm.height())
+                rect.moveCenter(self.rect().center())
+                qp.drawPixmap(rect, pm)
+                return
+        super().paintEvent(event)
 
-    pic.resize(10,20)
-    
-    
-    pic.show() # You were missing this.
 
 
-    
-    return pic
-]]></script>
+class LZ_abc_interface(QtWidgets.QWidget):    
+    def __init__(self):
+        super(LZ_abc_interface, self).__init__() 
+        self.setStyleSheet("background-color: hsv(0,0,45);")               
+
+        # Create a horizontal layout
+        self.layout = QHBoxLayout()
+        self.setLayout(self.layout)
+        
+        self.splitter = QSplitter(Qt.Horizontal)
+        self.layout.addWidget(self.splitter)
+        
+        # Set initial size proportions
+        self.splitter.setStretchFactor(0, 1)
+        self.splitter.setStretchFactor(1, 1)
+        
+        # Subscribe to callbacks        
+        self.node = hou.selectedNodes()[0]        
+        self.node.removeAllEventCallbacks()
+        self.node.addEventCallback((hou.nodeEventType.ParmTupleChanged,), self._onNodeChange)
+        
+        
+        self.add_new_image(r"S:\Mega\Projects\2020\003_Work\015_NukeUnrealVDB\Render\Previews\002_FlameTest\0001.jpg")
+        self.update_from_node()
+
+        
+    def _onNodeChange(self, **kwargs):
+        self.update_from_node()
+        return
+        if kwargs["event_type"] == hou.nodeEventType.ParmTupleChanged and kwargs["parm_tuple"] is not None:
+            for parms in kwargs["parm_tuple"]:
+                #print(parms)  
+                if parms.name()== "pick_idx":
+                    print(parms.eval())
+                    
+    def update_from_node(self):
+        self.clear_layout()
+        for prim in self.node.geometry().prims():
+            img_path = prim.attribValue("path")
+            self.add_new_image(img_path)
+            
+    def clear_layout(self):        
+        while self.splitter.count() > 0:  # Check if splitter has widgets
+            widget = self.splitter.widget(0)  # Get first widget
+            if widget:
+                widget.setParent(None)  # Detach widget from splitter
+                widget.deleteLater()  # Schedule for deletion
+
+
+    def add_new_image(self, image_path):        
+        new_label = ScaledPixmapLabel()
+        new_label.setMinimumSize(1, 1)     
+        
+        new_pixmap = QPixmap(image_path)        
+        new_label.setPixmap(new_pixmap)
+        self.splitter.addWidget(new_label)
+
+        self.reset_splitter_to_center()
+        
+    def reset_splitter_to_center(self):
+        total_height = self.splitter.width()        
+        self.splitter.setSizes([total_height // self.splitter.count()]*self.splitter.count())
+          
+        
+def onCreateInterface():
+    return  LZ_abc_interface()      ]]></script>
     <includeInToolbarMenu menu_position="418" create_separator="false"/>
     <help><![CDATA[]]></help>
   </interface>

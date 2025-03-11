@@ -1,1 +1,1 @@
-start python %~dp0/VodServ/server.py "%cd%" %*
+start C:\Users\Pasha\AppData\Local\Programs\Python\Python310\python.exe %~dp0/VodServ/server.py "%cd%" %*

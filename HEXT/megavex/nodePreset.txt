@@ -109,6 +109,9 @@
         }
     },
     "RIG": {
+        "LZ_Reduce_Skeleton_Weights": {
+            "load_node": "LZ_Reduce_Skeleton_Weights"
+        },
         "SharpBoneWeights": {
             "load_node": "SharpBoneWeights"
         },
