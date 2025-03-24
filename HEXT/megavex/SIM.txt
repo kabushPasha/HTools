@@ -1,4 +1,9 @@
 {
+    "Cloth": {
+        "Vellum_Cloth_Simple_Folds": {
+            "load_node": "Vellum_Cloth_Simple_Folds"
+        }
+    },
     "Liquid": {
         "POP_Liquid": {
             "load_node": "POP_Liquid"
