@@ -1,0 +1,1 @@
+start python %~dp0/GifGal/server.py "%cd%" %*

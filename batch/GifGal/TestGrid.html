@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Video Keyframe Viewer</title>
+<style>
+  body {
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 10px;
+    text-align: center;
+  }
+  #videoSelect {
+    width: 100%;
+    max-width: 600px;
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+#videoGrid {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  height: 100%;       /* fill parent height */
+  gap: 10px;
+  padding: 5px;
+  box-sizing: border-box;
+}
+.video-container {
+  flex: 1 1 0;          /* each video container takes equal width, can shrink/grow */
+  max-width: 500px;     /* optional max width to avoid huge videos */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: #222;     /* optional */
+  border-radius: 5px;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.video-container video {
+  width: 100%;          /* fill container width */
+  height: auto;         /* keep aspect ratio */
+  border-radius: 3px;
+  background: black;
+  user-select: none;
+  pointer-events: auto;
+}
+.remove-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(192, 57, 43, 0.8);
+  border: none;
+  color: white;
+  padding: 5px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 3px;
+  z-index: 10;
+  transition: background 0.3s ease;
+}
+
+.remove-btn:hover {
+  background: rgba(231, 76, 60, 0.9);
+}
+  
+  .save-btn {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background: rgba(52, 152, 219, 0.8);
+  border: none;
+  color: white;
+  padding: 5px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 3px;
+  z-index: 10;
+  transition: background 0.3s ease;
+}
+
+.save-btn:hover {
+  background: rgba(41, 128, 185, 0.9);
+}
+</style>
+</head>
+<body>
+
+<h2>Select a Video Source</h2>
+<select id="videoSelect">
+  <option value="">Loading videos...</option>
+</select>
+<div id="paginationControls" style="margin-bottom: 15px;">
+  <button id="prevPageBtn" disabled>Prev</button>
+  <span id="pageInfo">Page 1</span>
+  <button id="nextPageBtn" disabled>Next</button>
+</div>
+
+<div id="videoGrid"></div>
+
+<script>
+let vods = {};  // Will hold { videoPath: {kf: string, fps: number} }
+let currentVideoSegments = [];
+
+const segmentsPerPage = 6;
+let currentPage = 1;
+
+// Intersection Observer: play videos when at least half visible
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    const video = entry.target;
+    if (entry.isIntersecting) {
+      if (video.paused) video.play();
+    } else {
+      video.pause();
+    }
+  });
+}, { threshold: 0.5 });
+
+// Fetch JSON from server
+async function fetchVideos() {
+  try {
+    const ws = new WebSocket("ws://localhost:8000");
+    ws.onopen = () => {
+      ws.send(JSON.stringify({"type":'GET_Files'}));
+    };
+    ws.onmessage = event => {
+      vods = JSON.parse(event.data);
+      populateDropdown();
+      ws.close();
+    };
+    ws.onerror = e => {
+      console.error("WebSocket error:", e);
+      alert("Failed to load video data from server.");
+    };
+  } catch (e) {
+    console.error(e);
+    alert("Could not connect to server.");
+  }
+}
+
+// Populate dropdown & auto-select first video
+function populateDropdown() {
+  const select = document.getElementById("videoSelect");
+  select.innerHTML = "";
+
+  const defaultOption = document.createElement("option");
+  defaultOption.text = "Select a video file...";
+  defaultOption.value = "";
+  select.appendChild(defaultOption);
+
+  const videoPaths = Object.keys(vods);
+  videoPaths.forEach(path => {
+    const option = document.createElement("option");
+    option.value = path;
+    option.text = path.split(/[/\\]/).pop();
+    select.appendChild(option);
+  });
+
+  if (videoPaths.length > 0) {
+    select.value = videoPaths[0];
+    createSegmentsForVideo(videoPaths[0]);
+  }
+
+  select.onchange = () => {
+    if (select.value) {
+      createSegmentsForVideo(select.value);
+    } else {
+      clearVideos();
+      currentPage = 1;
+      updatePaginationButtons();
+    }
+  };
+}
+
+// Clear all videos and stop observing
+function clearVideos() {
+  const container = document.getElementById("videoGrid");
+  container.querySelectorAll("video").forEach(v => observer.unobserve(v));
+  container.innerHTML = "";
+}
+
+// Create video segments from keyframes and fps
+function createSegmentsForVideo(videoPath) {
+  currentVideoSegments = [];
+  currentPage = 1;
+  const videoData = vods[videoPath];
+  if (!videoData) return;
+
+  const keyframes = videoData.kf.split(",").map(parseFloat);
+  if (!keyframes || keyframes.length < 2) return;
+
+  for (let i = 0; i < keyframes.length - 1; i++) {
+    const startTime = keyframes[i];
+    const endTime = keyframes[i + 1];
+    currentVideoSegments.push({
+      videoPath,
+      startTime,
+      endTime
+    });
+  }
+  renderVideos();
+}
+
+
+function renderVideos() {
+  clearVideos();
+  const container = document.getElementById("videoGrid");
+
+  const startIndex = (currentPage - 1) * segmentsPerPage;
+  const endIndex = startIndex + segmentsPerPage;
+  const segmentsToShow = currentVideoSegments.slice(startIndex, endIndex);
+
+  segmentsToShow.forEach((seg, index) => {
+    const videoContainer = document.createElement("div");
+    videoContainer.className = "video-container";
+
+    const video = document.createElement("video");
+    video.src = `file:///${seg.videoPath.replace(/\\/g, "/")}`;
+    video.muted = true;
+    video.controls = false;
+    video.loop = false;
+    video.preload = "auto";
+
+    // When metadata loads, seek to segment start and play
+    video.addEventListener('loadedmetadata', () => {
+      if (video.currentTime < seg.startTime || video.currentTime > seg.endTime) {
+        video.currentTime = seg.startTime;
+      }
+      video.play();
+    });
+
+    // When time updates, loop between start and end times
+    video.addEventListener('timeupdate', () => {
+      if (video.currentTime >= seg.endTime) {
+        video.currentTime = seg.startTime;
+        video.play();
+      }
+    });
+
+    observer.observe(video);
+
+    // Create Remove button
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "remove-btn";
+    removeBtn.textContent = "Remove";
+
+    removeBtn.onclick = () => {
+	observer.unobserve(video);
+		//ideoContainer.remove();
+
+		video.pause();
+		video.src = ""; // Clear source
+		video.load();   // Unload the video
+
+		// Optionally update button to say "Removed"
+		removeBtn.textContent = "Removed";
+		removeBtn.disabled = true;
+
+		// Optionally gray out the container
+		videoContainer.style.opacity = 0.3;
+
+      // Remove from full array
+      //const globalIndex = startIndex + index;
+      //currentVideoSegments.splice(globalIndex, 1);
+
+    };
+	
+	// Create Save button
+	const saveBtn = document.createElement("button");
+	saveBtn.className = "save-btn";
+	saveBtn.textContent = "Save";
+
+	saveBtn.onclick = () => {
+	  const segToSave = currentVideoSegments[startIndex + index];
+	  const startFrame = Math.round(segToSave.startTime);
+	  const endFrame = Math.round(segToSave.endTime);
+
+	  const message = {
+		type: "SAVE_KeyframeSegment",
+		path: segToSave.videoPath,
+		start: startFrame,
+		end: endFrame,
+		segment: startIndex + index 
+	  };
+
+	  const ws = new WebSocket("ws://localhost:8000");
+	  ws.onopen = () => {
+		ws.send(JSON.stringify(message));
+		//ws.close();
+	  };
+	  ws.onerror = (e) => {
+		console.error("WebSocket error:", e);
+		alert("Failed to save segment.");
+	  };
+	};
+	
+	
+
+    videoContainer.appendChild(video);
+    videoContainer.appendChild(removeBtn);
+	videoContainer.appendChild(saveBtn);
+    container.appendChild(videoContainer);
+  });
+
+  updatePaginationButtons();
+}
+
+function updatePaginationButtons() {
+  const totalPages = Math.ceil(currentVideoSegments.length / segmentsPerPage);
+  const pageInfo = document.getElementById("pageInfo");
+  const prevBtn = document.getElementById("prevPageBtn");
+  const nextBtn = document.getElementById("nextPageBtn");
+
+  if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+  if (prevBtn) prevBtn.disabled = currentPage <= 1;
+  if (nextBtn) nextBtn.disabled = currentPage >= totalPages || totalPages === 0;
+}
+
+document.getElementById("prevPageBtn").onclick = () => {
+  if (currentPage > 1) {
+    currentPage--;
+    renderVideos();
+  }
+};
+
+document.getElementById("nextPageBtn").onclick = () => {
+  const totalPages = Math.ceil(currentVideoSegments.length / segmentsPerPage);
+  if (currentPage < totalPages) {
+    currentPage++;
+    renderVideos();
+  }
+};
+
+fetchVideos();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Video Grid Viewer</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: black;
+    font-family: Arial, sans-serif;
+    color: white;
+    overflow-x: hidden;
+  }
+  #modeToggle {
+    margin: 10px;
+    padding: 8px 15px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  #videoGrid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* 6 columns */
+    gap: 4px;
+    padding: 0 10px;
+    margin: 0 auto;
+    width: 100vw;
+    box-sizing: border-box;
+  }
+  video {
+    width: 100%;
+    height: auto;
+    background: black;
+    display: block;
+    cursor: pointer;
+  }
+  #pagination {
+    margin: 20px 0;
+    text-align: center;
+  }
+  button {
+    padding: 8px 15px;
+    margin: 0 5px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h1 style="text-align:center; margin:10px 0;">Video Grid Viewer</h1>
+
+<div style="text-align:center;">
+  <button id="modeToggle">Mode: Save</button>
+</div>
+
+<div id="videoGrid"></div>
+
+<div id="pagination">
+  <button id="prevBtn">Previous</button>
+  <span id="pageInfo"></span>
+  <button id="nextBtn">Next</button>
+</div>
+
+<script>
+  const ws = new WebSocket("ws://localhost:8000");
+  const videoGrid = document.getElementById('videoGrid');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const pageInfo = document.getElementById('pageInfo');
+  const modeToggle = document.getElementById('modeToggle');
+
+  let videos = [];
+  let currentPage = 0;
+  const videosPerPage = 6;
+  let mode = 'save';  // or 'delete'
+
+  ws.onopen = () => {
+    console.log('WebSocket connected');
+    ws.send(JSON.stringify(['GET_Files']));
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (Array.isArray(data)) {
+        videos = data;
+        currentPage = 0;
+        renderPage();
+      }
+    } catch (e) {
+      console.error('Invalid JSON from server:', event.data);
+    }
+  };
+
+  modeToggle.onclick = () => {
+    if (mode === 'save') {
+      mode = 'delete';
+      modeToggle.textContent = 'Mode: Delete';
+      modeToggle.style.backgroundColor = '#c0392b'; // red
+      modeToggle.style.color = 'white';
+    } else {
+      mode = 'save';
+      modeToggle.textContent = 'Mode: Save';
+      modeToggle.style.backgroundColor = '';
+      modeToggle.style.color = '';
+    }
+  };
+
+  function renderPage() {
+    videoGrid.innerHTML = '';
+
+    const start = currentPage * videosPerPage;
+    const end = Math.min(start + videosPerPage, videos.length);
+    const pageVideos = videos.slice(start, end);
+
+    pageVideos.forEach(src => {
+      const video = document.createElement('video');
+      video.src = src;
+      video.loop = true;
+      video.autoplay = true;
+      video.muted = true;  // mute to allow autoplay in most browsers
+      video.playsInline = true;
+      video.controls = false;
+      video.style.cursor = 'pointer';
+
+      video.onclick = () => {
+        if (mode === 'save') {
+          console.log('Save:', src);
+          // Example save message, adjust as needed for your server
+          ws.send(JSON.stringify(['move', [src]]));
+        } else if (mode === 'delete') {
+          console.log('Delete:', src);
+          ws.send(JSON.stringify(['delete', src]));
+        }
+      };
+
+      videoGrid.appendChild(video);
+    });
+
+    pageInfo.textContent = `Page ${currentPage + 1} of ${Math.ceil(videos.length / videosPerPage)}`;
+
+    prevBtn.disabled = currentPage === 0;
+    nextBtn.disabled = end >= videos.length;
+  }
+
+  prevBtn.onclick = () => {
+    if (currentPage > 0) {
+      currentPage--;
+      renderPage();
+    }
+  };
+
+  nextBtn.onclick = () => {
+    if ((currentPage + 1) * videosPerPage < videos.length) {
+      currentPage++;
+      renderPage();
+    }
+  };
+</script>
+
+</body>
+</html>
