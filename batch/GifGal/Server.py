@@ -88,10 +88,9 @@ try:
 			print("Error occurred:", e)
 
 	def get_src_files():
-		files = glob.glob( src_folder + "/*.mp4" )
+		files = glob.glob( src_folder + "/*.mp4" ) + glob.glob( src_folder + "/*.mkv" )
 		src_vods = dict()
-		for file in files:	
-			print(get_keyframe_timestamps(file))
+		for file in files:				
 			kf_string = get_video_kf_string(file)
 			proxy_path = get_proxy_path(file)
 			if not os.path.isfile(proxy_path):
@@ -125,7 +124,7 @@ try:
 					
 					start_time = float(msg.get("start", 0))
 					end_time = float(msg.get("end", 0))
-					segment_index = msg.get("segmentIndex")
+					segment_index = msg.get("segment")
 					if video_path and end_time > start_time:
 						output_folder = os.path.join(os.path.dirname(video_path), "segments")
 						os.makedirs(output_folder, exist_ok=True)

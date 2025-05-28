@@ -9,6 +9,9 @@
         "StartEndCurvePoints": {
             "code": "\ni@group_end = vertexprimindex(0,@vtxnum) == (@numvtx -1);\ni@group_start = vertexprimindex(0,@vtxnum) == 0;"
         },
+        "attribwrangle11": {
+            "code": ""
+        },
         "curveU psacle": {
             "addcode": "float u = float(vertexprimindex(0,@vtxnum))/(@numvtx -1);\nf@pscale = chf(\"psacle\")*chramp(\"u\",u);"
         }
