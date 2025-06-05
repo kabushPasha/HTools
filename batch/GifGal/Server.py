@@ -168,10 +168,11 @@ try:
 
 
 
-	open_webpage()
+	#open_webpage()
 
 
 	CanoeAmbientServer()
+	
 except Exception as e:
 	import traceback
 	print("An error occurred:")

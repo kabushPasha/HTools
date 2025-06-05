@@ -94,6 +94,10 @@
 <select id="videoSelect">
   <option value="">Loading videos...</option>
 </select>
+<div style="margin: 10px 0;">
+  <button id="prevVideoBtn">Previous Video</button>
+  <button id="nextVideoBtn">Next Video</button>
+</div>
 <div id="paginationControls" style="margin-bottom: 15px;">
   <button id="prevPageBtn" disabled>Prev</button>
   <span id="pageInfo">Page 1</span>
@@ -153,7 +157,7 @@ function populateDropdown() {
   defaultOption.value = "";
   select.appendChild(defaultOption);
 
-  const videoPaths = Object.keys(vods);
+  videoPaths = Object.keys(vods); // <- update global variable
   videoPaths.forEach(path => {
     const option = document.createElement("option");
     option.value = path;
@@ -166,6 +170,8 @@ function populateDropdown() {
     createSegmentsForVideo(videoPaths[0]);
   }
 
+  updateVideoButtons(); // <- call here
+
   select.onchange = () => {
     if (select.value) {
       createSegmentsForVideo(select.value);
@@ -174,8 +180,42 @@ function populateDropdown() {
       currentPage = 1;
       updatePaginationButtons();
     }
+    updateVideoButtons(); // <- and call here
   };
 }
+
+
+let videoPaths = [];
+
+function updateVideoButtons() {
+  const prevBtn = document.getElementById("prevVideoBtn");
+  const nextBtn = document.getElementById("nextVideoBtn");
+  const select = document.getElementById("videoSelect");
+  const currentIndex = videoPaths.indexOf(select.value);
+
+  prevBtn.disabled = currentIndex <= 0;
+  nextBtn.disabled = currentIndex >= videoPaths.length - 1;
+}
+
+document.getElementById("prevVideoBtn").onclick = () => {
+  const select = document.getElementById("videoSelect");
+  const currentIndex = videoPaths.indexOf(select.value);
+  if (currentIndex > 0) {
+    select.value = videoPaths[currentIndex - 1];
+    createSegmentsForVideo(select.value);
+    updateVideoButtons();
+  }
+};
+
+document.getElementById("nextVideoBtn").onclick = () => {
+  const select = document.getElementById("videoSelect");
+  const currentIndex = videoPaths.indexOf(select.value);
+  if (currentIndex < videoPaths.length - 1) {
+    select.value = videoPaths[currentIndex + 1];
+    createSegmentsForVideo(select.value);
+    updateVideoButtons();
+  }
+};
 
 // Clear all videos and stop observing
 function clearVideos() {
@@ -321,20 +361,42 @@ function updatePaginationButtons() {
   if (nextBtn) nextBtn.disabled = currentPage >= totalPages || totalPages === 0;
 }
 
-document.getElementById("prevPageBtn").onclick = () => {
-  if (currentPage > 1) {
-    currentPage--;
-    renderVideos();
-  }
-};
-
-document.getElementById("nextPageBtn").onclick = () => {
+function goToNextPage() {
   const totalPages = Math.ceil(currentVideoSegments.length / segmentsPerPage);
   if (currentPage < totalPages) {
     currentPage++;
     renderVideos();
   }
-};
+}
+
+function goToPreviousPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    renderVideos();
+  }
+}
+
+
+
+document.getElementById("prevPageBtn").onclick = goToPreviousPage;
+document.getElementById("nextPageBtn").onclick = goToNextPage;
+
+document.addEventListener("wheel", (e) => {
+  if (e.deltaY > 0) {
+    goToNextPage();
+  } else if (e.deltaY < 0) {
+    goToPreviousPage();
+  }
+}, { passive: true });
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowRight") {
+    goToNextPage();
+  } else if (e.key === "ArrowLeft") {
+    goToPreviousPage();
+  }
+});
+
 
 fetchVideos();
 
