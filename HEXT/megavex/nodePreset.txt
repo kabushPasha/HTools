@@ -188,6 +188,11 @@
             "load_node": "Surface_dissolve"
         }
     },
+    "Unreal": {
+        "Match_Meta_Body": {
+            "load_node": "Match_Meta_Body"
+        }
+    },
     "VDB Modelling": {
         "SD_OpenCL_Snippets": {
             "load_node": "SD_OpenCL_Snippets"
