@@ -122,7 +122,7 @@ try:
 					video_path = msg.get("path")
 					video_path = get_source_path_from_proxy(video_path)
 					
-					start_time = float(msg.get("start", 0))
+					start_time = float(msg.get("start", 0)) + 1
 					end_time = float(msg.get("end", 0))
 					segment_index = msg.get("segment")
 					if video_path and end_time > start_time:

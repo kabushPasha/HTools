@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Video Segment Gallery</title>
+<style>
+  body {
+    background-color: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+  }
+  #controls {
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+	#videoGrid {
+	  display: flex;
+	  gap: 12px;
+	  flex-wrap: wrap;         /* allow wrapping */
+	  justify-content: flex-start; /* align videos to left and fill width */
+	  width: 100%;             /* full width */
+	  padding: 0 15px;         /* some horizontal padding */
+	  box-sizing: border-box;
+	}
+  .video-container {
+    background: #222;
+    padding: 6px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+  video {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+    outline: none;
+    pointer-events: none;
+  }
+  button {
+    background-color: #333;
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    user-select: none;
+    transition: background-color 0.25s ease;
+  }
+  button:hover:not(:disabled) {
+    background-color: #555;
+  }
+  button:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  #pagination {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  #pagination button.page-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    font-weight: bold;
+  }
+  #pagination button.page-btn.active {
+    background-color: #1e90ff;
+  }
+  input[type="file"] {
+    cursor: pointer;
+  }
+  label {
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="controls">
+  <label>
+    Load Video:
+    <input id="videoFileInput" type="file" accept="video/*" />
+  </label>
+
+  <label>
+    Load Keyframes (.txt):
+    <input id="keyframeFileInput" type="file" accept=".txt,text/plain" />
+  </label>
+
+  <button id="zoomOutBtn" title="Zoom Out">➖ Zoom Out</button>
+  <button id="zoomInBtn" title="Zoom In">➕ Zoom In</button>
+</div>
+
+<div id="videoGrid" aria-label="Video segment gallery"></div>
+
+<div id="pagination" role="navigation" aria-label="Page navigation"></div>
+
+<script>
+(() => {
+  let videoFileURL = null;
+  let keyframeTimes = [];
+  let segments = [];
+  const perPage = 6;
+  let currentPage = 1;
+  let videoScale = 1; // 1 = normal size
+  const baseWidth = 320; // base width of each video container
+
+  const videoGrid = document.getElementById('videoGrid');
+  const pagination = document.getElementById('pagination');
+  const videoFileInput = document.getElementById('videoFileInput');
+  const keyframeFileInput = document.getElementById('keyframeFileInput');
+  const zoomInBtn = document.getElementById('zoomInBtn');
+  const zoomOutBtn = document.getElementById('zoomOutBtn');
+
+  function parseKeyframes(text) {
+    return text
+      .split(',')
+      .map(s => parseFloat(s.trim()))
+      .filter(n => !isNaN(n))
+      .sort((a,b) => a - b);
+  }
+
+  function generateSegments(times) {
+    const segs = [];
+    for (let i = 0; i < times.length - 1; i++) {
+      segs.push({ start: times[i], end: times[i+1] });
+    }
+    return segs;
+  }
+
+  function clearOldVideo() {
+    if (videoFileURL) {
+      URL.revokeObjectURL(videoFileURL);
+      videoFileURL = null;
+    }
+    segments = [];
+    currentPage = 1;
+    videoGrid.innerHTML = '';
+    pagination.innerHTML = '';
+  }
+
+  function renderPage() {
+    videoGrid.innerHTML = '';
+    if (!videoFileURL || segments.length === 0) {
+      pagination.innerHTML = '';
+      return;
+    }
+    const startIndex = (currentPage - 1) * perPage;
+    const pageSegments = segments.slice(startIndex, startIndex + perPage);
+
+    pageSegments.forEach((seg, idx) => {
+      const container = document.createElement('div');
+      container.className = 'video-container';
+      container.style.width = (baseWidth * videoScale) + 'px';
+
+      const video = document.createElement('video');
+      video.src = videoFileURL;
+      video.muted = true;
+      video.controls = false;
+      video.loop = false;
+      video.preload = "auto";
+      video.style.width = '100%';
+      video.style.height = 'auto';
+      video.setAttribute('tabindex', '-1');
+
+      video.addEventListener('loadedmetadata', () => {
+        if (video.currentTime < seg.start || video.currentTime > seg.end) {
+          video.currentTime = seg.start;
+        }
+        video.play();
+      });
+
+      video.addEventListener('timeupdate', () => {
+        if (video.currentTime >= seg.end) {
+          video.currentTime = seg.start;
+          video.play();
+        }
+      });
+
+      container.appendChild(video);
+      videoGrid.appendChild(container);
+    });
+
+    renderPagination();
+  }
+
+  function renderPagination() {
+    pagination.innerHTML = '';
+    const totalPages = Math.ceil(segments.length / perPage);
+    if (totalPages <= 1) return;
+
+    for (let i = 1; i <= totalPages; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'page-btn';
+      btn.textContent = i;
+      btn.disabled = (i === currentPage);
+      if (i === currentPage) {
+        btn.classList.add('active');
+      }
+      btn.addEventListener('click', () => {
+        if (i !== currentPage) {
+          currentPage = i;
+          renderPage();
+        }
+      });
+      pagination.appendChild(btn);
+    }
+  }
+
+  function zoom(delta) {
+    videoScale = Math.min(3, Math.max(0.3, videoScale + delta));
+    renderPage();
+  }
+
+  videoFileInput.addEventListener('change', e => {
+    clearOldVideo();
+    const file = e.target.files[0];
+    if (!file) return;
+    videoFileURL = URL.createObjectURL(file);
+    if (keyframeTimes.length > 1) {
+      segments = generateSegments(keyframeTimes);
+      currentPage = 1;
+      renderPage();
+    }
+  });
+
+  keyframeFileInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      keyframeTimes = parseKeyframes(reader.result);
+      if (keyframeTimes.length < 2) {
+        alert("Please provide at least two valid keyframe times separated by commas.");
+        return;
+      }
+      segments = generateSegments(keyframeTimes);
+      currentPage = 1;
+      if (videoFileURL) {
+        renderPage();
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  zoomInBtn.addEventListener('click', () => zoom(0.2));
+  zoomOutBtn.addEventListener('click', () => zoom(-0.2));
+})();
+</script>
+
+</body>
+</html>

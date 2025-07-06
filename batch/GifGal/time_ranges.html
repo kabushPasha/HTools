@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Local Video Player with Looping Time Range</title>
+<style>
+  body {
+    background: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    text-align: center;
+  }
+  #fileInputWrapper {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  #fileInput {
+    display: inline-block;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    background-color: #222;
+    color: white;
+    transition: background-color 0.3s ease;
+  }
+  #fileInput:hover {
+    background-color: #444;
+  }
+  video {
+    max-width: 90vw;
+    max-height: 60vh;
+    border: 2px solid #444;
+    border-radius: 8px;
+    background: black;
+  }
+  #timeControls {
+    margin-top: 15px;
+  }
+  #timeControls label {
+    margin: 0 8px;
+    font-weight: bold;
+  }
+  #timeControls input[type="number"] {
+    width: 80px;
+    font-size: 16px;
+    padding: 5px;
+    border-radius: 4px;
+    border: none;
+    text-align: center;
+    background-color: #222;
+    color: white;
+  }
+</style>
+</head>
+<body>
+
+<h1>Select a Local Video File</h1>
+<div id="fileInputWrapper">
+  <input type="file" id="fileInput" accept="video/*" />
+</div>
+
+<video id="videoPlayer" controls></video>
+
+<div id="timeControls" style="display:none;">
+  <label for="startTime">Start Time (sec):</label>
+  <input type="number" id="startTime" min="0" step="0.1" value="0" />
+  <label for="endTime">End Time (sec):</label>
+  <input type="number" id="endTime" min="0" step="0.1" value="0" />
+</div>
+
+<script>
+  const fileInput = document.getElementById('fileInput');
+  const videoPlayer = document.getElementById('videoPlayer');
+  const timeControls = document.getElementById('timeControls');
+  const startTimeInput = document.getElementById('startTime');
+  const endTimeInput = document.getElementById('endTime');
+
+  let currentBlobUrl = null;
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    if (currentBlobUrl) {
+      URL.revokeObjectURL(currentBlobUrl);
+    }
+
+    currentBlobUrl = URL.createObjectURL(file);
+    videoPlayer.src = currentBlobUrl;
+    videoPlayer.load();
+
+    videoPlayer.addEventListener('loadedmetadata', () => {
+      const duration = videoPlayer.duration;
+      
+      // Initialize time inputs
+      startTimeInput.value = 0;
+      endTimeInput.value = duration.toFixed(2);
+      endTimeInput.max = duration;
+      startTimeInput.max = duration;
+
+      timeControls.style.display = "block";
+      
+      videoPlayer.currentTime = 0;
+      videoPlayer.play();
+    }, { once: true });
+  });
+
+  function validateTimes() {
+    let start = parseFloat(startTimeInput.value);
+    let end = parseFloat(endTimeInput.value);
+    const duration = videoPlayer.duration || 0;
+
+    if (isNaN(start) || start < 0) start = 0;
+    if (isNaN(end) || end > duration) end = duration;
+    if (start > end) start = end;
+
+    startTimeInput.value = start.toFixed(2);
+    endTimeInput.value = end.toFixed(2);
+  }
+
+  videoPlayer.addEventListener('timeupdate', () => {
+    const start = parseFloat(startTimeInput.value) || 0;
+    const end = parseFloat(endTimeInput.value) || videoPlayer.duration;
+
+    if (videoPlayer.currentTime < start) {
+      videoPlayer.currentTime = start;
+    }
+    if (videoPlayer.currentTime >= end) {
+      videoPlayer.currentTime = start;
+      videoPlayer.play();
+    }
+  });
+
+  startTimeInput.addEventListener('change', () => {
+    validateTimes();
+    videoPlayer.currentTime = parseFloat(startTimeInput.value);
+  });
+
+  endTimeInput.addEventListener('change', () => {
+    validateTimes();
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Segmented Video Player</title>
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    .file-loaders {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    video {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 10px;
+      border: 2px solid white;
+      border-radius: 5px;
+    }
+
+    select, input {
+      margin: 5px;
+      padding: 6px;
+      font-size: 16px;
+    }
+
+    label {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Segmented Video Player</h2>
+
+  <!-- File pickers -->
+  <div class="file-loaders">
+    <input type="file" id="fileInput" accept="video/*" />
+    <input type="file" id="timestampsInput" accept=".txt,.csv" />
+  </div>
+
+  <video id="video" controls muted></video>
+
+  <div>
+    <label for="segmentSelect">Select Segment:</label>
+    <select id="segmentSelect">
+      <option value="">No segments loaded</option>
+    </select>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const timestampsInput = document.getElementById('timestampsInput');
+    const video = document.getElementById('video');
+    const segmentSelect = document.getElementById('segmentSelect');
+
+    let segmentList = [];
+    let currentSegment = null;
+
+    // Handle video file selection
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const url = URL.createObjectURL(file);
+      video.src = url;
+      video.load();
+    });
+
+    // Handle timestamp file selection
+    timestampsInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const raw = e.target.result;
+        const times = raw.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+        times.sort((a, b) => a - b);
+
+        segmentList = [];
+        for (let i = 0; i < times.length - 1; i++) {
+          segmentList.push({ start: times[i], end: times[i + 1] });
+        }
+
+        updateSegmentMenu();
+      };
+      reader.readAsText(file);
+    });
+
+    // Populate dropdown menu
+    function updateSegmentMenu() {
+      segmentSelect.innerHTML = '';
+      segmentList.forEach((seg, i) => {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `Segment ${i + 1}: ${seg.start.toFixed(2)}s - ${seg.end.toFixed(2)}s`;
+        segmentSelect.appendChild(option);
+      });
+    }
+
+    // Segment selection
+    segmentSelect.addEventListener('change', () => {
+      const index = parseInt(segmentSelect.value);
+      if (!isNaN(index)) {
+        currentSegment = segmentList[index];
+        video.currentTime = currentSegment.start;
+        video.play();
+      }
+    });
+
+    // Loop segment
+    video.addEventListener('timeupdate', () => {
+      if (currentSegment && video.currentTime >= currentSegment.end) {
+        video.currentTime = currentSegment.start;
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Local Video Player</title>
+<style>
+  body {
+    background: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    text-align: center;
+  }
+  #fileInputWrapper {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  #fileInput {
+    display: inline-block; /* inline-block to keep it sized properly */
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    background-color: #222;
+    color: white;
+    transition: background-color 0.3s ease;
+  }
+  #fileInput:hover {
+    background-color: #444;
+  }
+  video {
+    max-width: 90vw;
+    max-height: 60vh;
+    border: 2px solid #444;
+    border-radius: 8px;
+    background: black;
+  }
+</style>
+</head>
+<body>
+
+<h1>Select a Local Video File</h1>
+<div id="fileInputWrapper">
+  <input type="file" id="fileInput" accept="video/*" />
+</div>
+
+<video id="videoPlayer" controls></video>
+
+<script>
+  const fileInput = document.getElementById('fileInput');
+  const videoPlayer = document.getElementById('videoPlayer');
+  let currentBlobUrl = null;
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    if (currentBlobUrl) {
+      URL.revokeObjectURL(currentBlobUrl);
+    }
+
+    currentBlobUrl = URL.createObjectURL(file);
+
+    videoPlayer.src = currentBlobUrl;
+    videoPlayer.load();
+    videoPlayer.play();
+  });
+</script>
+
+</body>
+</html>
