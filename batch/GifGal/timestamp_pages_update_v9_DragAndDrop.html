@@ -219,6 +219,17 @@
   }
 
   function renderPage() {
+	// Clean up old video elements to free memory
+	Array.from(videoGrid.children).forEach(container => {
+	const video = container.querySelector('video');
+	if (video) {
+	  video.pause();
+	  video.src = '';
+	  video.load(); // release media resources
+	}
+	}); 
+  
+  
     videoGrid.innerHTML = '';
     if (!videoFileURL || segments.length === 0) {
       pagination.innerHTML = '';
