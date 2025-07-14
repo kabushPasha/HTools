@@ -386,7 +386,7 @@
       // Output file name safe: inputname_segmentXX.mp4
       // Remove extension from inputFileName for output base
       const baseName = videoFileName.replace(/\.[^/.]+$/, '');
-      const outputFile = `"CUT_${baseName}_segment${index + 1}.mp4"`;
+      const outputFile = `"CUTS/CUT_${baseName}_segment${index + 1}.mp4"`;
 
       // ffmpeg command line:
       // ffmpeg -ss START -i "input.mp4" -t DURATION -c copy "output.mp4"
@@ -517,6 +517,57 @@ window.addEventListener('dragleave', (e) => {
 window.addEventListener('dragover', (e) => {
   e.preventDefault();
 });
+
+// Add keyboard navigation for pagination
+window.addEventListener('keydown', (e) => {
+  const isInputFocused = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA';
+  if (isInputFocused) return;
+
+  const totalSegments = showFavoritesOnly 
+    ? segments.filter(s => favorites.has(s.index)).length
+    : segments.length;
+  const totalPages = Math.ceil(totalSegments / perPage);
+
+  if (e.key === 'ArrowRight') {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderPage();
+    }
+  } else if (e.key === 'ArrowLeft') {
+    if (currentPage > 1) {
+      currentPage--;
+      renderPage();
+    }
+  }
+});
+
+
+// Add mouse wheel navigation for pagination
+let wheelTimeout = null;
+
+window.addEventListener('wheel', (e) => {
+  const isInputFocused = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA';
+  if (isInputFocused) return;
+
+  const totalSegments = showFavoritesOnly 
+    ? segments.filter(s => favorites.has(s.index)).length
+    : segments.length;
+  const totalPages = Math.ceil(totalSegments / perPage);
+
+  // Debounce scrolling to prevent rapid switching
+  if (wheelTimeout) return;
+  wheelTimeout = setTimeout(() => wheelTimeout = null, 150); // adjust as needed
+
+  if (e.deltaY > 0 && currentPage < totalPages) {
+    currentPage++;
+    renderPage();
+  } else if (e.deltaY < 0 && currentPage > 1) {
+    currentPage--;
+    renderPage();
+  }
+});
+
+
 
 
 
