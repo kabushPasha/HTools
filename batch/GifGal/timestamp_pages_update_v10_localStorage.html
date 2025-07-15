@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Video Segment Gallery with Favorites and ffmpeg CMD Export</title>
+<style>
+  body {
+    background-color: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+  }
+  #controls {
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  #videoGrid {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    width: 100%;
+    padding: 0 15px;
+    box-sizing: border-box;
+  }
+  .video-container {
+    background: #222;
+    padding: 6px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    position: relative;
+    user-select: none;
+  }
+  video {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+    outline: none;
+    pointer-events: none;
+  }
+  button {
+    background-color: #333;
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    user-select: none;
+    transition: background-color 0.25s ease;
+  }
+  button:hover:not(:disabled) {
+    background-color: #555;
+  }
+  button:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  #pagination {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  #pagination button.page-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    font-weight: bold;
+  }
+  #pagination button.page-btn.active {
+    background-color: #1e90ff;
+  }
+  input[type="file"] {
+    cursor: pointer;
+  }
+  label {
+    user-select: none;
+  }
+  .fav-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background-color: #444;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    user-select: none;
+    cursor: pointer;
+  }
+  .fav-btn.favorited {
+    background-color: #1abc9c;
+  }
+  #showFavoritesToggle, #saveFavoritesBtn, #generateFFmpegBtn {
+    background-color: #333;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none;
+    transition: background-color 0.25s ease;
+  }
+  #showFavoritesToggle.active {
+    background-color: #1abc9c;
+  }
+  
+</style>
+</head>
+<body>
+
+<div id="controls">
+  <label>
+    Load Video:
+    <input id="videoFileInput" type="file" accept="*" />
+  </label>
+
+  <label>
+    Load Keyframes (.txt):
+    <input id="keyframeFileInput" type="file" accept="*" />
+  </label>
+
+  <button id="zoomOutBtn" title="Zoom Out">➖ Zoom Out</button>
+  <button id="zoomInBtn" title="Zoom In">➕ Zoom In</button>
+
+  <button id="showFavoritesToggle" title="Toggle show favorites only" disabled>Show Favorites Only: OFF</button>
+  <button id="generateFFmpegBtn" title="Generate ffmpeg CMD script" disabled>⚙️ Generate ffmpeg CMD</button>
+  <button id="clearLocalStorageBtn" title="Clear saved favorites">🗑️ Clear All Saved</button>
+</div>
+
+<div id="videoGrid" aria-label="Video segment gallery"></div>
+
+<div id="pagination" role="navigation" aria-label="Page navigation"></div>
+
+<div id="dropOverlay" style="
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(30, 144, 255, 0.2);
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: none;
+  user-select: none;
+">
+  Drop video or keyframe file here
+</div>
+
+
+
+<script>
+(() => {
+	// INIT
+  let saved = JSON.parse(localStorage.getItem('videoSegmentData') || '{}');
+
+  let videoFileURL = null;
+  let videoFileName = "input.mp4"; // default fallback name for ffmpeg command
+  let keyframeTimes = [];
+  let segments = [];
+  let currentPage = 1;
+  const perPage = 6;
+  let videoScale = 1; // 1 = normal size
+  const baseWidth = 320; // base width of each video container
+
+  let showFavoritesOnly = false;
+  const favorites = new Set(); // store segment indices
+
+  const videoGrid = document.getElementById('videoGrid');
+  const pagination = document.getElementById('pagination');
+  const videoFileInput = document.getElementById('videoFileInput');
+  const keyframeFileInput = document.getElementById('keyframeFileInput');
+  const zoomInBtn = document.getElementById('zoomInBtn');
+  const zoomOutBtn = document.getElementById('zoomOutBtn');
+  const showFavoritesToggle = document.getElementById('showFavoritesToggle');
+  const generateFFmpegBtn = document.getElementById('generateFFmpegBtn');
+
+	// UTIL FUNCTIONS
+  function parseKeyframes(text) {
+    return text
+      .split(',')
+      .map(s => parseFloat(s.trim()))
+      .filter(n => !isNaN(n))
+      .sort((a,b) => a - b);
+  }
+
+  function generateSegments(times) {
+    const segs = [];
+    for (let i = 0; i < times.length - 1; i++) {
+      segs.push({ start: times[i], end: times[i+1], index: i });
+    }
+    return segs;
+  }
+
+  function clearOldVideo() {
+    if (videoFileURL) {
+      URL.revokeObjectURL(videoFileURL);
+      videoFileURL = null;
+    }
+    keyframeTimes = [];
+    segments = [];
+    currentPage = 1;
+    favorites.clear();
+    videoGrid.innerHTML = '';
+    pagination.innerHTML = '';
+    updateFavoritesToggle();
+    updateGenerateButton();
+  }
+
+  function renderPage() {
+	// Clean up old video elements to free memory
+	Array.from(videoGrid.children).forEach(container => {
+	const video = container.querySelector('video');
+	if (video) {
+	  video.pause();
+	  video.src = '';
+	  video.load(); // release media resources
+	}
+	}); 
+    
+    videoGrid.innerHTML = '';
+    if (!videoFileURL || segments.length === 0) {
+      pagination.innerHTML = '';
+      return;
+    }
+
+    let displaySegments = showFavoritesOnly 
+      ? segments.filter(s => favorites.has(s.index))
+      : segments;
+
+    if (displaySegments.length === 0) {
+      videoGrid.innerHTML = '<p style="width: 100%; text-align:center; color: #888;">No segments to display.</p>';
+      pagination.innerHTML = '';
+      return;
+    }
+
+    const totalPages = Math.ceil(displaySegments.length / perPage);
+    if(currentPage > totalPages) currentPage = totalPages || 1;
+
+    const startIndex = (currentPage - 1) * perPage;
+    const pageSegments = displaySegments.slice(startIndex, startIndex + perPage);
+	
+	// GENERATE FRAMES
+    pageSegments.forEach(seg => {
+      const container = document.createElement('div');
+      container.className = 'video-container';
+      container.style.width = (baseWidth * videoScale) + 'px';
+
+      const video = document.createElement('video');
+      video.src = videoFileURL;
+      video.muted = true;
+      video.controls = false;
+      video.loop = false;
+      video.preload = "auto";
+      video.style.width = '100%';
+      video.style.height = 'auto';
+      video.setAttribute('tabindex', '-1');
+
+      video.addEventListener('loadedmetadata', () => {
+        if (video.currentTime < seg.start || video.currentTime > seg.end) {
+          video.currentTime = seg.start;
+        }
+        video.play();
+      });
+
+      video.addEventListener('timeupdate', () => {
+        if (video.currentTime >= seg.end) {
+          video.currentTime = seg.start;
+          video.play();
+        }
+      });
+
+      container.appendChild(video);
+
+      // Favorite button
+      const favBtn = document.createElement('button');
+      favBtn.className = 'fav-btn';
+      favBtn.textContent = favorites.has(seg.index) ? '★ Favorited' : '☆ Favorite';
+      if (favorites.has(seg.index)) {
+        favBtn.classList.add('favorited');
+      }
+      favBtn.title = 'Toggle favorite for this segment';
+      favBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (favorites.has(seg.index)) {
+          favorites.delete(seg.index);
+          favBtn.textContent = '☆ Favorite';
+          favBtn.classList.remove('favorited');
+        } else {
+          favorites.add(seg.index);
+          favBtn.textContent = '★ Favorited';
+          favBtn.classList.add('favorited');
+        }
+        updateFavoritesToggle();
+        updateGenerateButton();
+		saveToLocalStorage();
+		saveToLocalStorage();
+      });
+      container.appendChild(favBtn);
+
+      videoGrid.appendChild(container);
+    });
+
+    renderPagination(displaySegments.length);
+  }
+
+
+// Save Favorites to local Storage
+function saveToLocalStorage() {
+  if (!videoFileName) return;
+  saved[videoFileName] = {
+    favorites: Array.from(favorites),
+    currentPage
+  };
+  localStorage.setItem('videoSegmentData', JSON.stringify(saved));
+}
+
+function loadFromLocalStorage() {
+	console.log("LOADING STORAGE!",videoFileName);
+	console.log("STORAGE",saved);
+	if (saved[videoFileName]) {
+	  const data = saved[videoFileName];
+	  favorites.clear();
+	  data.favorites.forEach(i => favorites.add(i));
+	  currentPage = data.currentPage || 1;
+	  console.log("favs loaded",favorites);
+	  renderPage();
+	  	  updateFavoritesToggle();
+        updateGenerateButton();
+	}
+}
+
+
+function renderPagination(totalSegments) {
+    pagination.innerHTML = '';
+    const totalPages = Math.ceil(totalSegments / perPage);
+    if (totalPages <= 1) return;
+
+    for (let i = 1; i <= totalPages; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'page-btn';
+      btn.textContent = i;
+      btn.disabled = (i === currentPage);
+      if (i === currentPage) {
+        btn.classList.add('active');
+      }
+      btn.addEventListener('click', () => {
+        if (i !== currentPage) {
+          currentPage = i;
+		  saveToLocalStorage();
+          renderPage();
+        }
+      });
+      pagination.appendChild(btn);
+    }
+  }
+
+  function zoom(delta) {
+    videoScale = Math.min(3, Math.max(0.3, videoScale + delta));
+    renderPage();
+  }
+
+  function updateFavoritesToggle() {
+    showFavoritesToggle.disabled = favorites.size === 0;
+    if (!showFavoritesOnly) {
+      showFavoritesToggle.textContent = "Show Favorites Only: OFF";
+      showFavoritesToggle.classList.remove('active');
+    } else {
+      showFavoritesToggle.textContent = "Show Favorites Only: ON";
+      showFavoritesToggle.classList.add('active');
+    }
+  }
+
+  function updateGenerateButton() {
+    generateFFmpegBtn.disabled = favorites.size === 0;
+  }
+
+  function secondsToHHMMSS(sec) {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = (sec % 60).toFixed(3);
+    return (h > 0 ? h.toString().padStart(2,'0') + ':' : '') +
+           m.toString().padStart(2,'0') + ':' +
+           s.toString().padStart(6,'0');
+  }
+
+  function generateFFmpegCommand() {
+    if (!videoFileURL) {
+      alert("Please load a video file first.");
+      return;
+    }
+    if (favorites.size === 0) {
+      alert("No favorite segments selected.");
+      return;
+    }
+
+    let inputFileName = videoFileName;
+    // if filename has spaces, quote it
+    if (/\s/.test(inputFileName)) {
+      inputFileName = `"${inputFileName}"`;
+    }
+
+    let cmdLines = ['@echo off', 'REM ffmpeg segment extraction commands'];
+	cmdLines = []
+    favorites.forEach(index => {
+      const seg = segments[index];
+      if (!seg) return;
+
+      const start = seg.start;
+	  const end = seg.end;
+      const duration = seg.end - seg.start;
+
+      // Format start and duration in seconds with decimals (no quotes needed)
+      // Use double quotes around filenames
+
+      // Output file name safe: inputname_segmentXX.mp4
+      // Remove extension from inputFileName for output base
+      const baseName = videoFileName.replace(/\.[^/.]+$/, '');
+      const outputFile = `"CUTS/CUT_${baseName}_segment${index + 1}.mp4"`;
+
+      // ffmpeg command line:
+      // ffmpeg -ss START -i "input.mp4" -t DURATION -c copy "output.mp4"
+      //const line = `ffmpeg -ss ${start.toFixed(3)} -i ${inputFileName} -t ${duration.toFixed(3)} -c copy ${outputFile}`;
+	  const line = `ffmpeg -ss ${start.toFixed(3)} -to ${end.toFixed(3)} -i ${inputFileName} -c copy ${outputFile}`;
+      cmdLines.push(line);
+    });
+
+	cmdLines.push("");
+    // Join lines with Windows CMD line breaks (just newlines)
+    return cmdLines.join('\r\n');
+  }
+
+  videoFileInput.addEventListener('change', e => {
+    clearOldVideo();
+    const file = e.target.files[0];
+    if (!file) return;
+    videoFileName = file.name;
+    videoFileURL = URL.createObjectURL(file);
+    renderPage();
+    showFavoritesToggle.disabled = false;
+    generateFFmpegBtn.disabled = true;
+  });
+
+  keyframeFileInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      keyframeTimes = parseKeyframes(reader.result);
+      segments = generateSegments(keyframeTimes);
+      currentPage = 1;
+      favorites.clear();
+      renderPage();
+      updateFavoritesToggle();
+      updateGenerateButton();
+    };
+    reader.readAsText(file);
+  });
+
+  zoomInBtn.addEventListener('click', () => zoom(0.2));
+  zoomOutBtn.addEventListener('click', () => zoom(-0.2));
+
+  showFavoritesToggle.addEventListener('click', () => {
+    showFavoritesOnly = !showFavoritesOnly;
+    updateFavoritesToggle();
+    renderPage();
+  });
+
+generateFFmpegBtn.addEventListener('click', async () => {
+  const cmdText = generateFFmpegCommand();
+  if (cmdText) {
+    try {
+      await navigator.clipboard.writeText(cmdText);
+      alert('ffmpeg CMD script copied to clipboard!');
+    } catch (err) {
+      alert('Failed to copy to clipboard. Please try again.');
+    }
+  }
+});
+
+
+// Drag & Drop Cue + Handling
+const dropOverlay = document.getElementById('dropOverlay');
+let dragCounter = 0;
+
+function handleFileDrop(file) {
+  console.log('📦 Dropped file:', file.name, file.type);
+
+  if (file.type.startsWith('video/')) {
+    console.log('🎞️ Treating as video file');
+    clearOldVideo();
+    videoFileName = file.name;
+    videoFileURL = URL.createObjectURL(file);	
+    renderPage();
+    showFavoritesToggle.disabled = false;
+    generateFFmpegBtn.disabled = true;	
+  } else if (file.name.endsWith('.txt')) {
+    console.log('📄 Treating as keyframe text file');
+    const reader = new FileReader();
+    reader.onload = () => {
+      console.log('✅ Keyframe file loaded');
+      keyframeTimes = parseKeyframes(reader.result);
+      segments = generateSegments(keyframeTimes);
+      currentPage = 1;
+      favorites.clear();
+      renderPage();
+      updateFavoritesToggle();
+      updateGenerateButton();
+	  loadFromLocalStorage();
+    };
+    reader.onerror = (err) => {
+      console.error('❌ Error reading file:', err);
+    };
+    reader.readAsText(file);
+  } else {
+    console.warn('❓ Unsupported file type:', file.name);
+  }  
+  
+  
+}
+
+window.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropOverlay.style.display = 'none';
+  dragCounter = 0;
+
+  const files = Array.from(e.dataTransfer.files);
+  console.log('📥 Files dropped:', files.map(f => f.name));
+  if (files.length === 0) return;
+
+  files.forEach(handleFileDrop);
+});
+
+
+window.addEventListener('dragenter', (e) => {
+  e.preventDefault();
+  dragCounter++;
+  dropOverlay.style.display = 'flex';
+});
+
+window.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  dragCounter--;
+  if (dragCounter <= 0) {
+    dropOverlay.style.display = 'none';
+    dragCounter = 0;
+  }
+});
+
+window.addEventListener('dragover', (e) => {
+  e.preventDefault();
+});
+
+// Add keyboard navigation for pagination
+window.addEventListener('keydown', (e) => {
+  const isInputFocused = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA';
+  if (isInputFocused) return;
+
+  const totalSegments = showFavoritesOnly 
+    ? segments.filter(s => favorites.has(s.index)).length
+    : segments.length;
+  const totalPages = Math.ceil(totalSegments / perPage);
+
+  if (e.key === 'ArrowRight') {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderPage();
+    }
+  } else if (e.key === 'ArrowLeft') {
+    if (currentPage > 1) {
+      currentPage--;
+      renderPage();
+    }
+  }
+});
+
+
+// Add mouse wheel navigation for pagination
+let wheelTimeout = null;
+
+window.addEventListener('wheel', (e) => {
+  const isInputFocused = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA';
+  if (isInputFocused) return;
+
+  const totalSegments = showFavoritesOnly 
+    ? segments.filter(s => favorites.has(s.index)).length
+    : segments.length;
+  const totalPages = Math.ceil(totalSegments / perPage);
+
+  // Debounce scrolling to prevent rapid switching
+  if (wheelTimeout) return;
+  wheelTimeout = setTimeout(() => wheelTimeout = null, 150); // adjust as needed
+
+  if (e.deltaY > 0 && currentPage < totalPages) {
+    currentPage++;
+    renderPage();
+	saveToLocalStorage();
+  } else if (e.deltaY < 0 && currentPage > 1) {
+    currentPage--;
+    renderPage();
+	saveToLocalStorage();
+  }
+});
+
+// reload on Middle mouse
+document.addEventListener('mousedown', (e) => {
+  if (e.button === 1) { // 1 = middle mouse button
+    e.preventDefault(); // Prevent opening links in new tab (default behavior)
+    location.reload();  // Reload the page
+  }
+});
+
+
+// Clear Saved Videos BTN
+document.getElementById('clearLocalStorageBtn').addEventListener('click', () => {
+  if (confirm("Are you sure you want to clear all saved favorites and page history?")) {
+    localStorage.removeItem('videoSegmentData');
+    saved = {};
+    alert("Saved data cleared.");
+  }
+});
+
+
+
+})();
+
+
+
+</script>
+
+</body>
+</html>
