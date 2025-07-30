@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Video Gallery with Pagination & Layout Control</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+    }
+    #controls {
+      margin-bottom: 1em;
+      display: flex;
+      gap: 1.5em;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    label {
+      font-weight: bold;
+    }
+    #videoGrid {
+      display: grid;
+      gap: 10px;
+    }
+    video {
+      width: 100%;
+      height: auto;
+      border-radius: 5px;
+      background: #000;
+      cursor: pointer;
+      object-fit: contain;
+      outline: none;
+      border: 1px solid #ccc;
+    }
+    #pagination {
+      margin-top: 1em;
+    }
+    button {
+      margin: 0 5px;
+      padding: 8px 12px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    input[type=number] {
+      padding: 5px 8px;
+      font-size: 1rem;
+      width: 60px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Video Gallery</h1>
+  <input type="file" id="folderInput" webkitdirectory multiple accept="video/*" />
+
+  <div id="controls" style="display:none;">
+    <label for="videosPerPageInput">Videos per page:</label>
+    <input type="number" id="videosPerPageInput" min="1" value="8" />
+
+    <label for="videosPerRowInput">Videos per row:</label>
+    <input type="number" id="videosPerRowInput" min="1" max="10" value="4" />
+
+    <button id="randomizeBtn">Randomize</button>
+  </div>
+
+  <div id="videoGrid"></div>
+
+  <div id="pagination" style="display:none;">
+    <button id="prevPageBtn">Previous</button>
+    <span id="pageInfo"></span>
+    <button id="nextPageBtn">Next</button>
+  </div>
+
+  <script>
+    const folderInput = document.getElementById('folderInput');
+    const videoGrid = document.getElementById('videoGrid');
+    const videosPerPageInput = document.getElementById('videosPerPageInput');
+    const videosPerRowInput = document.getElementById('videosPerRowInput');
+    const randomizeBtn = document.getElementById('randomizeBtn');
+    const pagination = document.getElementById('pagination');
+    const pageInfo = document.getElementById('pageInfo');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+    const controls = document.getElementById('controls');
+
+    let videos = [];
+    let currentPage = 1;
+    let videosPerPage = parseInt(videosPerPageInput.value);
+    let videosPerRow = parseInt(videosPerRowInput.value);
+
+    folderInput.addEventListener('change', e => {
+      videos = Array.from(e.target.files).filter(file => file.type.startsWith('video/'));
+      currentPage = 1;
+      controls.style.display = videos.length ? 'flex' : 'none';
+      updatePaginationVisibility();
+      updateGridColumns();
+      renderPage();
+    });
+
+    videosPerPageInput.addEventListener('input', e => {
+      let val = parseInt(e.target.value);
+      if (isNaN(val) || val < 1) {
+        val = 1;
+        e.target.value = val;
+      }
+      videosPerPage = val;
+      currentPage = 1;
+      updatePaginationVisibility();
+      renderPage();
+    });
+
+    videosPerRowInput.addEventListener('input', e => {
+      let val = parseInt(e.target.value);
+      if (isNaN(val) || val < 1) val = 1;
+      else if (val > 10) val = 10;
+      e.target.value = val;
+      videosPerRow = val;
+      updateGridColumns();
+    });
+
+    randomizeBtn.addEventListener('click', () => {
+      shuffleArray(videos);
+      currentPage = 1;
+      renderPage();
+    });
+
+    prevPageBtn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPage();
+      }
+    });
+
+    nextPageBtn.addEventListener('click', () => {
+      if (currentPage < Math.ceil(videos.length / videosPerPage)) {
+        currentPage++;
+        renderPage();
+      }
+    });
+
+    function updateGridColumns() {
+      videoGrid.style.gridTemplateColumns = `repeat(${videosPerRow}, 1fr)`;
+    }
+
+    function updatePaginationVisibility() {
+      pagination.style.display = videos.length > videosPerPage ? 'block' : 'none';
+    }
+
+    function renderPage() {
+      videoGrid.innerHTML = '';
+      if (videos.length === 0) {
+        videoGrid.textContent = 'No videos uploaded.';
+        pagination.style.display = 'none';
+        controls.style.display = 'none';
+        return;
+      }
+
+      const start = (currentPage - 1) * videosPerPage;
+      const end = start + videosPerPage;
+      const pageVideos = videos.slice(start, end);
+
+      pageVideos.forEach(file => {
+        const url = URL.createObjectURL(file);
+        const video = document.createElement('video');
+        video.src = url;
+        video.autoplay = true;
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.controls = false;
+        video.setAttribute('preload', 'metadata');
+        videoGrid.appendChild(video);
+      });
+
+      pageInfo.textContent = `Page ${currentPage} of ${Math.ceil(videos.length / videosPerPage)}`;
+      updatePaginationVisibility();
+    }
+
+    // Fisher-Yates shuffle
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+  </script>
+
+</body>
+</html>

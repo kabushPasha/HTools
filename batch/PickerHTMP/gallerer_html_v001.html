@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Video Gallery with Pagination</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+    }
+    #controls {
+      margin-bottom: 1em;
+    }
+    video {
+      width: 200px;
+      height: auto;
+      margin: 8px;
+      border: 2px solid #ccc;
+      border-radius: 4px;
+    }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    #pagination {
+      margin-top: 1em;
+    }
+    button {
+      margin: 0 5px;
+      padding: 8px 12px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    select {
+      padding: 5px 8px;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Video Gallery</h1>
+  <input type="file" id="folderInput" webkitdirectory multiple accept="video/*" />
+  
+  <div id="controls" style="display:none;">
+    Videos per page: 
+    <select id="videosPerPageSelect">
+      <option value="4">4</option>
+      <option value="8" selected>8</option>
+      <option value="12">12</option>
+      <option value="16">16</option>
+      <option value="20">20</option>
+    </select>
+  </div>
+
+  <div class="grid" id="videoGrid"></div>
+
+  <div id="pagination" style="display:none;">
+    <button id="prevPageBtn">Previous</button>
+    <span id="pageInfo"></span>
+    <button id="nextPageBtn">Next</button>
+  </div>
+
+  <script>
+    const folderInput = document.getElementById('folderInput');
+    const videoGrid = document.getElementById('videoGrid');
+    const videosPerPageSelect = document.getElementById('videosPerPageSelect');
+    const pagination = document.getElementById('pagination');
+    const pageInfo = document.getElementById('pageInfo');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+    const controls = document.getElementById('controls');
+
+    let videos = [];
+    let currentPage = 1;
+    let videosPerPage = parseInt(videosPerPageSelect.value);
+
+    folderInput.addEventListener('change', e => {
+      videos = Array.from(e.target.files).filter(file => file.type.startsWith('video/'));
+      currentPage = 1;
+      controls.style.display = videos.length ? 'block' : 'none';
+      pagination.style.display = videos.length > videosPerPage ? 'block' : 'none';
+      renderPage();
+    });
+
+    videosPerPageSelect.addEventListener('change', e => {
+      videosPerPage = parseInt(e.target.value);
+      currentPage = 1;
+      pagination.style.display = videos.length > videosPerPage ? 'block' : 'none';
+      renderPage();
+    });
+
+    prevPageBtn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPage();
+      }
+    });
+
+    nextPageBtn.addEventListener('click', () => {
+      if (currentPage < Math.ceil(videos.length / videosPerPage)) {
+        currentPage++;
+        renderPage();
+      }
+    });
+
+    function renderPage() {
+      videoGrid.innerHTML = '';
+      if (videos.length === 0) {
+        videoGrid.textContent = 'No videos uploaded.';
+        pagination.style.display = 'none';
+        controls.style.display = 'none';
+        return;
+      }
+
+      const start = (currentPage - 1) * videosPerPage;
+      const end = start + videosPerPage;
+      const pageVideos = videos.slice(start, end);
+
+      pageVideos.forEach(file => {
+        const url = URL.createObjectURL(file);
+        const video = document.createElement('video');
+        video.src = url;
+        video.controls = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.style.cursor = 'pointer';
+        video.width = 200;
+        videoGrid.appendChild(video);
+      });
+
+      pageInfo.textContent = `Page ${currentPage} of ${Math.ceil(videos.length / videosPerPage)}`;
+      pagination.style.display = videos.length > videosPerPage ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>

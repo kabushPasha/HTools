@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pick Videos</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+    }
+    video {
+      width: 300px;
+      height: auto;
+      margin: 10px;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: border 0.2s;
+    }
+    video:hover {
+      border-color: #0077ff;
+    }
+    .video-container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .status {
+      margin: 1em 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pick Between Two Random Videos</h1>
+  <input type="file" id="folderInput" webkitdirectory multiple />
+  <div class="status" id="status">No folder selected.</div>
+  <div class="video-container" id="videoContainer"></div>
+
+  <script>
+    const folderInput = document.getElementById('folderInput');
+    const videoContainer = document.getElementById('videoContainer');
+    const status = document.getElementById('status');
+
+    const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv', '.wmv'];
+    let allVideos = [];
+    let pickedVideos = [];
+
+    folderInput.addEventListener('change', (event) => {
+      const files = Array.from(event.target.files);
+
+      allVideos = files.filter(file => {
+        const ext = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+        return videoExtensions.includes(ext);
+      });
+
+      pickedVideos = [];
+      shuffleArray(allVideos);
+      showNextPair();
+    });
+
+    function showNextPair() {
+      videoContainer.innerHTML = '';
+
+      if (allVideos.length < 2) {
+        status.textContent = `Done! You picked ${pickedVideos.length} videos.`;
+        if (allVideos.length === 1) {
+          // Allow picking the last remaining video
+          displayVideoOption(allVideos[0]);
+        }
+        return;
+      }
+
+      const [vid1, vid2] = allVideos.splice(0, 2);
+      displayVideoOption(vid1);
+      displayVideoOption(vid2);
+      status.textContent = `${allVideos.length} videos left to pick from.`;
+    }
+
+    function displayVideoOption(file) {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement('video');
+      video.src = url;
+      video.muted = true;
+      video.loop = true;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.setAttribute('preload', 'metadata');
+
+      video.addEventListener('click', () => {
+        pickedVideos.push(file);
+        showNextPair();
+      });
+
+      videoContainer.appendChild(video);
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+  </script>
+</body>
+</html>

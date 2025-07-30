@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pick Videos - Tournament</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+    }
+    video {
+      width: 300px;
+      height: auto;
+      margin: 10px;
+      border: 3px solid transparent;
+      transition: border 0.2s;
+    }
+    video:hover {
+      border-color: #0077ff;
+    }
+    .video-container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .status {
+      margin: 1em 0;
+    }
+    .button-row {
+      margin-top: 20px;
+    }
+    button {
+      margin-right: 10px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    #finalGallery {
+      display: none;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pick Between Two Random Videos</h1>
+  <input type="file" id="folderInput" webkitdirectory multiple />
+  <div class="status" id="status">No folder selected.</div>
+  <div class="video-container" id="videoContainer"></div>
+
+  <div class="button-row">
+    <button id="toggleGallery" style="display: none;">Show Picks</button>
+    <button id="newRoundButton" style="display: none;">Start New Round Now</button>
+  </div>
+
+  <h2 id="galleryTitle" style="display:none;">🎉 Picked Videos</h2>
+  <div class="video-container" id="finalGallery"></div>
+
+  <script>
+    const folderInput = document.getElementById('folderInput');
+    const videoContainer = document.getElementById('videoContainer');
+    const finalGallery = document.getElementById('finalGallery');
+    const status = document.getElementById('status');
+    const newRoundButton = document.getElementById('newRoundButton');
+    const toggleGalleryBtn = document.getElementById('toggleGallery');
+    const galleryTitle = document.getElementById('galleryTitle');
+
+    const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv', '.wmv'];
+    let allVideos = [];
+    let pickedVideos = [];
+    let galleryVisible = false;
+    let roundCount = 1;
+
+    folderInput.addEventListener('change', (event) => {
+      const files = Array.from(event.target.files);
+      allVideos = files.filter(file => {
+        const ext = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+        return videoExtensions.includes(ext);
+      });
+
+      pickedVideos = [];
+      roundCount = 1;
+      shuffleArray(allVideos);
+      resetUI();
+      showNextPair();
+    });
+
+    function showNextPair() {
+      videoContainer.innerHTML = '';
+      updateStatus();
+
+      if (allVideos.length === 0) {
+        if (pickedVideos.length === 1) {
+          status.textContent = `🏆 Final video selected after ${roundCount} rounds!`;
+          return;
+        } else if (pickedVideos.length > 1) {
+          // Auto-start new round
+          startNewRound();
+          return;
+        } else {
+          status.textContent = `No videos left. Nothing picked.`;
+          return;
+        }
+      }
+
+      const pair = allVideos.splice(0, 2);
+      pair.forEach(displayVideoOption);
+    }
+
+    function displayVideoOption(file) {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement('video');
+      video.src = url;
+      video.muted = true;
+      video.loop = true;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.setAttribute('preload', 'metadata');
+
+      video.addEventListener('click', () => {
+        pickedVideos.push(file);
+        updateGallery();
+        showNextPair();
+      });
+
+      videoContainer.appendChild(video);
+    }
+
+    function startNewRound() {
+      allVideos = [...pickedVideos];
+      pickedVideos = [];
+      shuffleArray(allVideos);
+      roundCount++;
+      resetUI();
+      showNextPair();
+    }
+
+    newRoundButton.addEventListener('click', () => {
+      if (pickedVideos.length >= 1) {
+        startNewRound();
+      }
+    });
+
+    toggleGalleryBtn.addEventListener('click', () => {
+      galleryVisible = !galleryVisible;
+      finalGallery.style.display = galleryVisible ? 'flex' : 'none';
+      galleryTitle.style.display = galleryVisible ? 'block' : 'none';
+      toggleGalleryBtn.textContent = galleryVisible ? 'Hide Picks' : 'Show Picks';
+    });
+
+    function updateGallery() {
+      finalGallery.innerHTML = '';
+      for (const file of pickedVideos) {
+        const url = URL.createObjectURL(file);
+        const video = document.createElement('video');
+        video.src = url;
+        video.muted = true;
+        video.loop = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        video.setAttribute('preload', 'metadata');
+        finalGallery.appendChild(video);
+      }
+
+      if (pickedVideos.length > 0) {
+        newRoundButton.style.display = 'inline-block';
+      }
+    }
+
+    function updateStatus() {
+      status.textContent = `🎯 Round ${roundCount}: ${allVideos.length} videos left to pick from | ${pickedVideos.length} picked so far.`;
+    }
+
+    function resetUI() {
+      videoContainer.innerHTML = '';
+      finalGallery.innerHTML = '';
+      galleryTitle.style.display = 'none';
+      finalGallery.style.display = 'none';
+      toggleGalleryBtn.style.display = 'inline-block';
+      toggleGalleryBtn.textContent = 'Show Picks';
+      galleryVisible = false;
+      newRoundButton.style.display = 'none';
+      updateStatus();
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+  </script>
+</body>
+</html>

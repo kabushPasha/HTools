@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Video File Lister</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      padding: 0.5em 0;
+      border-bottom: 1px solid #ddd;
+    }
+    input {
+      margin-bottom: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Select a Folder to List Video Files</h1>
+  <input type="file" id="folderInput" webkitdirectory multiple />
+  <ul id="fileList"></ul>
+
+  <script>
+    const folderInput = document.getElementById('folderInput');
+    const fileList = document.getElementById('fileList');
+
+    const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv', '.wmv'];
+
+    folderInput.addEventListener('change', (event) => {
+      fileList.innerHTML = ''; // Clear list
+
+      const files = Array.from(event.target.files);
+
+      const videoFiles = files.filter(file => {
+        const ext = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+        return videoExtensions.includes(ext);
+      });
+
+      if (videoFiles.length === 0) {
+        fileList.innerHTML = '<li>No video files found in the selected folder.</li>';
+        return;
+      }
+
+      videoFiles.sort((a, b) => a.webkitRelativePath.localeCompare(b.webkitRelativePath));
+
+      for (const file of videoFiles) {
+        const li = document.createElement('li');
+        li.textContent = file.webkitRelativePath;
+        fileList.appendChild(li);
+      }
+    });
+  </script>
+</body>
+</html>
