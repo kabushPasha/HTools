@@ -191,6 +191,9 @@
     "Unreal": {
         "Match_Meta_Body": {
             "load_node": "Match_Meta_Body"
+        },
+        "Metahuman_MergeHeadAndBody": {
+            "load_node": "Metahuman_MergeHeadAndBody"
         }
     },
     "VDB Modelling": {

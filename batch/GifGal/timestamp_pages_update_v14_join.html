@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Video Segment Gallery with Favorites and ffmpeg CMD Export</title>
+<style>
+  body {
+    background-color: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+  }
+  #controls {
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  #videoGrid {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    width: 100%;
+    padding: 0 15px;
+    box-sizing: border-box;
+  }
+  .video-container {
+    background: #222;
+    padding: 6px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    position: relative;
+    user-select: none;
+  }
+  video {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+    outline: none;
+    pointer-events: none;
+  }
+  button {
+    background-color: #333;
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    user-select: none;
+    transition: background-color 0.25s ease;
+  }
+  button:hover:not(:disabled) {
+    background-color: #555;
+  }
+  button:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  #pagination {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  #pagination button.page-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    font-weight: bold;
+  }
+  #pagination button.page-btn.active {
+    background-color: #1e90ff;
+  }
+  input[type="file"] {
+    cursor: pointer;
+  }
+  label {
+    user-select: none;
+  }
+  .fav-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background-color: #444;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    user-select: none;
+    cursor: pointer;
+  }
+  .fav-btn.favorited {
+    background-color: #1abc9c;
+  }
+  #showFavoritesToggle, #saveFavoritesBtn, #generateFFmpegBtn {
+    background-color: #333;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none;
+    transition: background-color 0.25s ease;
+  }
+  #showFavoritesToggle.active {
+    background-color: #1abc9c;
+  }
+  
+.video-container .overlay-button,
+.video-container .duration-overlay {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.video-container:hover .overlay-button,
+.video-container:hover .duration-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Star icon button styles */
+.star-icon-button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Show star only if favorited OR on hover */
+.video-container:hover .star-icon-button {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.star-icon-button.favorited {
+  color: #1abc9c;
+  opacity: 1;
+  pointer-events: auto;
+}
+</style>
+</head>
+<body>
+
+<div id="controls">
+  <label>
+    Load Video:
+    <input id="videoFileInput" type="file" accept="*" />
+  </label>
+  
+	<label>
+	  Videos per page:
+	  <input type="number" id="perPageInput" min="1" max="100" value="6" style="width: 60px;" />
+	</label>
+
+  <label>
+    Load Keyframes (.txt):
+    <input id="keyframeFileInput" type="file" accept="*" />
+  </label>
+
+  <button id="zoomOutBtn" title="Zoom Out">➖ Zoom Out</button>
+  <button id="zoomInBtn" title="Zoom In">➕ Zoom In</button>
+
+  <button id="showFavoritesToggle" title="Toggle show favorites only" disabled>Show Favorites Only: OFF</button>
+  <button id="generateFFmpegBtn" title="Generate ffmpeg CMD script" disabled>⚙️ Generate ffmpeg CMD</button>
+  <button id="clearLocalStorageBtn" title="Clear saved favorites">🗑️ Clear All Saved</button>
+</div>
+
+<div id="videoGrid" aria-label="Video segment gallery"></div>
+
+<div id="pagination" role="navigation" aria-label="Page navigation"></div>
+
+<div id="dropOverlay" style="
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(30, 144, 255, 0.2);
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: none;
+  user-select: none;
+">
+  Drop video or keyframe file here
+</div>
+
+<script>
+(() => {
+  // INIT
+  let saved = JSON.parse(localStorage.getItem('videoSegmentData') || '{}');
+
+  let videoFileURL = null;
+  let videoFileName = "input.mp4"; // default fallback name for ffmpeg command
+  let keyframeTimes = [];
+  let segments = [];
+  let currentPage = 1;
+  let perPage = 6;
+  let videoScale = 1; // 1 = normal size
+  const baseWidth = 320; // base width of each video container
+
+  let showFavoritesOnly = false;
+  const favorites = new Set(); // now stores JSON strings of {start,end} objects
+
+  const videoGrid = document.getElementById('videoGrid');
+  const pagination = document.getElementById('pagination');
+  const videoFileInput = document.getElementById('videoFileInput');
+  const keyframeFileInput = document.getElementById('keyframeFileInput');
+  const zoomInBtn = document.getElementById('zoomInBtn');
+  const zoomOutBtn = document.getElementById('zoomOutBtn');
+  const showFavoritesToggle = document.getElementById('showFavoritesToggle');
+  const generateFFmpegBtn = document.getElementById('generateFFmpegBtn');
+  const perPageInput = document.getElementById('perPageInput');
+  const clearLocalStorageBtn = document.getElementById('clearLocalStorageBtn');
+
+  // UTIL FUNCTIONS
+  function parseKeyframes(text) {
+    return text
+      .split(',')
+      .map(s => parseFloat(s.trim()))
+      .filter(n => !isNaN(n))
+      .sort((a,b) => a - b);
+  }
+
+  function generateSegments(times) {
+    const segs = [];
+    for (let i = 0; i < times.length - 1; i++) {
+      segs.push({ start: times[i]+0.01, end: times[i+1], index: i });
+    }
+    return segs;
+  }
+
+  function clearOldVideo() {
+    if (videoFileURL) {
+      URL.revokeObjectURL(videoFileURL);
+      videoFileURL = null;
+    }
+    keyframeTimes = [];
+    segments = [];
+    currentPage = 1;
+    favorites.clear();
+    videoGrid.innerHTML = '';
+    pagination.innerHTML = '';
+    updateFavoritesToggle();
+    updateGenerateButton();
+  }
+
+  // Helper: Serialize favorite segment to string
+  function serializeSegment(seg) {
+    return JSON.stringify({ start: seg.start, end: seg.end });
+  }
+
+  // Helper: Check if a segment is favorited by start/end match
+  function isFavorited(seg) {
+    return favorites.has(serializeSegment(seg));
+  }
+
+  // Helper: Add favorite by segment
+  function addFavorite(seg) {
+    favorites.add(serializeSegment(seg));
+  }
+
+  // Helper: Remove favorite by segment
+  function removeFavorite(seg) {
+    favorites.delete(serializeSegment(seg));
+  }
+
+  // Update UI & button states
+  function updateFavoritesToggle() {
+    const favCount = favorites.size;
+    showFavoritesToggle.disabled = favCount === 0;
+    generateFFmpegBtn.disabled = favCount === 0;
+    if (!showFavoritesOnly) {
+      showFavoritesToggle.textContent = "Show Favorites Only: OFF";
+      showFavoritesToggle.classList.remove('active');
+    } else {
+      showFavoritesToggle.textContent = "Show Favorites Only: ON";
+      showFavoritesToggle.classList.add('active');
+    }
+  }
+
+  function updateGenerateButton() {
+    generateFFmpegBtn.disabled = favorites.size === 0;
+  }
+
+  // Save current favorites and segments for this video
+  function saveToLocalStorage() {
+    if (!videoFileName) return;
+    saved[videoFileName] = {
+      segments,
+      favorites: Array.from(favorites),
+      currentPage,
+      perPage,
+    };
+    localStorage.setItem('videoSegmentData', JSON.stringify(saved));
+  }
+
+  // Load saved segments and favorites for videoFileName
+  function loadFromLocalStorage() {
+    if (!videoFileName) return;
+    const data = saved[videoFileName];
+    if (data) {
+      segments = data.segments || [];
+      currentPage = data.currentPage || 1;
+      perPage = data.perPage || 6;
+      if (perPageInput) perPageInput.value = perPage;
+      favorites.clear();
+      if (data.favorites && Array.isArray(data.favorites)) {
+        data.favorites.forEach(fav => favorites.add(fav));
+      }
+      renderPage();
+      updateFavoritesToggle();
+      updateGenerateButton();
+    }
+  }
+
+  // Render segments for current page
+  function renderPage() {
+    videoGrid.innerHTML = '';
+
+    let displaySegments = segments;
+    if (showFavoritesOnly) {
+      displaySegments = segments.filter(isFavorited);
+    }
+
+    const totalPages = Math.ceil(displaySegments.length / perPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const startIndex = (currentPage - 1) * perPage;
+    const pageSegments = displaySegments.slice(startIndex, startIndex + perPage);
+
+    pageSegments.forEach(seg => {
+      const container = document.createElement('div');
+      container.className = 'video-container';
+      container.style.width = baseWidth * videoScale + 'px';
+      container.style.height = (baseWidth * 9 / 16) * videoScale + 'px';
+      container.style.position = 'relative';
+
+      const video = document.createElement('video');
+      video.src = videoFileURL;
+      video.preload = 'metadata';
+      video.muted = true;
+      video.controls = false;
+      video.style.userSelect = 'none';
+      video.style.pointerEvents = 'none';
+
+      // When video metadata loaded, seek to segment start time and pause
+      video.addEventListener('loadedmetadata', () => {
+        if (!isNaN(video.duration)) {
+          if (seg.start < video.duration) {
+            video.currentTime = Math.min(seg.start, video.duration - 0.2);
+          }
+        }
+      });
+
+      // Pause video when seeked to start
+      video.addEventListener('seeked', () => {
+        video.pause();
+      });
+
+      // On hover play snippet and loop between start/end
+      container.addEventListener('mouseenter', () => {
+        video.currentTime = seg.start;
+        video.play();
+      });
+      container.addEventListener('mouseleave', () => {
+        video.pause();
+        video.currentTime = seg.start;
+      });
+      video.addEventListener('timeupdate', () => {
+        if (video.currentTime >= seg.end) {
+          video.currentTime = seg.start;
+        }
+      });
+
+      // Favorite star button
+      const favBtn = document.createElement('button');
+      favBtn.className = 'star-icon-button';
+      favBtn.title = 'Toggle Favorite';
+      const favKey = serializeSegment(seg);
+      favBtn.innerHTML = favorites.has(favKey) ? '★' : '☆';
+      if (favorites.has(favKey)) {
+        favBtn.classList.add('favorited');
+      }
+      favBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (favorites.has(favKey)) {
+          favorites.delete(favKey);
+          favBtn.innerHTML = '☆';
+          favBtn.classList.remove('favorited');
+        } else {
+          favorites.add(favKey);
+          favBtn.innerHTML = '★';
+          favBtn.classList.add('favorited');
+        }
+        updateFavoritesToggle();
+        updateGenerateButton();
+        saveToLocalStorage();
+      });
+
+      // Join with next segment button if exists and not in favorites-only mode
+      if (!showFavoritesOnly && seg.index < segments.length - 1) {
+        const joinArrow = document.createElement('button');
+        joinArrow.textContent = '⟹';
+        joinArrow.title = 'Join with next segment';
+        joinArrow.style.position = 'absolute';
+        joinArrow.style.bottom = '4px';
+        joinArrow.style.right = '4px';
+        joinArrow.style.background = '#333';
+        joinArrow.style.color = 'white';
+        joinArrow.style.borderRadius = '4px';
+        joinArrow.style.padding = '2px 6px';
+        joinArrow.style.fontSize = '14px';
+        joinArrow.style.userSelect = 'none';
+        joinArrow.style.cursor = 'pointer';
+        joinArrow.addEventListener('click', e => {
+  e.stopPropagation();
+  const nextSeg = segments[seg.index + 1];
+  if (!nextSeg) return;
+
+  // Get current and next favorite keys BEFORE modifying segments
+  const currentKey = serializeSegment(seg);
+  const nextKey = serializeSegment(nextSeg);
+
+  // Check if either is favorite before merging
+  const isCurrentFav = favorites.has(currentKey);
+  const isNextFav = favorites.has(nextKey);
+
+  // Extend current segment end time to next segment's end time
+  seg.end = nextSeg.end;
+
+  // Remove next segment from array
+  segments.splice(seg.index + 1, 1);
+
+  // Reindex segments
+  segments.forEach((s, i) => s.index = i);
+
+  // Update favorites: remove old keys for merged segments
+  favorites.delete(currentKey);
+  favorites.delete(nextKey);
+
+  // Add favorite key for merged segment if either was favorite
+  if (isCurrentFav || isNextFav) {
+    favorites.add(serializeSegment(seg));
+  }
+
+  // Rebuild favorites for any other favorited segments to ensure keys match updated segments
+  const newFavs = new Set();
+  for (const f of favorites) {
+    try {
+      const obj = JSON.parse(f);
+      const found = segments.find(s => s.start === obj.start && s.end === obj.end);
+      if (found) {
+        newFavs.add(serializeSegment(found));
+      }
+    } catch {}
+  }
+  favorites.clear();
+  newFavs.forEach(f => favorites.add(f));
+
+  renderPage();
+  saveToLocalStorage();
+  updateFavoritesToggle();
+  updateGenerateButton();
+});
+
+		
+		container.appendChild(joinArrow);
+      }
+
+      container.appendChild(video);
+      container.appendChild(favBtn);
+
+      videoGrid.appendChild(container);
+    });
+
+    renderPagination(displaySegments.length);
+  }
+
+  // Render pagination buttons
+  function renderPagination(totalSegmentsCount) {
+    pagination.innerHTML = '';
+    const totalPages = Math.ceil(totalSegmentsCount / perPage) || 1;
+
+    function makePageBtn(pageNum) {
+      const btn = document.createElement('button');
+      btn.textContent = pageNum;
+      btn.className = 'page-btn';
+      if (pageNum === currentPage) {
+        btn.classList.add('active');
+        btn.disabled = true;
+      }
+      btn.addEventListener('click', () => {
+        currentPage = pageNum;
+        renderPage();
+        saveToLocalStorage();
+      });
+      return btn;
+    }
+
+    // If pages less than ~10 show all
+    if (totalPages <= 10) {
+      for (let p = 1; p <= totalPages; p++) {
+        pagination.appendChild(makePageBtn(p));
+      }
+    } else {
+      // Show first two, last two, and 3 near current page with ellipses
+      const pages = new Set([1,2,totalPages-1,totalPages]);
+      for(let i = currentPage-1; i <= currentPage+1; i++) {
+        if(i > 0 && i <= totalPages) pages.add(i);
+      }
+      const pagesArr = Array.from(pages).sort((a,b)=>a-b);
+
+      for(let i=0; i<pagesArr.length; i++) {
+        if(i > 0 && pagesArr[i] > pagesArr[i-1] + 1) {
+          const ell = document.createElement('span');
+          ell.textContent = '...';
+          ell.style.padding = '4px 8px';
+          pagination.appendChild(ell);
+        }
+        pagination.appendChild(makePageBtn(pagesArr[i]));
+      }
+    }
+  }
+
+  // Load keyframe file
+  function handleKeyframeFile(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const text = e.target.result;
+      const times = parseKeyframes(text);
+      if (times.length < 2) {
+        alert("Need at least 2 keyframe times to create segments.");
+        return;
+      }
+      keyframeTimes = times;
+      segments = generateSegments(keyframeTimes);
+      segments.forEach((s,i) => s.index = i);
+      favorites.clear();
+      currentPage = 1;
+      renderPage();
+      saveToLocalStorage();
+      updateFavoritesToggle();
+      updateGenerateButton();
+    };
+    reader.readAsText(file);
+  }
+
+  // Load video file
+  function handleVideoFile(file) {
+    clearOldVideo();
+    videoFileName = file.name;
+    videoFileURL = URL.createObjectURL(file);
+    // We need to wait for keyframe file or generate dummy keyframes
+    renderPage();
+    loadFromLocalStorage();
+  }
+
+  // Generate ffmpeg CMD string for favorite segments
+  function generateFFmpegCommand() {
+    if (!videoFileURL) {
+      alert("Please load a video file first.");
+      return;
+    }
+    if (favorites.size === 0) {
+      alert("No favorite segments selected.");
+      return;
+    }
+
+    // Build favorite segments array by matching segments with favorites keys
+    const favoriteSegments = segments.filter(seg => favorites.has(serializeSegment(seg)));
+
+    // Make base name without extension
+    const baseName = videoFileName.replace(/\.[^/.]+$/, '');
+
+    const lines = ['@echo off', 'REM ffmpeg segment extraction commands'];
+
+    favoriteSegments.forEach((seg, i) => {
+      const start = seg.start + 0.1;
+      const end = seg.end;
+      let inputFileName = videoFileName;
+      if (/\s/.test(inputFileName)) {
+        inputFileName = `"${inputFileName}"`;
+      }
+      const outputFile = `"CUTS/CUT_${baseName}_segment${i + 1}.mp4"`;
+      const cmd = `ffmpeg -ss ${start.toFixed(3)} -to ${end.toFixed(3)} -i ${inputFileName} -c copy -avoid_negative_ts make_zero ${outputFile}`;
+      lines.push(cmd);
+    });
+
+    lines.push("");
+    return lines.join('\r\n');
+  }
+
+  // EXPORT
+  function exportFFmpegCmd() {
+    const cmdText = generateFFmpegCommand();
+    if (!cmdText) return;
+
+    const blob = new Blob([cmdText], {type: 'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'extract_segments.cmd';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // EVENTS
+  videoFileInput.addEventListener('change', e => {
+    if (e.target.files.length > 0) {
+      handleVideoFile(e.target.files[0]);
+    }
+  });
+
+  keyframeFileInput.addEventListener('change', e => {
+    if (e.target.files.length > 0) {
+      handleKeyframeFile(e.target.files[0]);
+    }
+  });
+
+  zoomInBtn.addEventListener('click', () => {
+    if (videoScale < 3) {
+      videoScale += 0.25;
+      renderPage();
+    }
+  });
+
+  zoomOutBtn.addEventListener('click', () => {
+    if (videoScale > 0.5) {
+      videoScale -= 0.25;
+      renderPage();
+    }
+  });
+
+  showFavoritesToggle.addEventListener('click', () => {
+    showFavoritesOnly = !showFavoritesOnly;
+    currentPage = 1;
+    renderPage();
+    updateFavoritesToggle();
+  });
+
+  generateFFmpegBtn.addEventListener('click', () => {
+    exportFFmpegCmd();
+  });
+
+  perPageInput.addEventListener('change', () => {
+    const val = parseInt(perPageInput.value, 10);
+    if (val >= 1 && val <= 100) {
+      perPage = val;
+      currentPage = 1;
+      renderPage();
+      saveToLocalStorage();
+    } else {
+      alert("Videos per page must be between 1 and 100");
+      perPageInput.value = perPage;
+    }
+  });
+
+  clearLocalStorageBtn.addEventListener('click', () => {
+    if (confirm("Clear all saved segment and favorites data?")) {
+      localStorage.removeItem('videoSegmentData');
+      saved = {};
+      favorites.clear();
+      renderPage();
+      updateFavoritesToggle();
+      updateGenerateButton();
+    }
+  });
+
+  // DRAG & DROP support
+  const dropOverlay = document.getElementById('dropOverlay');
+  document.body.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropOverlay.style.display = 'flex';
+  });
+  document.body.addEventListener('dragleave', e => {
+    e.preventDefault();
+    dropOverlay.style.display = 'none';
+  });
+  document.body.addEventListener('drop', e => {
+    e.preventDefault();
+    dropOverlay.style.display = 'none';
+
+    const files = e.dataTransfer.files;
+    if (files.length === 0) return;
+
+    const file = files[0];
+    if (file.type.startsWith('video/')) {
+      handleVideoFile(file);
+    } else {
+      // Treat as keyframe text file
+      handleKeyframeFile(file);
+    }
+  });
+
+  // Initialize UI disabled states
+  updateFavoritesToggle();
+  updateGenerateButton();
+
+  // Warn if user tries to unload with unsaved changes
+  window.addEventListener('beforeunload', e => {
+    if (favorites.size > 0) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+})();
+</script>
+</body>
+</html>

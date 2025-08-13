@@ -124,6 +124,11 @@
     Load Video:
     <input id="videoFileInput" type="file" accept="*" />
   </label>
+  
+	<label>
+	  Videos per page:
+	  <input type="number" id="perPageInput" min="1" max="100" value="6" style="width: 60px;" />
+	</label>
 
   <label>
     Load Keyframes (.txt):
@@ -173,7 +178,7 @@
   let keyframeTimes = [];
   let segments = [];
   let currentPage = 1;
-  const perPage = 6;
+  let perPage = 6;
   let videoScale = 1; // 1 = normal size
   const baseWidth = 320; // base width of each video container
 
@@ -201,7 +206,7 @@
   function generateSegments(times) {
     const segs = [];
     for (let i = 0; i < times.length - 1; i++) {
-      segs.push({ start: times[i], end: times[i+1], index: i });
+      segs.push({ start: times[i]+0.01, end: times[i+1], index: i });
     }
     return segs;
   }
@@ -221,111 +226,143 @@
     updateGenerateButton();
   }
 
-  function renderPage() {
-	// Clean up old video elements to free memory
-	Array.from(videoGrid.children).forEach(container => {
-	const video = container.querySelector('video');
-	if (video) {
-	  video.pause();
-	  video.src = '';
-	  video.load(); // release media resources
-	}
-	}); 
-    
-    videoGrid.innerHTML = '';
-    if (!videoFileURL || segments.length === 0) {
-      pagination.innerHTML = '';
-      return;
+function renderPage() {
+  Array.from(videoGrid.children).forEach(container => {
+    const video = container.querySelector('video');
+    if (video) {
+      video.pause();
+      video.src = '';
+      video.load();
     }
+  });
 
-    let displaySegments = showFavoritesOnly 
-      ? segments.filter(s => favorites.has(s.index))
-      : segments;
-
-    if (displaySegments.length === 0) {
-      videoGrid.innerHTML = '<p style="width: 100%; text-align:center; color: #888;">No segments to display.</p>';
-      pagination.innerHTML = '';
-      return;
-    }
-
-    const totalPages = Math.ceil(displaySegments.length / perPage);
-    if(currentPage > totalPages) currentPage = totalPages || 1;
-
-    const startIndex = (currentPage - 1) * perPage;
-    const pageSegments = displaySegments.slice(startIndex, startIndex + perPage);
-	
-	// GENERATE FRAMES
-    pageSegments.forEach(seg => {
-      const container = document.createElement('div');
-      container.className = 'video-container';
-      container.style.width = (baseWidth * videoScale) + 'px';
-
-      const video = document.createElement('video');
-      video.src = videoFileURL;
-      video.muted = true;
-      video.controls = false;
-      video.loop = false;
-      video.preload = "auto";
-      video.style.width = '100%';
-      video.style.height = 'auto';
-      video.setAttribute('tabindex', '-1');
-
-      video.addEventListener('loadedmetadata', () => {
-        if (video.currentTime < seg.start || video.currentTime > seg.end) {
-          video.currentTime = seg.start;
-        }
-        video.play();
-      });
-
-      video.addEventListener('timeupdate', () => {
-        if (video.currentTime >= seg.end) {
-          video.currentTime = seg.start;
-          video.play();
-        }
-      });
-
-      container.appendChild(video);
-
-      // Favorite button
-      const favBtn = document.createElement('button');
-      favBtn.className = 'fav-btn';
-      favBtn.textContent = favorites.has(seg.index) ? '★ Favorited' : '☆ Favorite';
-      if (favorites.has(seg.index)) {
-        favBtn.classList.add('favorited');
-      }
-      favBtn.title = 'Toggle favorite for this segment';
-      favBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        if (favorites.has(seg.index)) {
-          favorites.delete(seg.index);
-          favBtn.textContent = '☆ Favorite';
-          favBtn.classList.remove('favorited');
-        } else {
-          favorites.add(seg.index);
-          favBtn.textContent = '★ Favorited';
-          favBtn.classList.add('favorited');
-        }
-        updateFavoritesToggle();
-        updateGenerateButton();
-		saveToLocalStorage();
-		saveToLocalStorage();
-      });
-      container.appendChild(favBtn);
-
-      videoGrid.appendChild(container);
-    });
-
-    renderPagination(displaySegments.length);
+  videoGrid.innerHTML = '';
+  if (!videoFileURL || segments.length === 0) {
+    pagination.innerHTML = '';
+    return;
   }
 
+  let displaySegments = showFavoritesOnly 
+    ? segments.filter(s => favorites.has(s.index))
+    : segments;
+
+  if (displaySegments.length === 0) {
+    videoGrid.innerHTML = '<p style="width: 100%; text-align:center; color: #888;">No segments to display.</p>';
+    pagination.innerHTML = '';
+    return;
+  }
+
+  const totalPages = Math.ceil(displaySegments.length / perPage);
+  if(currentPage > totalPages) currentPage = totalPages || 1;
+
+  const startIndex = (currentPage - 1) * perPage;
+  const pageSegments = displaySegments.slice(startIndex, startIndex + perPage);
+
+  pageSegments.forEach((seg, idx) => {
+    const container = document.createElement('div');
+    container.className = 'video-container';
+    container.style.width = (baseWidth * videoScale) + 'px';
+
+    const video = document.createElement('video');
+    video.src = videoFileURL;
+    video.muted = true;
+    video.controls = false;
+    video.loop = false;
+    video.preload = "auto";
+    video.style.width = '100%';
+    video.setAttribute('tabindex', '-1');
+
+    video.addEventListener('loadedmetadata', () => {
+      if (video.currentTime < seg.start || video.currentTime > seg.end) {
+        video.currentTime = seg.start;
+      }
+      video.play();
+    });
+
+    video.addEventListener('timeupdate', () => {
+      if (video.currentTime >= seg.end) {
+        video.currentTime = seg.start;
+        video.play();
+      }
+    });
+
+    container.appendChild(video);
+
+    // Favorite button
+    const favBtn = document.createElement('button');
+    favBtn.className = 'fav-btn';
+    favBtn.textContent = favorites.has(seg.index) ? '★ Favorited' : '☆ Favorite';
+    if (favorites.has(seg.index)) {
+      favBtn.classList.add('favorited');
+    }
+    favBtn.title = 'Toggle favorite for this segment';
+    favBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (favorites.has(seg.index)) {
+        favorites.delete(seg.index);
+        favBtn.textContent = '☆ Favorite';
+        favBtn.classList.remove('favorited');
+      } else {
+        favorites.add(seg.index);
+        favBtn.textContent = '★ Favorited';
+        favBtn.classList.add('favorited');
+      }
+      updateFavoritesToggle();
+      updateGenerateButton();
+      saveToLocalStorage();
+    });
+    container.appendChild(favBtn);
+
+    // Duration display
+    const duration = seg.end - seg.start;
+    const durationText = document.createElement('div');
+    durationText.style.marginTop = '4px';
+    durationText.style.fontSize = '12px';
+    durationText.style.textAlign = 'center';
+    durationText.style.color = '#ccc';
+    durationText.textContent = `⏱ ${secondsToHHMMSS(duration)}`;
+    container.appendChild(durationText);
+
+    // Join with next button (if not last in full segment list)
+    if (seg.index < segments.length - 1 && !showFavoritesOnly) {
+      const joinBtn = document.createElement('button');
+      joinBtn.textContent = '🔗 Join with Next';
+      joinBtn.style.marginTop = '6px';
+      joinBtn.style.fontSize = '12px';
+      joinBtn.style.width = '100%';
+      joinBtn.addEventListener('click', () => {
+        const nextSeg = segments[seg.index + 1];
+        if (!nextSeg) return;
+
+        // Merge segment times
+        seg.end = nextSeg.end;
+
+        // Remove next segment
+        segments.splice(seg.index + 1, 1);
+
+        // Reindex all segments
+        segments = segments.map((s, i) => ({ ...s, index: i }));
+
+        renderPage();
+        saveToLocalStorage();
+      });
+      container.appendChild(joinBtn);
+    }
+
+    videoGrid.appendChild(container);
+  });
+
+  renderPagination(displaySegments.length);
+}
 
 // Save Favorites to local Storage
 function saveToLocalStorage() {
   if (!videoFileName) return;
-  saved[videoFileName] = {
-    favorites: Array.from(favorites),
-    currentPage
-  };
+	saved[videoFileName] = {
+	  favorites: Array.from(favorites),
+	  currentPage,
+	  perPage
+	};
   localStorage.setItem('videoSegmentData', JSON.stringify(saved));
 }
 
@@ -336,7 +373,9 @@ function loadFromLocalStorage() {
 	  const data = saved[videoFileName];
 	  favorites.clear();
 	  data.favorites.forEach(i => favorites.add(i));
-	  currentPage = data.currentPage || 1;
+		currentPage = data.currentPage || 1;
+		perPage = data.perPage || 6;
+		if (perPageInput) perPageInput.value = perPage;
 	  console.log("favs loaded",favorites);
 	  renderPage();
 	  	  updateFavoritesToggle();
@@ -633,6 +672,22 @@ document.getElementById('clearLocalStorageBtn').addEventListener('click', () => 
     alert("Saved data cleared.");
   }
 });
+
+// Change Per page number
+const perPageInput = document.getElementById('perPageInput');
+
+perPageInput.addEventListener('change', (e) => {
+  const value = parseInt(e.target.value, 10);
+  if (!isNaN(value) && value > 0) {
+    perPage = value;
+    currentPage = 1;
+    renderPage();
+    saveToLocalStorage();
+  } else {
+    e.target.value = perPage; // restore previous value
+  }
+});
+
 
 
 

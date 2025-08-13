@@ -124,6 +124,11 @@
     Load Video:
     <input id="videoFileInput" type="file" accept="*" />
   </label>
+  
+	<label>
+	  Videos per page:
+	  <input type="number" id="perPageInput" min="1" max="100" value="6" style="width: 60px;" />
+	</label>
 
   <label>
     Load Keyframes (.txt):
@@ -173,7 +178,7 @@
   let keyframeTimes = [];
   let segments = [];
   let currentPage = 1;
-  const perPage = 6;
+  let perPage = 6;
   let videoScale = 1; // 1 = normal size
   const baseWidth = 320; // base width of each video container
 
@@ -201,7 +206,7 @@
   function generateSegments(times) {
     const segs = [];
     for (let i = 0; i < times.length - 1; i++) {
-      segs.push({ start: times[i], end: times[i+1], index: i });
+      segs.push({ start: times[i]+0.01, end: times[i+1], index: i });
     }
     return segs;
   }
@@ -322,10 +327,11 @@
 // Save Favorites to local Storage
 function saveToLocalStorage() {
   if (!videoFileName) return;
-  saved[videoFileName] = {
-    favorites: Array.from(favorites),
-    currentPage
-  };
+	saved[videoFileName] = {
+	  favorites: Array.from(favorites),
+	  currentPage,
+	  perPage
+	};
   localStorage.setItem('videoSegmentData', JSON.stringify(saved));
 }
 
@@ -336,7 +342,9 @@ function loadFromLocalStorage() {
 	  const data = saved[videoFileName];
 	  favorites.clear();
 	  data.favorites.forEach(i => favorites.add(i));
-	  currentPage = data.currentPage || 1;
+		currentPage = data.currentPage || 1;
+		perPage = data.perPage || 6;
+		if (perPageInput) perPageInput.value = perPage;
 	  console.log("favs loaded",favorites);
 	  renderPage();
 	  	  updateFavoritesToggle();
@@ -633,6 +641,22 @@ document.getElementById('clearLocalStorageBtn').addEventListener('click', () => 
     alert("Saved data cleared.");
   }
 });
+
+// Change Per page number
+const perPageInput = document.getElementById('perPageInput');
+
+perPageInput.addEventListener('change', (e) => {
+  const value = parseInt(e.target.value, 10);
+  if (!isNaN(value) && value > 0) {
+    perPage = value;
+    currentPage = 1;
+    renderPage();
+    saveToLocalStorage();
+  } else {
+    e.target.value = perPage; // restore previous value
+  }
+});
+
 
 
 
