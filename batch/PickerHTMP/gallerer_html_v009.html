@@ -446,6 +446,28 @@
       }
     }
 	
+	// === Scroll wheel page navigation ===
+	let scrollTimeout;
+	document.addEventListener('wheel', (e) => {
+	  if (!pagination || pagination.style.display === 'none') return; // No pagination = no scroll paging
+
+	  clearTimeout(scrollTimeout);
+	  scrollTimeout = setTimeout(() => {
+		if (e.deltaY > 0) {
+		  // Scrolling down → next page
+		  if (currentPage < Math.ceil(filteredVideos().length / videosPerPage)) {
+			currentPage++;
+			renderPage();
+		  }
+		} else if (e.deltaY < 0) {
+		  // Scrolling up → previous page
+		  if (currentPage > 1) {
+			currentPage--;
+			renderPage();
+		  }
+		}
+	  }, 100); // debounce to prevent multiple fast triggers
+	});
 
 	
 	
