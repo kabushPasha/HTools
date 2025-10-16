@@ -54,7 +54,8 @@ class LZ_vex_interface(QtWidgets.QWidget):
                         value  = hou.hmath.fit(stats_json[key],0,avg_clicks,100, 200)                        
                     else:  
                         value = 100
-                    list_item.setTextColor(QtGui.QColor(value,value,value))
+                    #list_item.setTextColor(QtGui.QColor(value,value,value))
+                    list_item.setForeground(QtGui.QColor(value,value,value))                    
                     ## add list itme
                     new_list.addItem(list_item)
                     self.callbackDict[key] = items[key]

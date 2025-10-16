@@ -306,11 +306,11 @@ def copyToClipboard(str):
 	#app = qtg.QApplication.instance()
 	#clipboard = app.clipboard()
 	#clipboard.setText(str)
-	from PySide2.QtWidgets  import  QApplication
+	from PySide6.QtWidgets  import  QApplication
 	QApplication.clipboard().setText(str)
 	
 def getClipboardText():
-	from PySide2.QtWidgets  import  QApplication
+	from PySide6.QtWidgets  import  QApplication
 	return QApplication.clipboard().text()
 	
 def copyToClipboardExpanded(str):
