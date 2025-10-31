@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Scrollable Image Gallery</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1.5em;
+      background-color: black;
+      color: grey;
+      overflow-y: scroll; /* allow scrolling */
+    }
+    #controls {
+      margin-bottom: 1em;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1em;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      background: black;
+      z-index: 10;
+      padding: 0.5em 0;
+    }
+    label {
+      font-weight: bold;
+    }
+    #imageGrid {
+      display: grid;
+      gap: 10px;
+    }
+    .image-container {
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      border-radius: 5px;
+      overflow: hidden;
+      border: 1px solid #444;
+      background: #000;
+    }
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+    }
+    .overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.35);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 5px 8px;
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+    .image-container:hover .overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .stars-container {
+      display: flex;
+      gap: 3px;
+      pointer-events: auto;
+    }
+    .star {
+      width: 18px;
+      height: 18px;
+      fill: gold;
+      cursor: pointer;
+      user-select: none;
+    }
+    .star.empty {
+      fill: #555;
+    }
+    .delete-btn {
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 22px;
+      color: #e44;
+      user-select: none;
+      border: none;
+      background: transparent;
+      line-height: 1;
+      pointer-events: auto;
+      transition: color 0.2s;
+    }
+    .delete-btn:hover {
+      color: #a00;
+    }
+    button {
+      padding: 6px 12px;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 4px;
+      background: #333;
+      color: white;
+      border: 1px solid #666;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #555;
+    }
+    input[type=number] {
+      padding: 5px 8px;
+      font-size: 1rem;
+      width: 60px;
+      color: white;
+      background: #222;
+      border: 1px solid #555;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <input type="file" id="folderInput" webkitdirectory multiple accept="image/*" />
+
+  <div id="controls" style="display:none;">
+    <label>Images per row:</label>
+    <input type="number" id="imagesPerRowInput" min="1" max="10" value="4" />
+
+    <label>Min rating:</label>
+    <input type="number" id="minRatingInput" min="0" max="5" value="0" />
+
+    <label>Max rating:</label>
+    <input type="number" id="maxRatingInput" min="0" max="5" value="5" />
+
+    <button id="randomizeBtn">Randomize</button>
+    <button id="downloadAllBtn">Download</button>
+  </div>
+
+  <div id="imageGrid"></div>
+
+  <script>
+    const folderInput = document.getElementById('folderInput');
+    const imageGrid = document.getElementById('imageGrid');
+    const imagesPerRowInput = document.getElementById('imagesPerRowInput');
+    const minRatingInput = document.getElementById('minRatingInput');
+    const maxRatingInput = document.getElementById('maxRatingInput');
+    const randomizeBtn = document.getElementById('randomizeBtn');
+    const downloadAllBtn = document.getElementById('downloadAllBtn');
+    const controls = document.getElementById('controls');
+
+    let images = [];
+    let imagesPerRow = parseInt(imagesPerRowInput.value);
+    let minRating = parseInt(minRatingInput.value);
+    let maxRating = parseInt(maxRatingInput.value);
+    const ratings = new Map();
+
+    folderInput.addEventListener('change', e => {
+      const newFiles = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
+      newFiles.forEach(img => {
+        if (!images.find(existing => existing.name === img.name)) {
+          images.push(img);
+          if (!ratings.has(img.name)) ratings.set(img.name, 0);
+        }
+      });
+
+      controls.style.display = images.length ? 'flex' : 'none';
+      updateGridColumns();
+      renderImages();
+      folderInput.value = '';
+    });
+
+    imagesPerRowInput.addEventListener('input', e => {
+      let val = parseInt(e.target.value);
+      if (isNaN(val) || val < 1) val = 1;
+      else if (val > 10) val = 10;
+      imagesPerRow = val;
+      updateGridColumns();
+    });
+
+    minRatingInput.addEventListener('input', e => {
+      minRating = parseInt(e.target.value) || 0;
+      renderImages();
+    });
+
+    maxRatingInput.addEventListener('input', e => {
+      maxRating = parseInt(e.target.value) || 5;
+      renderImages();
+    });
+
+    randomizeBtn.addEventListener('click', () => {
+      shuffleArray(images);
+      renderImages();
+    });
+
+    downloadAllBtn.addEventListener('click', () => {
+      const imgsToDownload = filteredImages();
+      if (!imgsToDownload.length) {
+        alert("No images to download.");
+        return;
+      }
+
+      imgsToDownload.forEach((file, i) => {
+        const blobURL = URL.createObjectURL(file);
+        const link = document.createElement('a');
+        link.href = blobURL;
+        link.download = file.name;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        setTimeout(() => {
+          link.click();
+          URL.revokeObjectURL(blobURL);
+          link.remove();
+        }, i * 300);
+      });
+    });
+
+    function updateGridColumns() {
+      imageGrid.style.gridTemplateColumns = `repeat(${imagesPerRow}, 1fr)`;
+    }
+
+    function filteredImages() {
+      return images.filter(i => {
+        const r = ratings.get(i.name) || 0;
+        return r >= minRating && r <= maxRating;
+      });
+    }
+
+    function createStarSVG(filled) {
+      const star = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      star.setAttribute('viewBox', '0 0 24 24');
+      star.classList.add('star');
+      if (!filled) star.classList.add('empty');
+      star.innerHTML = `<path d="M12 17.27L18.18 21l-1.64-7.03
+        L22 9.24l-7.19-.61L12 2 9.19 8.63
+        2 9.24l5.46 4.73L5.82 21z"/>`;
+      return star;
+    }
+
+    function updateStars(container, fileName) {
+      const starsContainer = container.querySelector('.stars-container');
+      starsContainer.innerHTML = '';
+      const rating = ratings.get(fileName) || 0;
+
+      for (let i = 1; i <= maxRating; i++) {
+        const star = createStarSVG(i <= rating);
+        star.addEventListener('click', e => {
+          e.stopPropagation();
+          e.preventDefault();
+          if (ratings.get(fileName) > 0) {
+            ratings.set(fileName, ratings.get(fileName) - 1);
+            updateStars(container, fileName);
+            renderImages();
+          }
+        });
+        starsContainer.appendChild(star);
+      }
+    }
+
+    function renderImages() {
+      imageGrid.innerHTML = '';
+      const filtered = filteredImages();
+
+      if (!filtered.length) {
+        imageGrid.textContent = 'No images match the filter.';
+        return;
+      }
+
+      filtered.forEach(file => {
+        const url = URL.createObjectURL(file);
+        const container = document.createElement('div');
+        container.className = 'image-container';
+
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = file.name;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'overlay';
+
+        const starsContainer = document.createElement('div');
+        starsContainer.className = 'stars-container';
+        overlay.appendChild(starsContainer);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = '×';
+        deleteBtn.title = "Delete image";
+        deleteBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          e.preventDefault();
+          images = images.filter(i => i !== file);
+          ratings.delete(file.name);
+          renderImages();
+        });
+        overlay.appendChild(deleteBtn);
+
+        container.appendChild(img);
+        container.appendChild(overlay);
+
+        container.addEventListener('click', e => {
+          if (e.target.closest('.star') || e.target.closest('.delete-btn')) return;
+          e.preventDefault();
+          const rect = container.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const half = rect.width / 2;
+          const currentRating = ratings.get(file.name) || 0;
+          if (clickX < half && currentRating > 0) {
+            ratings.set(file.name, currentRating - 1);
+          } else if (clickX >= half && currentRating < 5) {
+            ratings.set(file.name, currentRating + 1);
+          }
+          updateStars(container, file.name);
+        });
+
+        updateStars(container, file.name);
+        imageGrid.appendChild(container);
+      });
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+  </script>
+</body>
+</html>

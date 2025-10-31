@@ -17,6 +17,7 @@
     <memberTool name="makeVerb"/>
     <memberTool name="create_ref"/>
     <memberTool name="quick_gal"/>
+    <memberTool name="snapshot"/>
     <memberTool name="load expresions"/>
     <memberTool name="Perfomance Monitor"/>
     <memberTool name="AssetBrowser"/>
@@ -1018,5 +1019,49 @@ else:
 
   <tool name="UpdateMode" label="Update Mode F6" icon="PLASMA_App">
     <script scriptType="python"><![CDATA[hou.setUpdateMode( hou.updateMode.Manual if (hou.updateModeSetting()==hou.updateMode.AutoUpdate) else hou.updateMode.AutoUpdate)]]></script>
+  </tool>
+
+  <tool name="snapshot" label="Snapshot To Nodegraph" icon="hicon:/SVGIcons.index?BUTTONS_addasset.svg">
+    <script scriptType="python"><![CDATA[#Screenshot To Nodegraph
+import hou
+import os
+import datetime
+
+# Get the current desktop and scene viewer
+desktop = hou.ui.curDesktop()
+scene_viewer = desktop.paneTabOfType(hou.paneTabType.SceneViewer)
+viewport = scene_viewer.curViewport()
+
+# Define flipbook settings
+settings = scene_viewer.flipbookSettings().stash()  # Copy current flipbook settings
+
+# Set resolution and frame range
+settings.resolution((256, 256))
+settings.frameRange((hou.frame(), hou.frame()))  # Single-frame render
+settings.useResolution(True)
+
+# Define output path
+timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+output_dir = hou.expandString("S:/MEGA/Projects/2020/001_Personal/019_SubstanceDesigner/Houdini/Thumbnails")
+filename = f"viewport_flipbook_{timestamp}.jpg"
+output_path = os.path.join(output_dir, filename)
+settings.outputToMPlay(False)
+settings.output(output_path)
+
+# Execute the flipbook render
+scene_viewer.flipbook(viewport, settings)
+
+
+editor = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+bb = editor.visibleBounds()
+img_size = 2.5
+bb = hou.BoundingRect(bb.center() - hou.Vector2([img_size,img_size]),bb.center() + hou.Vector2([img_size,img_size]))
+
+images = list( editor.backgroundImages() )
+image = hou.NetworkImage()
+image.setPath(output_path)
+image.setRect(bb)
+images.append(image)
+editor.setBackgroundImages(images)]]></script>
   </tool>
 </shelfDocument>

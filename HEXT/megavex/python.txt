@@ -85,6 +85,11 @@
                 "# split video to frames\nimport subprocess,os,glob\n\nfps = 2\n\nvideo_folder = \"S:/Temp/ML/MY_DATASETS/CanoeUshan/\"\n\nfor video_path in glob.glob(video_folder + \"/*.mp4\"):\n\n\n    out_path = os.path.dirname(video_path) + \"/\" + os.path.splitext(os.path.basename(video_path))[0] + \"_%04d.png\" \n\n\n\n\n# -t 00:00:02 sets length of input to only 2 seconds\n    subprocess.Popen([\"ffmpeg\",\"-i\",video_path,\"-vf\",f\"fps={fps}\",\"-t\",\"00:00:02\",out_path])"
             ]
         },
+        "Screenshot To Nodegraph": {
+            "python_code": [
+                "#Screenshot To Nodegraph\nimport hou\nimport os\nimport datetime\n\n# Get the current desktop and scene viewer\ndesktop = hou.ui.curDesktop()\nscene_viewer = desktop.paneTabOfType(hou.paneTabType.SceneViewer)\nviewport = scene_viewer.curViewport()\n\n# Define flipbook settings\nsettings = scene_viewer.flipbookSettings().stash()  # Copy current flipbook settings\n\n# Set resolution and frame range\nsettings.resolution((256, 256))\nsettings.frameRange((hou.frame(), hou.frame()))  # Single-frame render\nsettings.useResolution(True)\n\n# Define output path\ntimestamp = datetime.datetime.now().strftime(\"%Y%m%d_%H%M%S\")\noutput_dir = hou.expandString(\"S:/MEGA/Projects/2020/001_Personal/019_SubstanceDesigner/Houdini/Thumbnails\")\nfilename = f\"viewport_flipbook_{timestamp}.jpg\"\noutput_path = os.path.join(output_dir, filename)\nsettings.outputToMPlay(False)\nsettings.output(output_path)\n\n# Execute the flipbook render\nscene_viewer.flipbook(viewport, settings)\n\n\neditor = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)\nbb = editor.visibleBounds()\nimg_size = 2.5\nbb = hou.BoundingRect(bb.center() - hou.Vector2([img_size,img_size]),bb.center() + hou.Vector2([img_size,img_size]))\n\nimages = list( editor.backgroundImages() )\nimage = hou.NetworkImage()\nimage.setPath(output_path)\nimage.setRect(bb)\nimages.append(image)\neditor.setBackgroundImages(images)"
+            ]
+        },
         "pip install": {
             "python_code": [
                 "import subprocess,os\nmodule = \"opencv-python\"\npython_path = os.environ.get(\"PYTHONHOME\") + \"/python.exe\"\nsubprocess.Popen([python_path,\"-m\",\"pip\",\"install\",module])\n\n"
