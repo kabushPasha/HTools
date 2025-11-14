@@ -1,0 +1,215 @@
+/**
+ * Creates the prompt textarea and status indicator inside the given container.
+ * Exposes the current directory handle and status element on `window` for
+ * other modules to use without passing them around.
+ *
+ * @param {FileSystemDirectoryHandle} handle - The directory handle for the selected folder.
+ * @param {HTMLElement} contentsEl - The container element where the UI should be appended.
+ * @returns {Promise<{PromptTextArea: HTMLTextAreaElement, status: HTMLElement}>}
+ */
+
+async function selectFolder(handle, liElement) {
+  // Clear previous contents
+  const contentsEl = document.getElementById('contents');
+  window.currentFolderHandle = handle;
+  let selectedDirHandle = handle;
+  document.querySelectorAll('#folders li').forEach(el => el.classList.remove('selected'));
+  liElement.classList.add('selected');
+  contentsEl.innerHTML = '';
+
+  // Create the prompt UI and get references to the textarea and status
+  const { PromptTextArea, status } = await createPromptUI(handle, contentsEl);
+  window.PromptTextArea = PromptTextArea;
+
+
+  await CreateButtons();
+  // --- Tasks collapsible (holds per-task entries) ---
+  window.tasksContainer = createTaskContainer(contentsEl);
+  await loadTasksFromDisk(handle, tasksContainer);
+  await updateTasksUI();
+  await loadSrcImages(handle, contentsEl);
+}
+
+// Attach to global
+window.selectFolder = selectFolder;
+
+// ADD Task
+window.addKieTask = async (taskId, promptText = '') => {
+  console.log('Adding KIE task:', taskId, promptText);
+  task = {
+    createdAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
+    prompt: promptText,
+    taskId: taskId,
+    status: 'pending'
+  }
+
+  if (!Array.isArray(window.tasks)) window.tasks = [];
+  window.tasks.push(task);
+  saveTasks(window.currentFolderHandle);
+  await updateTasksUI();
+};
+
+
+async function CreateButtons()
+{
+  // --- Button container ---
+  const buttonContainer = document.createElement('div');
+  buttonContainer.style.display = 'flex';
+  buttonContainer.style.gap = '8px';
+  buttonContainer.style.marginTop = '8px';
+  contentsEl.appendChild(buttonContainer);
+  // --- Generate button (KIE.ai) ---
+  const genBtn = document.createElement('button');
+  genBtn.id = 'generate-btn';
+  genBtn.textContent = 'Text2Img KIE.ai';
+  buttonContainer.appendChild(genBtn);
+  genBtn.addEventListener('click', async () => {
+    const promptText = window.PromptTextArea.value.trim();
+    await generateAndSaveImage(promptText,  genBtn);
+  });
+
+    // --- Send Image button (KIE.ai) ---
+  const sendImageBtn = document.createElement('button');
+  sendImageBtn.id = 'sendimage-btn';
+  sendImageBtn.textContent = 'Send Image to KIE.ai';
+  buttonContainer.appendChild(sendImageBtn);
+  sendImageBtn.addEventListener('click', async () => {
+    console.log('Send Image button clicked');
+    if (window.first_src_image) {
+      img_upload_data = await kieUploadFile(window.first_src_image_fileHandle);
+      console.log('Image upload data:', img_upload_data.downloadUrl);
+    } else {
+      console.warn('No first_src_image found');
+    }
+  });
+}
+
+
+// ------------------------------------------------------------------
+// loadSrcImages (unchanged)
+// ------------------------------------------------------------------
+async function loadSrcImages(handle, contentsEl) {
+  try {
+    window.first_src_image = null;
+    const srcImagesHandle = await handle.getDirectoryHandle('SrcImages', { create: false });
+
+    const details = document.createElement('details');
+    const summary = document.createElement('summary');
+    summary.textContent = '🖼️ SrcImages';
+    details.appendChild(summary);
+    details.open = true;
+
+    const imagesContainer = document.createElement('div');
+    imagesContainer.style.display = 'flex';
+    imagesContainer.style.flexWrap = 'wrap';
+    imagesContainer.style.gap = '8px';
+    imagesContainer.style.marginTop = '8px';
+
+    for await (const [name, fileHandle] of srcImagesHandle.entries()) {
+      if (
+        fileHandle.kind === 'file' &&
+        /\.(png|jpe?g|gif|webp)$/i.test(name)
+      ) {
+        const file = await fileHandle.getFile();
+        const url = URL.createObjectURL(file);
+        const img = document.createElement('img');
+        img.src = url;
+        img.style.maxWidth = '500px';
+        img.style.maxHeight = '500px';
+        img.style.objectFit = 'contain';
+        img.title = name;
+        imagesContainer.appendChild(img);
+
+        if (!window.first_src_image) {
+          window.first_src_image = img;
+          window.first_src_image_fileHandle = fileHandle;
+        }
+      }
+    }
+
+    details.appendChild(imagesContainer);
+    contentsEl.appendChild(details);
+  } catch {
+    // no SrcImages folder
+  }
+}
+
+async function createPromptUI(handle, contentsEl) {
+  // Create textarea
+  const PromptTextArea = document.createElement('textarea');
+  PromptTextArea.id = 'prompt-area';
+  PromptTextArea.placeholder = 'Enter your prompt here...';
+  PromptTextArea.rows = 3;
+  contentsEl.appendChild(PromptTextArea);
+
+  // Status
+  const status = document.createElement('div');
+  status.id = 'status';
+  status.textContent = 'Saved!';
+  contentsEl.appendChild(status);
+
+  // expose current dir & status so other modules can use them without passing around
+  window.dirHandle = handle;
+  window.statusEl = status;
+
+  // Load prompt.txt
+  try {
+    const fileHandle = await handle.getFileHandle('prompt.txt', { create: false });
+    const file = await fileHandle.getFile();
+    const text = await file.text();
+    PromptTextArea.value = text;
+  } catch {
+    PromptTextArea.value = '';
+  }
+
+  // Auto-resize
+  const autoResize = () => {
+    PromptTextArea.style.height = 'auto';
+    PromptTextArea.style.height = Math.max(PromptTextArea.scrollHeight, 3 * 16) + 'px';
+  };
+  PromptTextArea.addEventListener('input', autoResize);
+  autoResize();
+
+  // Auto-save (debounced)
+  let saveTimeout;
+  PromptTextArea.addEventListener('input', () => {
+    autoResize();
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(async () => {
+      try {
+        const fileHandle = await handle.getFileHandle('prompt.txt', { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(PromptTextArea.value);
+        await writable.close();
+        status.style.opacity = 1;
+        setTimeout(() => (status.style.opacity = 0), 1000);
+      } catch (err) {
+        console.error('Failed to save prompt.txt', err);
+      }
+    }, 500);
+  });
+
+  return { PromptTextArea, status };
+}
+
+function createTaskContainer(contentsEl) {
+  const tasksDetails = document.createElement('details');
+  tasksDetails.id = 'tasks-details';
+  const tasksSummary = document.createElement('summary');
+  tasksSummary.textContent = '🗂️ Tasks';
+  tasksDetails.appendChild(tasksSummary);
+  tasksDetails.open = true;
+
+  const tasksContainer = document.createElement('div');
+  tasksContainer.id = 'tasks-container';
+  tasksContainer.style.display = 'flex';
+  tasksContainer.style.flexDirection = 'column';
+  tasksContainer.style.gap = '6px';
+  tasksContainer.style.marginTop = '8px';
+
+  tasksDetails.appendChild(tasksContainer);
+  contentsEl.appendChild(tasksDetails);
+
+  return tasksContainer;
+}
+

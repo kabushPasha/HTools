@@ -1,0 +1,91 @@
+/* Dark theme */
+:root{
+  --bg:#000;
+  --panel:#0b0b0d;
+  --muted:#8b8f94;
+  --accent:#1e88ff;
+  --border:#222;
+  --text:#e6edf3;
+  --success:#8fd19e;
+}
+html,body {
+  height:100%;
+  margin:0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background:var(--bg);
+  color:var(--text);
+}
+body{
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+header{
+  display:flex;
+  align-items:center;
+  padding:0.5rem;
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-bottom:1px solid var(--border);
+}
+header button{
+  padding:0.5rem 1rem;
+  margin-right:0.5rem;
+  border-radius:2px;
+  border:none;
+  background:var(--accent);
+  color:white;
+  cursor:pointer;
+  box-shadow:0 1px 0 rgba(255,255,255,0.03) inset;
+}
+header button:hover{ background:#1565c0; }
+main{
+  display:flex;
+  flex:1;
+  overflow:hidden;
+}
+#folders{
+  width:250px;
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  padding:0.5rem;
+  background:var(--panel);
+}
+#folders li{
+  padding:0.25rem 0.5rem;
+  cursor:pointer;
+  border-radius:4px;
+  color:var(--text);
+}
+#folders li:hover{ background:rgba(255,255,255,0.02); }
+#folders li.selected{ background:var(--accent); color:#fff; }
+#contents{
+  flex:1;
+  padding:0.5rem;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  background:transparent;
+}
+#prompt-area{
+  width:100%;
+  min-height:3em;
+  padding:0.5rem;
+  font-family:monospace;
+  font-size:14px;
+  border:1px solid var(--border);
+  border-radius:4px;
+  resize:none;
+  overflow:hidden;
+  box-sizing:border-box;
+  background:#0b0c0e;
+  color:var(--text);
+}
+details, summary { color:var(--text); }
+img { border-radius:4px; background:#0b0c0e; }
+#status{
+  margin-top:0.5rem;
+  font-size:0.9rem;
+  color:var(--success);
+  opacity:0;
+  transition:opacity 0.5s;
+}
