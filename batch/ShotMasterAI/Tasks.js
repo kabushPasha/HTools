@@ -26,7 +26,7 @@ async function updateTasksUI() {
 
 
 async function AddTaskToUI(task) {
-    console.log('Loaded task:', task);
+    //console.log('Loaded task:', task);
 
     // create task UI element
     const taskEl = document.createElement('div');
@@ -55,7 +55,8 @@ async function AddTaskToUI(task) {
     chkBtn.textContent = 'Check Results';
     chkBtn.addEventListener('click', async () => {
       try {        
-        const res = await window.checkTaskResults(task.taskId, msg => {});        
+        const res = await window.checkTaskResults(task.taskId, msg => {});     
+        console.log('Task check results:', res);   
         if (res && res.ok && res.resultUrls && res.resultUrls.length > 0) {
           statusIndicator.style.backgroundColor = '#44ff44'; // green = downloaded
           statusIndicator.title = 'Downloaded';          

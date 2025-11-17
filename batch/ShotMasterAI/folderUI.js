@@ -21,13 +21,20 @@ async function selectFolder(handle, liElement) {
   const { PromptTextArea, status } = await createPromptUI(handle, contentsEl);
   window.PromptTextArea = PromptTextArea;
 
-
+  await setFirstImage();
   await CreateButtons();
   // --- Tasks collapsible (holds per-task entries) ---
   window.tasksContainer = createTaskContainer(contentsEl);
   await loadTasksFromDisk(handle, tasksContainer);
   await updateTasksUI();
-  await loadSrcImages(handle, contentsEl);
+  //await loadSrcImages(handle, contentsEl);
+  await loadMediaFolder(handle, contentsEl, 'SrcImages');
+  await loadMediaFolder(handle, contentsEl, 'results');
+
+
+
+  console.log("First Image : ",window.first_src_image_fileHandle);
+  
 }
 
 // Attach to global
@@ -49,7 +56,6 @@ window.addKieTask = async (taskId, promptText = '') => {
   await updateTasksUI();
 };
 
-
 async function CreateButtons()
 {
   // --- Button container ---
@@ -59,6 +65,7 @@ async function CreateButtons()
   buttonContainer.style.marginTop = '8px';
   contentsEl.appendChild(buttonContainer);
   // --- Generate button (KIE.ai) ---
+  /*
   const genBtn = document.createElement('button');
   genBtn.id = 'generate-btn';
   genBtn.textContent = 'Text2Img KIE.ai';
@@ -67,35 +74,59 @@ async function CreateButtons()
     const promptText = window.PromptTextArea.value.trim();
     await generateAndSaveImage(promptText,  genBtn);
   });
+  */
 
-    // --- Send Image button (KIE.ai) ---
+  // --- Send Image button (KIE.ai) ---
   const sendImageBtn = document.createElement('button');
   sendImageBtn.id = 'sendimage-btn';
   sendImageBtn.textContent = 'Send Image to KIE.ai';
   buttonContainer.appendChild(sendImageBtn);
   sendImageBtn.addEventListener('click', async () => {
     console.log('Send Image button clicked');
-    if (window.first_src_image) {
+    if (window.first_src_image_fileHandle) {
+      const promptText = window.PromptTextArea.value.trim();
       img_upload_data = await kieUploadFile(window.first_src_image_fileHandle);
       console.log('Image upload data:', img_upload_data.downloadUrl);
+
+      if (img_upload_data && img_upload_data.success)
+      {
+        kieGenerate_RunwayImg2Video(promptText, img_upload_data.downloadUrl);
+      }
+
     } else {
       console.warn('No first_src_image found');
     }
   });
 }
 
+async function setFirstImage()
+{
+  window.first_src_image_fileHandle = null;
 
-// ------------------------------------------------------------------
-// loadSrcImages (unchanged)
-// ------------------------------------------------------------------
-async function loadSrcImages(handle, contentsEl) {
+  try{
+    const srcImagesHandle = await window.currentFolderHandle.getDirectoryHandle('SrcImages', { create: false });
+    for await (const [name, fileHandle] of srcImagesHandle.entries()) {
+      if (
+        fileHandle.kind === 'file' &&
+        /\.(png|jpe?g|gif|webp)$/i.test(name)
+      ) {
+        if (!window.first_src_image) {
+          window.first_src_image_fileHandle = fileHandle;
+        }
+      }
+    }
+  } catch {
+    //console.log('No SrcImages folder found');
+  }
+}
+
+async function loadMediaFolder(handle, contentsEl, folderName) {
   try {
-    window.first_src_image = null;
-    const srcImagesHandle = await handle.getDirectoryHandle('SrcImages', { create: false });
+    const srcImagesHandle = await handle.getDirectoryHandle(folderName, { create: false });
 
     const details = document.createElement('details');
     const summary = document.createElement('summary');
-    summary.textContent = '🖼️ SrcImages';
+    summary.textContent = folderName;
     details.appendChild(summary);
     details.open = true;
 
@@ -105,27 +136,37 @@ async function loadSrcImages(handle, contentsEl) {
     imagesContainer.style.gap = '8px';
     imagesContainer.style.marginTop = '8px';
 
-    for await (const [name, fileHandle] of srcImagesHandle.entries()) {
-      if (
-        fileHandle.kind === 'file' &&
-        /\.(png|jpe?g|gif|webp)$/i.test(name)
-      ) {
-        const file = await fileHandle.getFile();
-        const url = URL.createObjectURL(file);
-        const img = document.createElement('img');
-        img.src = url;
-        img.style.maxWidth = '500px';
-        img.style.maxHeight = '500px';
-        img.style.objectFit = 'contain';
-        img.title = name;
-        imagesContainer.appendChild(img);
+for await (const [name, fileHandle] of srcImagesHandle.entries()) {
+  if (fileHandle.kind === 'file') {
+    const file = await fileHandle.getFile();
+    const url = URL.createObjectURL(file);
 
-        if (!window.first_src_image) {
-          window.first_src_image = img;
-          window.first_src_image_fileHandle = fileHandle;
-        }
-      }
+    if (/\.(png|jpe?g|gif|webp)$/i.test(name)) {
+      const img = document.createElement('img');
+      img.src = url;
+      img.style.maxWidth = '500px';
+      img.style.maxHeight = '500px';
+      img.style.objectFit = 'contain';
+      img.title = name;
+      imagesContainer.appendChild(img);
     }
+
+    if (/\.(mp4|webm|ogg|mov|mkv)$/i.test(name)) {
+      const video = document.createElement('video');
+      video.src = url;
+      video.style.width = 'auto';          // Ensures visibility
+      video.style.maxHeight = '500px';
+      video.style.objectFit = 'contain';
+      video.controls = true;                // Shows play/pause UI
+      video.title = name;
+      video.autoplay = true;            // Automatically play video
+      video.muted = true;               // Required by most browsers for autoplay
+      video.controls = true;            // Optional: allow play/pause controls
+      video.loop = true;                // Optional: loop video
+      imagesContainer.appendChild(video);   // Or use videosContainer      
+    }
+  }
+}
 
     details.appendChild(imagesContainer);
     contentsEl.appendChild(details);
@@ -133,6 +174,9 @@ async function loadSrcImages(handle, contentsEl) {
     // no SrcImages folder
   }
 }
+
+
+
 
 async function createPromptUI(handle, contentsEl) {
   // Create textarea

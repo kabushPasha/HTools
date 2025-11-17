@@ -14,7 +14,7 @@ async function generateAndSaveImage(promptText,genBtn) {
 
   try {
     // Generate image and get URLs
-    const resultUrls = await kieGenerate(promptText);
+    await kieGenerate(promptText);
   } catch (err) {
     console.error('Generate failed', err);
     statusEl.textContent = 'Generate failed';
@@ -49,9 +49,7 @@ function validateApiKey(statusEl) {
 }
 
 // KIE generation + polling moved here. Reads API key from window.KIE_API_KEY at call time.
-async function kieGenerate(prompt, statusCb = () => {}) {
-  const KIE_API_KEY = window.KIE_API_KEY || '';
-  
+async function kieGenerate(prompt) {
   const generateUrl = 'https://api.kie.ai/api/v1/gpt4o-image/generate';
   const payload = {
     prompt,
@@ -69,7 +67,7 @@ async function kieGenerate(prompt, statusCb = () => {}) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${KIE_API_KEY}`
+      'Authorization': `Bearer ${window.KIE_API_KEY}`
     },
     body: JSON.stringify(payload)
   });
@@ -84,8 +82,43 @@ async function kieGenerate(prompt, statusCb = () => {}) {
   }
 
   taskId = postJson.data.taskId;  
-  
   try { window.addKieTask(taskId, prompt); } catch (e) { console.warn('addKieTask failed', e); }
+}
+
+
+// Generate Video - split into post and recieve task ID
+async function kieGenerate_RunwayImg2Video(prompt, initImageUrl){
+  const url = 'https://api.kie.ai/api/v1/runway/generate';
+  
+  const payload = {
+    prompt : prompt,
+    duration : "5",
+    quality : "720p",
+    imageUrl: initImageUrl,
+    aspectRation: "9:16", 
+    model: "runway-duration-5-generate",
+    waterMark: "",
+  };
+
+  const options = {
+    method: 'POST',
+    headers: {Authorization: `Bearer ${window.KIE_API_KEY}`, 'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  };
+
+  console.log('KIE Runway Img2Video options:', options);
+
+  try {
+    const response = await fetch(url, options);
+    const data = await response.json();
+    console.log(data);
+    
+    taskId = data.data.taskId;  
+    try { window.addKieTask(taskId, prompt); } catch (e) { console.warn('addKieTask failed', e); }
+
+  } catch (error) {
+    console.error(error);
+  } 
 }
 
 async function kieUploadFile(img_fileHandle) {
@@ -115,30 +148,37 @@ async function kieUploadFile(img_fileHandle) {
 }
 
 // New: check task results (separate function)
-async function checkTaskResults(taskId, statusCb = () => {}) {
+async function checkTaskResults(taskId) {
   const KIE_API_KEY = window.KIE_API_KEY || '';
   if (!taskId) throw new Error('No taskId provided');
 
-  const url = `https://api.kie.ai/api/v1/gpt4o-image/record-info?taskId=${taskId}`;
-  const options = { method: 'GET', headers: { Authorization: `Bearer ${KIE_API_KEY}` } };
+  // EACH API HAS DIFFERENT ENDPOINT FOR THIS, 
+  //const url = `https://api.kie.ai/api/v1/gpt4o-image/record-info?taskId=${taskId}`;
+  const url = `https://api.kie.ai/api/v1/runway/record-detail?taskId=${taskId}`;
+
+  const options = { 
+    method: 'GET', 
+    headers: { Authorization: `Bearer ${KIE_API_KEY}` }
+  };
 
   try {
-    statusCb('Checking task results...');
     console.log('Checking task results with options:', options);
     const response = await fetch(url, options);
+    console.log('checkTaskResults RESPONSE :', response);
     if (!response.ok) {
       const txt = await response.text();
       throw new Error(`Record-info error ${response.status}: ${txt}`);
     }
     const data = await response.json();
-    console.log('record-info response:', data);
-
+    console.log('record-info  DATA:', data);
     const ok = data?.msg === 'success';
-    const resultUrls = ok ? (data?.data?.response?.resultUrls || []) : [];
 
-    // if success, download into the current window.dirHandle using window.statusEl
-    if (ok && resultUrls.length > 0) {
-      await saveResults(resultUrls, window.dirHandle, window.statusEl);
+    console.log('Saving results for task:', taskId);
+
+    // Save Result Images
+    const resultUrls = ok ? (data?.data?.response?.resultUrls || [data?.data?.videoInfo?.videoUrl] || []) : [];   
+    if (ok && resultUrls.length > 0) {      
+      await saveResults(resultUrls);
     }
 
     return { ok, resultUrls, raw: data };
@@ -148,8 +188,70 @@ async function checkTaskResults(taskId, statusCb = () => {}) {
   }
 }
 
+async function saveVideoResults(resultUrls) {
+  console.log('Saving video results:', resultUrls);
+  dirHandle = window.dirHandle; 
+
+  if (!resultUrls || resultUrls.length === 0) return;
+  if (!dirHandle) throw new Error('No directory handle available to save results');
+  const resultsHandle = await dirHandle.getDirectoryHandle('results', { create: true });
+
+  for (let i = 0; i < resultUrls.length; i++) {
+    const imageUrl = resultUrls[i];   
+    try {
+      let fileName = `image_${Date.now()}_${i}.mp4`;
+      try {
+        const urlObj = new URL(imageUrl);
+        const urlPath = urlObj.pathname;
+        const urlFileName = urlPath.split('/').pop();
+        if (urlFileName && urlFileName.length > 0) {
+          fileName = urlFileName;
+        }
+      } catch (e) {
+        console.warn('Could not extract filename from URL, using default', e);
+      }
+
+      // Check if file already exists
+      let fileExists = false;
+      try {
+        await resultsHandle.getFileHandle(fileName);
+        fileExists = true;
+      } catch (e) {
+         // File does not exist, which is expected
+      }
+
+      if (fileExists) {
+        console.log(`File already exists, skipping: ${fileName}`);
+        continue;
+      }
+
+      // File doesn't exist, download and save it
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+
+      const fileHandle = await resultsHandle.getFileHandle(fileName, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      
+      if (statusEl) {
+        statusEl.textContent = `Saved: ${fileName}`;
+      }
+    } catch (imgErr) {
+      console.error(`Failed to save image ${i}`, imgErr);
+    }
+  }  
+  if (statusEl) {
+    statusEl.textContent = 'Done!';
+    setTimeout(() => statusEl.style.opacity = 0, 1000);
+  }
+
+
+}
+
 // Save result images to results folder (accept optional args)
 async function saveResults(resultUrls) {
+  console.log('Saving result images:', resultUrls);
   dirHandle = window.dirHandle; 
   statusEl = window.statusEl;
 
@@ -248,5 +350,5 @@ window.kieGenerate = kieGenerate;
 window.saveResults = saveResults;
 window.checkTaskResults = checkTaskResults;
 window.kieUploadFile = kieUploadFile;
-
+window.kieGenerate_RunwayImg2Video = kieGenerate_RunwayImg2Video
 
