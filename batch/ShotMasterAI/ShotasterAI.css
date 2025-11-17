@@ -89,3 +89,27 @@ img { border-radius:4px; background:#0b0c0e; }
   opacity:0;
   transition:opacity 0.5s;
 }
+
+#status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 5px 10px;
+  background-color: #333;
+  color: #fff;
+  font-size: 0.9rem;
+  font-family: system-ui, sans-serif;
+  border-top: 1px solid #444;
+}
+
+/* Remove Markers*/
+#folders,
+#folders ul {
+  list-style-type: none;
+  padding-left: 0; /* Remove default indent */
+  margin-left: 0;
+}
+#folders ul {
+  padding-left: 1rem; /* 1rem = ~16px, tweak as needed */
+}

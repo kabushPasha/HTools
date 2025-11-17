@@ -1,44 +1,42 @@
-/**
- * Creates the prompt textarea and status indicator inside the given container.
- * Exposes the current directory handle and status element on `window` for
- * other modules to use without passing them around.
- *
- * @param {FileSystemDirectoryHandle} handle - The directory handle for the selected folder.
- * @param {HTMLElement} contentsEl - The container element where the UI should be appended.
- * @returns {Promise<{PromptTextArea: HTMLTextAreaElement, status: HTMLElement}>}
- */
 
+// Select SHOT FOLDER
 async function selectFolder(handle, liElement) {
   // Clear previous contents
-  const contentsEl = document.getElementById('contents');
   window.currentFolderHandle = handle;
-  let selectedDirHandle = handle;
   document.querySelectorAll('#folders li').forEach(el => el.classList.remove('selected'));
   liElement.classList.add('selected');
-  contentsEl.innerHTML = '';
+  contentsPanel.innerHTML = '';
 
   // Create the prompt UI and get references to the textarea and status
-  const { PromptTextArea, status } = await createPromptUI(handle, contentsEl);
+  const PromptTextArea = await createPromptUI(handle);
   window.PromptTextArea = PromptTextArea;
 
   await setFirstImage();
   await CreateButtons();
   // --- Tasks collapsible (holds per-task entries) ---
-  window.tasksContainer = createTaskContainer(contentsEl);
+  window.tasksContainer = createTaskContainer(contentsPanel);
   await loadTasksFromDisk(handle, tasksContainer);
   await updateTasksUI();
   //await loadSrcImages(handle, contentsEl);
-  await loadMediaFolder(handle, contentsEl, 'SrcImages');
-  await loadMediaFolder(handle, contentsEl, 'results');
+  await loadMediaFolder(handle, contentsPanel, 'SrcImages');
+  await loadMediaFolder(handle, contentsPanel, 'results');
 
-
-
-  console.log("First Image : ",window.first_src_image_fileHandle);
-  
+  //console.log("First Image : ",window.first_src_image_fileHandle);
 }
 
-// Attach to global
-window.selectFolder = selectFolder;
+// SELECT SCENE FOLDER
+async function selectSceneFolder(handle, liElement) {
+  window.currentFolderHandle = handle;
+  document.querySelectorAll('#folders li').forEach(el => el.classList.remove('selected'));
+  contentsPanel.innerHTML = '';
+
+  // Create the prompt UI and get references to the textarea and status
+  PromptTextArea = await createPromptUI(handle);
+  window.PromptTextArea = PromptTextArea;
+
+  buttonContainer = CreateButtonsContainer();
+  SplitIntoShotsBtn = addSimpleButton(buttonContainer, 'split-into-shots-btn', 'Split Into Shots');
+}
 
 // ADD Task
 window.addKieTask = async (taskId, promptText = '') => {
@@ -56,14 +54,30 @@ window.addKieTask = async (taskId, promptText = '') => {
   await updateTasksUI();
 };
 
-async function CreateButtons()
+function CreateButtonsContainer()
 {
-  // --- Button container ---
-  const buttonContainer = document.createElement('div');
+  buttonContainer = document.createElement('div');
   buttonContainer.style.display = 'flex';
   buttonContainer.style.gap = '8px';
   buttonContainer.style.marginTop = '8px';
-  contentsEl.appendChild(buttonContainer);
+  contentsPanel.appendChild(buttonContainer);
+  return buttonContainer;
+}
+
+function addSimpleButton(container, btn, text)
+{
+  simpleBtn = document.createElement('button');
+  simpleBtn.id = btn;
+  simpleBtn.textContent = text;
+  container.appendChild(simpleBtn);
+  return simpleBtn;
+}
+
+
+async function CreateButtons()
+{
+  buttonContainer = CreateButtonsContainer();
+  
   // --- Generate button (KIE.ai) ---
   /*
   const genBtn = document.createElement('button');
@@ -77,12 +91,10 @@ async function CreateButtons()
   */
 
   // --- Send Image button (KIE.ai) ---
-  const sendImageBtn = document.createElement('button');
-  sendImageBtn.id = 'sendimage-btn';
-  sendImageBtn.textContent = 'Send Image to KIE.ai';
-  buttonContainer.appendChild(sendImageBtn);
+  sendImageBtn = addSimpleButton(buttonContainer, 'sendimage-btn', 'Send Image to KIE.ai');
   sendImageBtn.addEventListener('click', async () => {
     console.log('Send Image button clicked');
+    console.log('First Image Handle:', window.first_src_image_fileHandle);
     if (window.first_src_image_fileHandle) {
       const promptText = window.PromptTextArea.value.trim();
       img_upload_data = await kieUploadFile(window.first_src_image_fileHandle);
@@ -175,26 +187,13 @@ for await (const [name, fileHandle] of srcImagesHandle.entries()) {
   }
 }
 
-
-
-
-async function createPromptUI(handle, contentsEl) {
+async function createPromptUI(handle) {
   // Create textarea
   const PromptTextArea = document.createElement('textarea');
   PromptTextArea.id = 'prompt-area';
   PromptTextArea.placeholder = 'Enter your prompt here...';
   PromptTextArea.rows = 3;
-  contentsEl.appendChild(PromptTextArea);
-
-  // Status
-  const status = document.createElement('div');
-  status.id = 'status';
-  status.textContent = 'Saved!';
-  contentsEl.appendChild(status);
-
-  // expose current dir & status so other modules can use them without passing around
-  window.dirHandle = handle;
-  window.statusEl = status;
+  contentsPanel.appendChild(PromptTextArea);
 
   // Load prompt.txt
   try {
@@ -225,15 +224,12 @@ async function createPromptUI(handle, contentsEl) {
         const writable = await fileHandle.createWritable();
         await writable.write(PromptTextArea.value);
         await writable.close();
-        status.style.opacity = 1;
-        setTimeout(() => (status.style.opacity = 0), 1000);
       } catch (err) {
         console.error('Failed to save prompt.txt', err);
       }
     }, 500);
   });
-
-  return { PromptTextArea, status };
+  return PromptTextArea;
 }
 
 function createTaskContainer(contentsEl) {

@@ -188,72 +188,11 @@ async function checkTaskResults(taskId) {
   }
 }
 
-async function saveVideoResults(resultUrls) {
-  console.log('Saving video results:', resultUrls);
-  dirHandle = window.dirHandle; 
-
-  if (!resultUrls || resultUrls.length === 0) return;
-  if (!dirHandle) throw new Error('No directory handle available to save results');
-  const resultsHandle = await dirHandle.getDirectoryHandle('results', { create: true });
-
-  for (let i = 0; i < resultUrls.length; i++) {
-    const imageUrl = resultUrls[i];   
-    try {
-      let fileName = `image_${Date.now()}_${i}.mp4`;
-      try {
-        const urlObj = new URL(imageUrl);
-        const urlPath = urlObj.pathname;
-        const urlFileName = urlPath.split('/').pop();
-        if (urlFileName && urlFileName.length > 0) {
-          fileName = urlFileName;
-        }
-      } catch (e) {
-        console.warn('Could not extract filename from URL, using default', e);
-      }
-
-      // Check if file already exists
-      let fileExists = false;
-      try {
-        await resultsHandle.getFileHandle(fileName);
-        fileExists = true;
-      } catch (e) {
-         // File does not exist, which is expected
-      }
-
-      if (fileExists) {
-        console.log(`File already exists, skipping: ${fileName}`);
-        continue;
-      }
-
-      // File doesn't exist, download and save it
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-
-      const fileHandle = await resultsHandle.getFileHandle(fileName, { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      
-      if (statusEl) {
-        statusEl.textContent = `Saved: ${fileName}`;
-      }
-    } catch (imgErr) {
-      console.error(`Failed to save image ${i}`, imgErr);
-    }
-  }  
-  if (statusEl) {
-    statusEl.textContent = 'Done!';
-    setTimeout(() => statusEl.style.opacity = 0, 1000);
-  }
-
-
-}
 
 // Save result images to results folder (accept optional args)
 async function saveResults(resultUrls) {
   console.log('Saving result images:', resultUrls);
-  dirHandle = window.dirHandle; 
-  statusEl = window.statusEl;
+  dirHandle = window.currentFolderHandle; 
 
   if (!resultUrls || resultUrls.length === 0) return;
 
@@ -263,10 +202,6 @@ async function saveResults(resultUrls) {
   
   for (let i = 0; i < resultUrls.length; i++) {
     const imageUrl = resultUrls[i];
-    if (statusEl) {
-      statusEl.textContent = `Downloading image ${i + 1}/${resultUrls.length}...`;
-      statusEl.style.opacity = 1;
-    }
     
     try {
       // Extract filename from URL or generate one
@@ -292,9 +227,6 @@ async function saveResults(resultUrls) {
       }
 
       if (fileExists) {
-        if (statusEl) {
-          statusEl.textContent = `Skipped (exists): ${fileName}`;
-        }
         console.log(`File already exists, skipping: ${fileName}`);
         continue;
       }
@@ -307,18 +239,11 @@ async function saveResults(resultUrls) {
       const writable = await fileHandle.createWritable();
       await writable.write(blob);
       await writable.close();
-      
-      if (statusEl) {
-        statusEl.textContent = `Saved: ${fileName}`;
-      }
+
     } catch (imgErr) {
       console.error(`Failed to save image ${i}`, imgErr);
     }
   }  
-  if (statusEl) {
-    statusEl.textContent = 'Done!';
-    setTimeout(() => statusEl.style.opacity = 0, 1000);
-  }
 }
 
 
