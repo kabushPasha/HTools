@@ -2,7 +2,7 @@ let rootDirHandle = null;
 let selectedDirHandle = null;
 const foldersEl = document.getElementById('folders');
 const contentsPanel = document.getElementById('contents');
-
+const statusBar = document.getElementById('status-bar');
 
 // Add your KIE.ai API key here
 window.KIE_API_KEY = '19d558c94447da4ea0f5bb14328fb9d4';
@@ -18,6 +18,10 @@ document.getElementById('pick').addEventListener('click', async () => {
     console.error('Folder pick canceled or failed', err);
   }
 });
+
+
+
+
 
 // --- Load last picked folder on page load ---
 window.addEventListener('DOMContentLoaded', async () => {
@@ -81,9 +85,9 @@ async function listFolders() {
 
 // Status bar helper
 function updateStatus(message) {
-  const statusBar = document.getElementById('status-bar');
   if (statusBar) {
     statusBar.textContent = message;
   }
+  console.log(message);
 }
 window.updateStatus = updateStatus;

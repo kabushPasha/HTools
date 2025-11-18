@@ -36,7 +36,44 @@ async function selectSceneFolder(handle, liElement) {
 
   buttonContainer = CreateButtonsContainer();
   SplitIntoShotsBtn = addSimpleButton(buttonContainer, 'split-into-shots-btn', 'Split Into Shots');
+
+  ImportShotsBtn = addSimpleButton(buttonContainer, 'import-shots-btn', 'Import Shots Clipboard');
+
+  ImportShotsBtn.addEventListener('click', async () => { await importShotsFromClipboard(); });
 }
+
+async function importShotsFromClipboard() {
+  try {
+    window.updateStatus('Importing shots from clipboard...');
+    const text = await navigator.clipboard.readText();    
+    shot_dict = JSON.parse(text);
+
+    for (const key in shot_dict) {
+      if (shot_dict.hasOwnProperty(key)) {          
+          importSceneDict(key, shot_dict[key]);
+        }
+    }
+
+    }
+    catch (err) {
+      //console.error('Failed to read clipboard contents: ', err);
+    }
+}
+
+async function importSceneDict(scene_name, scene_dict){
+  window.updateStatus(`Importing scene: ${scene_name}`);
+  for (const key in scene_dict) {
+    if (scene_dict.hasOwnProperty(key)) {          
+        importShotDict(key, scene_dict[key]);
+      }
+  }
+}
+
+async function importShotDict(shot_name,shot_dict) {
+  window.updateStatus(`Importing shot: ${shot_name} `);  
+  console.log('Importing shot:', shot_dict);
+}
+
 
 // ADD Task
 window.addKieTask = async (taskId, promptText = '') => {
@@ -72,7 +109,6 @@ function addSimpleButton(container, btn, text)
   container.appendChild(simpleBtn);
   return simpleBtn;
 }
-
 
 async function CreateButtons()
 {
@@ -114,7 +150,6 @@ async function CreateButtons()
 async function setFirstImage()
 {
   window.first_src_image_fileHandle = null;
-
   try{
     const srcImagesHandle = await window.currentFolderHandle.getDirectoryHandle('SrcImages', { create: false });
     for await (const [name, fileHandle] of srcImagesHandle.entries()) {
