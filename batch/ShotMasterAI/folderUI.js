@@ -34,7 +34,7 @@ async function selectSceneFolder(handle, liElement) {
   contentsPanel.innerHTML = '';
 
   // Create the prompt UI and get references to the textarea and status
-  PromptTextArea = await createPromptUI(handle);
+  PromptTextArea = await createPromptUI(handle, "script");
   window.PromptTextArea = PromptTextArea;
 
   buttonContainer = CreateButtonsContainer();
@@ -224,17 +224,17 @@ for await (const [name, fileHandle] of srcImagesHandle.entries()) {
   }
 }
 
-async function createPromptUI(handle) {
+async function createPromptUI(handle, name = "prompt") {
   // Create textarea
   const PromptTextArea = document.createElement('textarea');
-  PromptTextArea.id = 'prompt-area';
+  PromptTextArea.id = `prompt-area`;
   PromptTextArea.placeholder = 'Enter your prompt here...';
   PromptTextArea.rows = 3;
   contentsPanel.appendChild(PromptTextArea);
 
   // Load prompt.txt
   try {
-    const fileHandle = await handle.getFileHandle('prompt.txt', { create: false });
+    const fileHandle = await handle.getFileHandle(`${name}.txt`, { create: false });
     const file = await fileHandle.getFile();
     const text = await file.text();
     PromptTextArea.value = text;
@@ -256,7 +256,7 @@ async function createPromptUI(handle) {
     autoResize();
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
-      saveLocalTextFile(handle, 'prompt.txt', PromptTextArea.value);
+      saveLocalTextFile(handle, `${name}.txt`, PromptTextArea.value);
     }, 500);
   });
   return PromptTextArea;
