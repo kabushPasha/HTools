@@ -1,6 +1,11 @@
 
 // Select SHOT FOLDER
-async function selectFolder(handle, liElement) {
+async function selectShot(shot) {
+  handle = shot.handle;
+  liElement = shot.liElement;  
+
+  window.currentShot = shot;
+
   // Clear previous contents
   window.currentFolderHandle = handle;
   document.querySelectorAll('#folders li').forEach(el => el.classList.remove('selected'));
@@ -20,8 +25,6 @@ async function selectFolder(handle, liElement) {
   //await loadSrcImages(handle, contentsEl);
   await loadMediaFolder(handle, contentsPanel, 'SrcImages');
   await loadMediaFolder(handle, contentsPanel, 'results');
-
-  //console.log("First Image : ",window.first_src_image_fileHandle);
 }
 
 // SELECT SCENE FOLDER
@@ -37,43 +40,9 @@ async function selectSceneFolder(handle, liElement) {
   buttonContainer = CreateButtonsContainer();
   SplitIntoShotsBtn = addSimpleButton(buttonContainer, 'split-into-shots-btn', 'Split Into Shots');
 
-  ImportShotsBtn = addSimpleButton(buttonContainer, 'import-shots-btn', 'Import Shots Clipboard');
-
-  ImportShotsBtn.addEventListener('click', async () => { await importShotsFromClipboard(); });
+  //ImportShotsBtn = addSimpleButton(buttonContainer, 'import-shots-btn', 'Import Shots Clipboard');
+  //ImportShotsBtn.addEventListener('click', async () => { await importShotsFromClipboard(); });
 }
-
-async function importShotsFromClipboard() {
-  try {
-    window.updateStatus('Importing shots from clipboard...');
-    const text = await navigator.clipboard.readText();    
-    shot_dict = JSON.parse(text);
-
-    for (const key in shot_dict) {
-      if (shot_dict.hasOwnProperty(key)) {          
-          importSceneDict(key, shot_dict[key]);
-        }
-    }
-
-    }
-    catch (err) {
-      //console.error('Failed to read clipboard contents: ', err);
-    }
-}
-
-async function importSceneDict(scene_name, scene_dict){
-  window.updateStatus(`Importing scene: ${scene_name}`);
-  for (const key in scene_dict) {
-    if (scene_dict.hasOwnProperty(key)) {          
-        importShotDict(key, scene_dict[key]);
-      }
-  }
-}
-
-async function importShotDict(shot_name,shot_dict) {
-  window.updateStatus(`Importing shot: ${shot_name} `);  
-  console.log('Importing shot:', shot_dict);
-}
-
 
 // ADD Task
 window.addKieTask = async (taskId, promptText = '') => {
@@ -126,6 +95,8 @@ async function CreateButtons()
   });
   */
 
+  // --- Shot Status button ---
+  await createShotStatusButton();
   // --- Send Image button (KIE.ai) ---
   sendImageBtn = addSimpleButton(buttonContainer, 'sendimage-btn', 'Send Image to KIE.ai');
   sendImageBtn.addEventListener('click', async () => {
@@ -144,6 +115,37 @@ async function CreateButtons()
     } else {
       console.warn('No first_src_image found');
     }
+  });
+
+
+
+  createResolveXMLButton = addSimpleButton(buttonContainer, 'create-resolve-xml-btn', 'Generate Resolve FCPXML');
+  createResolveXMLButton.addEventListener('click', async () => {    
+    const resultsFolder = await window.currentFolderHandle.getDirectoryHandle("results", { create: false });
+    await generateFCPXMLFromFolder(resultsFolder);
+  }
+  );
+
+
+
+}
+
+// SHOT STATUS TOGGLE
+async function createShotStatusButton()
+{
+  shotToggleBtn = addSimpleButton(buttonContainer, 'shot-toggle-btn', 'Finished');
+
+  function updateShotStatusButton(shotToggleBtn)
+  {
+      finished = window.currentShot.shotinfo.finished;
+      //shotToggleBtn.textContent = finished ? 'Finished' : 'Progress';
+      shotToggleBtn.style.backgroundColor = finished ? 'lightgreen' : 'lightgrey';
+  }
+
+  updateShotStatusButton(shotToggleBtn);
+  shotToggleBtn.addEventListener('click', () => {
+    updateShotStatus(window.currentShot, !window.currentShot.shotinfo.finished);
+    updateShotStatusButton(shotToggleBtn);
   });
 }
 
@@ -254,14 +256,7 @@ async function createPromptUI(handle) {
     autoResize();
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
-      try {
-        const fileHandle = await handle.getFileHandle('prompt.txt', { create: true });
-        const writable = await fileHandle.createWritable();
-        await writable.write(PromptTextArea.value);
-        await writable.close();
-      } catch (err) {
-        console.error('Failed to save prompt.txt', err);
-      }
+      saveLocalTextFile(handle, 'prompt.txt', PromptTextArea.value);
     }, 500);
   });
   return PromptTextArea;

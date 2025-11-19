@@ -14,13 +14,31 @@ function getDB() {
   });
 }
 
-// Save folder handle
+// Save folder handle and maintain latest 10 folders
 async function savePickedFolder(handle) {
   const db = await getDB();
   const tx = db.transaction('folders', 'readwrite');
-  tx.objectStore('folders').put(handle, 'lastFolder');
+  const store = tx.objectStore('folders');
+
+  // Save as lastFolder
+  store.put(handle, 'lastFolder');
+
+  // Get recentFolders array
+  const recentReq = store.get('recentFolders');
+  recentReq.onsuccess = (event) => {
+    let recent = event.target.result || [];
+
+    // Only add handle if it doesn't already exist (by reference)
+    if (!recent.includes(handle)) {
+      recent.unshift(handle);          // add to start
+      if (recent.length > 10) recent = recent.slice(0, 10); // limit to 10
+      store.put(recent, 'recentFolders');
+    }
+  };
+
   await tx.complete;
 }
+
 
 // Load last picked folder
 async function loadPickedFolder() {
@@ -34,11 +52,24 @@ async function loadPickedFolder() {
   });
 }
 
+// Load recent folders array
+async function loadRecentFolders() {
+  const db = await getDB();
+  const tx = db.transaction('folders', 'readonly');
+  const store = tx.objectStore('folders');
+  return new Promise((resolve) => {
+    const req = store.get('recentFolders');
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => resolve([]);
+  });
+}
+
 
 // CREATE Singleton
 const db = {};
 db.getDB = getDB;
 db.savePickedFolder = savePickedFolder;
 db.loadPickedFolder = loadPickedFolder;
+db.loadRecentFolders = loadRecentFolders;
 window.db = db;
 

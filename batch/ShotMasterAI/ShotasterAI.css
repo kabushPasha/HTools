@@ -3,7 +3,7 @@
   --bg:#000;
   --panel:#0b0b0d;
   --muted:#8b8f94;
-  --accent:#1e88ff;
+  --accent:#27415f;
   --border:#222;
   --text:#e6edf3;
   --success:#8fd19e;
@@ -20,24 +20,7 @@ body{
   flex-direction:column;
   height:100vh;
 }
-header{
-  display:flex;
-  align-items:center;
-  padding:0.5rem;
-  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border-bottom:1px solid var(--border);
-}
-header button{
-  padding:0.5rem 1rem;
-  margin-right:0.5rem;
-  border-radius:2px;
-  border:none;
-  background:var(--accent);
-  color:white;
-  cursor:pointer;
-  box-shadow:0 1px 0 rgba(255,255,255,0.03) inset;
-}
-header button:hover{ background:#1565c0; }
+
 main{
   display:flex;
   flex:1;
@@ -49,6 +32,8 @@ main{
   overflow-y:auto;
   padding:0.5rem;
   background:var(--panel);
+  margin-top: 0;          /* ← removes the gap */
+  padding-top: 0;  
 }
 #folders li{
   padding:0.25rem 0.5rem;
@@ -113,3 +98,102 @@ img { border-radius:4px; background:#0b0c0e; }
 #folders ul {
   padding-left: 1rem; /* 1rem = ~16px, tweak as needed */
 }
+
+
+
+
+/* Dropdown Menu */
+.dropbtn {
+  background-color: #1a1a1a;      /* dark grey (almost black) */
+  color: #ffffff;                 /* white text */
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
+}
+
+.dropbtn:hover {
+  background-color: #222222;      /* slightly lighter on hover */
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  display: none;                 /* hidden by default */
+  position: absolute;
+  background-color: #222222;     /* dark background for the menu */
+  min-width: 220px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 8px 0;
+  list-style: none;
+  margin: 0;
+  z-index: 1;
+  color: #ffffff;                /* white text */
+  transition: background-color 0.2s ease;
+}
+
+.dropdown:hover .dropdown-menu {
+  display: block;                /* show on hover */
+}
+
+.menu-item {
+  width: 100%;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: #ffffff;                /* white text for each item */
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.menu-item:hover {
+  background-color: #333333;   
+}
+
+
+/* SUBMENU */
+/* Submenu hidden by default */
+/* SUBMENU - dark theme */
+.dropdown-submenu {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%;           /* appear to the right */
+  background-color: #222222;  /* dark background */
+  border: 1px solid #333;     /* dark border */
+  min-width: 180px;
+  z-index: 1000;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: 0; 
+  color: #ffffff;             /* white text */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.submenu-container {
+  position: relative;     /* make submenu absolute relative to this */
+}
+
+/* Show submenu on parent hover */
+.submenu-container:hover .dropdown-submenu {
+  display: block;
+}
+
+.dropdown-submenu li {
+  padding: 5px 10px;
+  cursor: pointer;
+  color: #ffffff;             /* white text */
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-submenu li:hover {
+  background-color: #333333;  /* dark hover */
+}
+
