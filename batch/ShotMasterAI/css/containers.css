@@ -1,0 +1,183 @@
+
+/* HORIZONTAL CONTAINER */
+.horizontal-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;    /* stretch children vertically */
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 2px;
+  padding: 0px;
+  height: 100%;          /* fill parent container height */
+}
+
+/*----------------------------------------------------*/
+/* RESIZABLE CONTAINER */
+/* Main Section */
+#ShotPreviewsContainer {
+  height: 200px;            /* initial height */
+  background-color: darkgrey;
+  margin-top: 8px;
+  position: relative;       /* for resizer */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contents wrapper  */
+#ShotPreviewsContainer .contents-wrapper {
+  height: calc(100% - 8px);  /* fill container minus resizer height */
+  overflow: hidden; 
+}
+
+/* Resizer handle */
+#ShotPreviewsContainer .resizer {
+  height: 8px;
+  background: blue;
+  cursor: ns-resize;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/*----------------------------------------------------*/
+/* TABS CONTAINER */
+
+/* Main tab container */
+.tab-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--panel); /* dark theme background */
+}
+
+/* Container for the tab buttons */
+.tab-buttons {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Individual tab button */
+.tab-button {
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.2s;
+}
+
+.tab-button.active {
+  border-bottom: 2px solid var(--accent); /* highlight active tab */
+  font-weight: bold;
+}
+
+/* Container for tab contents */
+.tab-contents {
+  flex: 1;
+  overflow: auto;
+  background: transparent;
+}
+
+/* Individual tab content */
+.tab-content {
+  display: none; /* shown only when active */
+  padding: 8px;
+}
+
+/*----------------------------------------------------*/
+/* SHOT STRIP PREVIEW CONTAINER */
+.shot-preview {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;         /* prevents stretching in horizontal scroll */
+  min-width: 150px;       /* minimal width */
+  min-height: 200px;      /* minimal height */
+  background-color: #ccc; /* placeholder color */
+  overflow: hidden;
+}
+
+/* Shot image */
+.shot-preview img {
+  width: 100%;       /* fill container width */
+  height: 100%;      /* fill container height */
+  object-fit: cover; /* maintain aspect ratio without stretching */
+  display: block;
+}
+
+/* Shot label */
+.shot-preview-label {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  background-color: rgba(0,0,0,0.5);
+  color: white;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+  pointer-events: none;  /* label doesn’t interfere with mouse events */
+}
+
+/*----------------------------------------------------*/
+/* SHOT INFO CARD  */
+.shot-info-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+  margin-top: 8px;
+  font-size: 14px;
+}
+/*----------------------------------------------------*/
+/* PROMPT AREA */
+.prompt-wrapper {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+/* Prompt label */
+.prompt-label {
+  font-weight: bold;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: var(--text); /* optional: use theme variable */
+}
+
+/* Prompt textarea */
+.prompt-wrapper textarea {
+  width: 100%;
+  min-height: 48px;  /* roughly 3 rows */
+  padding: 6px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: none;      /* we'll auto-resize */
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-sizing: border-box;
+  background: var(--panel-light);  /* optional: light background */
+  color: var(--text);
+  overflow-y: hidden;  /* hide scrollbar, we resize automatically */
+}
+
+/* ----------------------------------------------------*/
+/* BUTTONS CONTAINER */
+.buttons-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -43,7 +43,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 
 const recentMenu = document.getElementById('recent-folders-menu');
-
 // Load recent folders from IndexedDB and populate submenu
 async function populateRecentFolders() {
   const recent = await window.db.loadRecentFolders();
@@ -67,6 +66,5 @@ async function populateRecentFolders() {
     recentMenu.appendChild(li);
   });
 }
-
 // Populate on hover
 document.getElementById('open-recent').addEventListener('mouseenter', populateRecentFolders);

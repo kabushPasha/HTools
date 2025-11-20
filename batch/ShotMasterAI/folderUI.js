@@ -17,7 +17,7 @@ async function selectShot(shot) {
   window.PromptTextArea = PromptTextArea;
 
   await setFirstImage();
-  await CreateButtons();
+  await CreateShotInfoCardButtons(shot,parent = contentsPanel);
   // --- Tasks collapsible (holds per-task entries) ---
   window.tasksContainer = createTaskContainer(contentsPanel);
   await loadTasksFromDisk(handle, tasksContainer);
@@ -26,22 +26,94 @@ async function selectShot(shot) {
   await loadMediaFolder(handle, contentsPanel, 'SrcImages');
   await loadMediaFolder(handle, contentsPanel, 'results');
 }
-
 // SELECT SCENE FOLDER
-async function selectSceneFolder(handle, liElement) {
-  window.currentFolderHandle = handle;
+async function selectSceneFolder(scene) {
+  window.currentFolderHandle = scene.handle;
   document.querySelectorAll('#folders li').forEach(el => el.classList.remove('selected'));
   contentsPanel.innerHTML = '';
 
+  // Create scene elements in contents panel
   // Create the prompt UI and get references to the textarea and status
-  PromptTextArea = await createPromptUI(handle, "script");
-  window.PromptTextArea = PromptTextArea;
 
-  buttonContainer = CreateButtonsContainer();
-  SplitIntoShotsBtn = addSimpleButton(buttonContainer, 'split-into-shots-btn', 'Split Into Shots');
+  const sceneSettingsContainer = document.createElement('div');
 
+  await createPromptUI(scene.handle, "script",parent = sceneSettingsContainer);
+
+  buttonContainer = CreateButtonsContainer(parent = sceneSettingsContainer);
+  SplitIntoShotsBtn = addSimpleButton('split-into-shots-btn', 'Split Into Shots',buttonContainer);
+
+  // Currently not used button
   //ImportShotsBtn = addSimpleButton(buttonContainer, 'import-shots-btn', 'Import Shots Clipboard');
   //ImportShotsBtn.addEventListener('click', async () => { await importShotsFromClipboard(); });
+
+  shotPreviewStrip = await createShotPreviews(scene);
+
+  const tabs1 = createTabContainer(contentsPanel);
+  tabs1.addTab({ title: 'Scene', content: sceneSettingsContainer });
+  tabs1.addTab({ title: 'Shots', content: shotPreviewStrip }); 
+}
+
+// Create Shot Info Element (Prompt etc)
+async function CreateShotInfoElement(shot,parent = null) {
+  container = document.createElement('div');
+  container.classList.add('shot-info'); 
+
+  // --- Shot name ---
+  const title = document.createElement('div');
+  title.textContent = shot.name;
+  title.classList.add('shot-info-title');  // optional CSS class
+  container.appendChild(title);
+
+  // --- Prompt TextArea ---
+  PromptTextArea = await createPromptUI(shot.handle, "prompt", container);
+  
+  CreateShotInfoCardButtons(shot,container);
+
+  // Append to parent
+  if (parent) parent.appendChild(container);
+  return container;
+}
+
+// Create Shot Previews with horizontal scroll and stretched shot boxes
+async function createShotPreviews(scene) {
+  const container = document.createElement('div');
+
+  resizableArea = createResizableContainer(parent = container);
+  shotsStrip = createHorizontalContainer(resizableArea)
+
+  // --- Create and append each shot preview ---
+  for (const shot of scene.shots) {
+    const shotElement = await CreateShotPreview(shot);
+    shotsStrip.appendChild(shotElement);
+    const shot_info = await CreateShotInfoElement(shot, parent = container);
+    shot_info.style.display = 'none';
+
+    // --- Add click event to show corresponding info ---
+    shotElement.addEventListener('click', () => {
+      document.querySelectorAll('.shot-info').forEach(el => el.style.display = 'none');
+      shot_info.style.display = 'block';
+    });
+  }
+  return container;
+}
+
+async function CreateShotPreview(shot) {
+  // Container for the shot
+  const container = document.createElement("div");
+  container.classList.add("shot-preview");
+
+  // Image element
+  const img = document.createElement("img");
+  img.src = shot.image || "https://picsum.photos/id/237/200/300";
+  container.appendChild(img);
+
+  // Label
+  const label = document.createElement("div");
+  label.textContent = shot.name;
+  label.classList.add("shot-preview-label");
+  container.appendChild(label);
+
+  return container;
 }
 
 // ADD Task
@@ -60,31 +132,27 @@ window.addKieTask = async (taskId, promptText = '') => {
   await updateTasksUI();
 };
 
-function CreateButtonsContainer()
-{
-  buttonContainer = document.createElement('div');
-  buttonContainer.style.display = 'flex';
-  buttonContainer.style.gap = '8px';
-  buttonContainer.style.marginTop = '8px';
-  contentsPanel.appendChild(buttonContainer);
+function CreateButtonsContainer(parent = null) {
+  const buttonContainer = document.createElement('div');
+  buttonContainer.classList.add('buttons-container'); // CSS handles all styling
+  if (parent) parent.appendChild(buttonContainer);
   return buttonContainer;
 }
-
-function addSimpleButton(container, btn, text)
+function addSimpleButton(btn, text, parent = null)
 {
   simpleBtn = document.createElement('button');
   simpleBtn.id = btn;
   simpleBtn.textContent = text;
-  container.appendChild(simpleBtn);
+  if (parent) {parent.appendChild(simpleBtn);}
   return simpleBtn;
 }
 
-async function CreateButtons()
+async function CreateShotInfoCardButtons(shot,parent = null)
 {
-  buttonContainer = CreateButtonsContainer();
+  buttonContainer = CreateButtonsContainer(parent);
   
-  // --- Generate button (KIE.ai) ---
   /*
+  // --- Generate button (KIE.ai) ---
   const genBtn = document.createElement('button');
   genBtn.id = 'generate-btn';
   genBtn.textContent = 'Text2Img KIE.ai';
@@ -95,10 +163,17 @@ async function CreateButtons()
   });
   */
 
+  // --- TEST button ---
+  testBtn = addSimpleButton('testBtn', 'TEST Button', buttonContainer);
+  testBtn.addEventListener('click', async () => {    
+      console.log('TEST Button clicked',shot.name);
+  });
+
   // --- Shot Status button ---
-  await createShotStatusButton();
-  // --- Send Image button (KIE.ai) ---
-  sendImageBtn = addSimpleButton(buttonContainer, 'sendimage-btn', 'Send Image to KIE.ai');
+  changeShotStatusBtn = await createShotStatusButton(shot,buttonContainer);  
+
+  // --- Send Image button (KIE.ai) ---  
+  sendImageBtn = addSimpleButton('sendimage-btn', 'Send Image to KIE.ai', buttonContainer);
   sendImageBtn.addEventListener('click', async () => {
     console.log('Send Image button clicked');
     console.log('First Image Handle:', window.first_src_image_fileHandle);
@@ -117,36 +192,32 @@ async function CreateButtons()
     }
   });
 
-
-
-  createResolveXMLButton = addSimpleButton(buttonContainer, 'create-resolve-xml-btn', 'Generate Resolve FCPXML');
+  // --- Create Resolve FCPXML button ---
+  createResolveXMLButton = addSimpleButton('create-resolve-xml-btn', 'Generate Resolve FCPXML',buttonContainer);
   createResolveXMLButton.addEventListener('click', async () => {    
-    const resultsFolder = await window.currentFolderHandle.getDirectoryHandle("results", { create: false });
-    await generateFCPXMLFromFolder(resultsFolder);
-  }
-  );
+      const resultsFolder = await window.currentFolderHandle.getDirectoryHandle("results", { create: false });
+      await generateFCPXMLFromFolder(resultsFolder);
+  });
 
 
-
+  return buttonContainer
 }
 
 // SHOT STATUS TOGGLE
-async function createShotStatusButton()
+async function createShotStatusButton(shot,parent = null)
 {
-  shotToggleBtn = addSimpleButton(buttonContainer, 'shot-toggle-btn', 'Finished');
+  const shotToggleBtn = addSimpleButton('shot-toggle-btn', 'Finished',parent);
 
-  function updateShotStatusButton(shotToggleBtn)
-  {
-      finished = window.currentShot.shotinfo.finished;
-      //shotToggleBtn.textContent = finished ? 'Finished' : 'Progress';
-      shotToggleBtn.style.backgroundColor = finished ? 'lightgreen' : 'lightgrey';
+  function updateShotStatusButton(shotToggleBtn)  {
+      shotToggleBtn.style.backgroundColor = shot.shotinfo.finished ? 'lightgreen' : 'lightgrey';
   }
 
   updateShotStatusButton(shotToggleBtn);
   shotToggleBtn.addEventListener('click', () => {
-    updateShotStatus(window.currentShot, !window.currentShot.shotinfo.finished);
+    updateShotStatus( shot, !shot.shotinfo.finished);
     updateShotStatusButton(shotToggleBtn);
   });
+  return shotToggleBtn;
 }
 
 async function setFirstImage()
@@ -185,37 +256,37 @@ async function loadMediaFolder(handle, contentsEl, folderName) {
     imagesContainer.style.gap = '8px';
     imagesContainer.style.marginTop = '8px';
 
-for await (const [name, fileHandle] of srcImagesHandle.entries()) {
-  if (fileHandle.kind === 'file') {
-    const file = await fileHandle.getFile();
-    const url = URL.createObjectURL(file);
+  for await (const [name, fileHandle] of srcImagesHandle.entries()) {
+    if (fileHandle.kind === 'file') {
+      const file = await fileHandle.getFile();
+      const url = URL.createObjectURL(file);
 
-    if (/\.(png|jpe?g|gif|webp)$/i.test(name)) {
-      const img = document.createElement('img');
-      img.src = url;
-      img.style.maxWidth = '500px';
-      img.style.maxHeight = '500px';
-      img.style.objectFit = 'contain';
-      img.title = name;
-      imagesContainer.appendChild(img);
-    }
+      if (/\.(png|jpe?g|gif|webp)$/i.test(name)) {
+        const img = document.createElement('img');
+        img.src = url;
+        img.style.maxWidth = '500px';
+        img.style.maxHeight = '500px';
+        img.style.objectFit = 'contain';
+        img.title = name;
+        imagesContainer.appendChild(img);
+      }
 
-    if (/\.(mp4|webm|ogg|mov|mkv)$/i.test(name)) {
-      const video = document.createElement('video');
-      video.src = url;
-      video.style.width = 'auto';          // Ensures visibility
-      video.style.maxHeight = '500px';
-      video.style.objectFit = 'contain';
-      video.controls = true;                // Shows play/pause UI
-      video.title = name;
-      video.autoplay = true;            // Automatically play video
-      video.muted = true;               // Required by most browsers for autoplay
-      video.controls = true;            // Optional: allow play/pause controls
-      video.loop = true;                // Optional: loop video
-      imagesContainer.appendChild(video);   // Or use videosContainer      
+      if (/\.(mp4|webm|ogg|mov|mkv)$/i.test(name)) {
+        const video = document.createElement('video');
+        video.src = url;
+        video.style.width = 'auto';          // Ensures visibility
+        video.style.maxHeight = '500px';
+        video.style.objectFit = 'contain';
+        video.controls = true;                // Shows play/pause UI
+        video.title = name;
+        video.autoplay = true;            // Automatically play video
+        video.muted = true;               // Required by most browsers for autoplay
+        video.controls = true;            // Optional: allow play/pause controls
+        video.loop = true;                // Optional: loop video
+        imagesContainer.appendChild(video);   // Or use videosContainer      
+      }
     }
   }
-}
 
     details.appendChild(imagesContainer);
     contentsEl.appendChild(details);
@@ -224,15 +295,20 @@ for await (const [name, fileHandle] of srcImagesHandle.entries()) {
   }
 }
 
-async function createPromptUI(handle, name = "prompt") {
+async function createPromptUI(handle, name = "prompt", parent = contentsPanel) { 
+  // Create label
+  const PromptLabel = document.createElement('label');
+  PromptLabel.htmlFor = 'prompt-area';
+  PromptLabel.textContent = name;
+  PromptLabel.classList.add("prompt-label");
+
   // Create textarea
   const PromptTextArea = document.createElement('textarea');
   PromptTextArea.id = `prompt-area`;
   PromptTextArea.placeholder = 'Enter your prompt here...';
   PromptTextArea.rows = 3;
-  contentsPanel.appendChild(PromptTextArea);
 
-  // Load prompt.txt
+  // Load prompt.txt if exists
   try {
     const fileHandle = await handle.getFileHandle(`${name}.txt`, { create: false });
     const file = await fileHandle.getFile();
@@ -257,8 +333,17 @@ async function createPromptUI(handle, name = "prompt") {
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
       saveLocalTextFile(handle, `${name}.txt`, PromptTextArea.value);
+      console.log(`${name}.txt saved.`);
     }, 500);
   });
+
+  // Create wrapper
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('prompt-wrapper');
+  wrapper.appendChild(PromptLabel);
+  wrapper.appendChild(PromptTextArea);
+  parent.appendChild(wrapper);
+
   return PromptTextArea;
 }
 

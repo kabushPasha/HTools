@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tabs Example</title>
+<style>
+  /* Container styling */
+  .tab-container {
+    width: 400px;
+    margin: 50px auto;
+    font-family: Arial, sans-serif;
+  }
+
+  /* Tab buttons */
+  .tab-buttons {
+    display: flex;
+    border-bottom: 2px solid #ccc;
+  }
+
+  .tab-buttons button {
+    flex: 1;
+    padding: 10px;
+    background-color: #f1f1f1;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 16px;
+  }
+
+  .tab-buttons button.active {
+    background-color: #ffffff;
+    border-bottom: 2px solid #007BFF;
+    font-weight: bold;
+  }
+
+  /* Tab content */
+  .tab-content {
+    display: none;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-top: none;
+    background-color: #ffffff;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<div class="tab-container">
+  <div class="tab-buttons">
+    <button data-tab="tab1" class="active">Tab 1</button>
+    <button data-tab="tab2">Tab 2</button>
+    <button data-tab="tab3">Tab 3</button>
+  </div>
+  <div class="tab-content active" id="tab1">
+    <h2>Tab 1 Content</h2>
+    <p>This is the content for Tab 1.</p>
+  </div>
+  <div class="tab-content" id="tab2">
+    <h2>Tab 2 Content</h2>
+    <p>This is the content for Tab 2.</p>
+  </div>
+  <div class="tab-content" id="tab3">
+    <h2>Tab 3 Content</h2>
+    <p>This is the content for Tab 3.</p>
+  </div>
+</div>
+
+<script>
+  const buttons = document.querySelectorAll('.tab-buttons button');
+  const contents = document.querySelectorAll('.tab-content');
+
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      // Remove active class from all buttons and contents
+      buttons.forEach(btn => btn.classList.remove('active'));
+      contents.forEach(content => content.classList.remove('active'));
+
+      // Add active class to the clicked button and corresponding content
+      button.classList.add('active');
+      document.getElementById(button.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

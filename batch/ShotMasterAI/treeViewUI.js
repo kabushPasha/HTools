@@ -22,8 +22,14 @@ async function updateTreeDict() {
       shots = []
       for await (const [shotName, shotHandle] of sceneHandle.entries()) {
         if (shotHandle.kind === 'directory') {
-          shotinfo = await getShotInfoFromDisk(shotHandle);
-            shots.push({ 
+          default_shotinfo = {
+            finished: false 
+          }
+
+          shotinfo = await getShotInfoFromDisk(shotHandle);          
+          shotinfo = { ...default_shotinfo, ...shotinfo };
+
+          shots.push({ 
                 name: shotName,
                 handle: shotHandle, 
                 shotinfo: shotinfo
@@ -128,7 +134,7 @@ async function createSceneLI(scene) {
 
     // Toggle show/hide on scene click + call selection
     headerDiv.addEventListener('click', () => {
-        selectSceneFolder(scene.handle, sceneLi);
+        selectSceneFolder(scene);
         const isCollapsed = subfolderUl.style.display === 'none';
         subfolderUl.style.display = isCollapsed ? 'block' : 'none';
     });
@@ -148,6 +154,10 @@ async function createSceneLI(scene) {
     return sceneLi;
 }
 
+
+
+
+
 // LIST FOLDERS
 async function listFolders() {  
   await updateTreeDict();
@@ -163,7 +173,6 @@ function updateStatus(message) {
   console.log(message);
 }
 window.updateStatus = updateStatus;
-
 
 async function updateShotStatus(shot,status) {
     if (status != shot.shotinfo.finished){
