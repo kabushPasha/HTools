@@ -169,11 +169,38 @@
   margin-top: 8px;
 }
 
+/* ----------------------------------------------------*/
+/* COLLAPSIBLE CONTAINER */
+/* Collapsible Container */
+.collapsible-container {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+}
 
+/* Header (label + button) */
+.collapsible-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
+/* Label */
+.collapsible-label {
+  font-weight: bold;
+}
 
+/* Button */
+.collapsible-button {
+  margin-left: 10px;
+  cursor: pointer;
+}
 
-
+/* Inner content container */
+.collapsible-content {
+  margin-top: 10px;
+}
 
 
 

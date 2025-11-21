@@ -25,6 +25,9 @@ async function selectShot(shot) {
   //await loadSrcImages(handle, contentsEl);
   await loadMediaFolder(handle, contentsPanel, 'SrcImages');
   await loadMediaFolder(handle, contentsPanel, 'results');
+
+
+  
 }
 // SELECT SCENE FOLDER
 async function selectSceneFolder(scene) {
@@ -37,7 +40,8 @@ async function selectSceneFolder(scene) {
 
   const sceneSettingsContainer = document.createElement('div');
 
-  await createPromptUI(scene.handle, "script",parent = sceneSettingsContainer);
+  //await createPromptUI(scene.handle, "script",parent = sceneSettingsContainer);
+  await editableJsonField(scene.sceneinfo, "script", sceneSettingsContainer);
 
   buttonContainer = CreateButtonsContainer(parent = sceneSettingsContainer);
   SplitIntoShotsBtn = addSimpleButton('split-into-shots-btn', 'Split Into Shots',buttonContainer);
@@ -46,16 +50,53 @@ async function selectSceneFolder(scene) {
   //ImportShotsBtn = addSimpleButton(buttonContainer, 'import-shots-btn', 'Import Shots Clipboard');
   //ImportShotsBtn.addEventListener('click', async () => { await importShotsFromClipboard(); });
 
+  generateSplitIntoShotsPromptBtn = addSimpleButton('generate-split-into-shots-prompt-btn', 'Generate Split Prompt',buttonContainer);
+  generateSplitIntoShotsPromptBtn.addEventListener('click', async () => { 
+      base_text = `разбей эту сцену из моего сценария на шоты, сгенерируй промпты для нейросети для генерации видео и предоставь в виде json, в ответе предоставь толкьо json в следующем формате:
+      {"SHOT_010" : 
+        {"prompt" : "подробный промпт для нейросети генератора видео", 
+        "camera" : "focal length, shot type", 
+        "action_description" : "описания действия которое происходит для аниматора", } 
+        } 
+      }
+
+      ${scene.sceneinfo.script}
+      `;
+      navigator.clipboard.writeText(base_text)
+    });
+
+  generateShotsFromJsonBtn = addSimpleButton('generate-shots-from-json-btn', 'Generate Shots from JSON',buttonContainer);
+  generateShotsFromJsonBtn.addEventListener('click', async () => {    
+    shotdict = JSON.parse(scene.sceneinfo.shotsjson);
+    for (const key in shotdict) {
+      console.log('Generating shot:', key);
+      console.log('Shot data:', shotdict[key]);
+
+      shothandle = await scene.handle.getDirectoryHandle(key, { create: true } );
+      shotinfohandle = await shothandle.getFileHandle('shotinfo.json', { create: true } );
+      shotinfo = { ...default_shotinfo, ...shotdict[key] ,...{____handle: shotinfohandle} };
+
+      scene.shots.push( {
+        name: key,
+        handle: shothandle,
+        shotinfo: shotinfo
+      });
+
+      await saveBoundJson(shotinfo);
+    }
+  });  
+
+  await editableJsonField(scene.sceneinfo, "shotsjson", sceneSettingsContainer);
+
   shotPreviewStrip = await createShotPreviews(scene);
 
   const tabs1 = createTabContainer(contentsPanel);
   tabs1.addTab({ title: 'Scene', content: sceneSettingsContainer });
   tabs1.addTab({ title: 'Shots', content: shotPreviewStrip }); 
 }
-
 // Create Shot Info Element (Prompt etc)
 async function CreateShotInfoElement(shot,parent = null) {
-  container = document.createElement('div');
+  const container = document.createElement('div');
   container.classList.add('shot-info'); 
 
   // --- Shot name ---
@@ -65,7 +106,10 @@ async function CreateShotInfoElement(shot,parent = null) {
   container.appendChild(title);
 
   // --- Prompt TextArea ---
-  PromptTextArea = await createPromptUI(shot.handle, "prompt", container);
+  //PromptTextArea = await createPromptUI(shot.handle, "prompt", container);
+  await editableJsonField(shot.shotinfo, "prompt", container);
+  await editableJsonField(shot.shotinfo, "camera", container);
+  await editableJsonField(shot.shotinfo, "action_description", container);
   
   CreateShotInfoCardButtons(shot,container);
 
@@ -324,7 +368,7 @@ async function createPromptUI(handle, name = "prompt", parent = contentsPanel) {
     PromptTextArea.style.height = Math.max(PromptTextArea.scrollHeight, 3 * 16) + 'px';
   };
   PromptTextArea.addEventListener('input', autoResize);
-  autoResize();
+  //autoResize();
 
   // Auto-save (debounced)
   let saveTimeout;
@@ -343,6 +387,8 @@ async function createPromptUI(handle, name = "prompt", parent = contentsPanel) {
   wrapper.appendChild(PromptLabel);
   wrapper.appendChild(PromptTextArea);
   parent.appendChild(wrapper);
+
+  requestAnimationFrame(() => autoResize());
 
   return PromptTextArea;
 }

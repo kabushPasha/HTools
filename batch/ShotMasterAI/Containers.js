@@ -94,5 +94,48 @@ function createHorizontalContainer(parent = null) {
   return scrollWrapper;
 }
 
+function createCollapsibleContainer(name, parent = null) {
+    // Create main container
+    console.log("collapsible container:",parent);
+    const container = document.createElement('div');
+    container.classList.add('collapsible-container');
 
+    // Create header (label + button)
+    const header = document.createElement('div');
+    header.classList.add('collapsible-header');
 
+    const label = document.createElement('span');
+    label.textContent = name;
+    label.classList.add('collapsible-label');
+
+    const button = document.createElement('button');
+    button.textContent = 'Collapse';
+    button.classList.add('collapsible-button');
+
+    header.appendChild(label);
+    header.appendChild(button);
+
+    // Create inner content container
+    const contentContainer = document.createElement('div');
+    contentContainer.classList.add('collapsible-content');
+    contentContainer.style.marginTop = '10px';
+
+    // Toggle functionality
+    let isCollapsed = false;
+    button.addEventListener('click', () => {
+        isCollapsed = !isCollapsed;
+        contentContainer.style.display = isCollapsed ? 'none' : 'block';
+        button.textContent = isCollapsed ? 'Expand' : 'Collapse';
+    });
+
+    // Assemble container
+    container.appendChild(header);
+    container.appendChild(contentContainer);
+
+    container.appendChild = function(el) {
+        contentContainer.appendChild(el);
+    }
+
+    if (parent) parent.appendChild(container);
+    return container;
+}

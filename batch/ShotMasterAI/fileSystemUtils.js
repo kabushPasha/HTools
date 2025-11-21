@@ -1,4 +1,28 @@
 
+async function loadBoundJson(handle,filename,defaultValue={}) {
+    fileHandle = await handle.getFileHandle(filename, { create: true });
+    file = await fileHandle.getFile();
+    text = await file.text() || "{}";      
+    data = JSON.parse(text);
+    data = { ...defaultValue, ...data };
+    data.____handle = fileHandle; // bind handle
+    return data;
+}
+
+async function saveBoundJson(data) {
+    try {
+        //console.log("DATA:",data)
+        const text = JSON.stringify(data, null, 2); 
+        const fileHandle = data.____handle; 
+        const writable = await fileHandle.createWritable();
+        await writable.write(text);
+        await writable.close();
+        console.log(`Saved bound json`);
+    } catch (err) {
+        console.error(`Failed to save`, err);
+    }   
+}
+
 async function loadLocalTextFile(handle,filename) {
   try {
     fileHandle = await handle.getFileHandle(filename, { create: false });
@@ -6,6 +30,7 @@ async function loadLocalTextFile(handle,filename) {
     text = await file.text();
     return text
   } catch {
+    console.log(`Failed to load local text file: ${filename}`);
     return ""
   }
 }
@@ -90,6 +115,36 @@ async function importShotDict(shot_name,shot_dict,sceneFolderHandle) {
     } catch (err) {
     console.error('Failed to save prompt.txt', err);
     }
+}
+
+// Splits Script into scenes and shots
+async function importScenesFromScript() {
+    function splitScenes(text) {
+    return text
+        .split(/(?=SC_\d{3})/)        // split at scene markers
+        .filter(s => /^SC_\d{3}/.test(s.trim()))   // keep only real scenes
+        .map(s => ({
+        id: s.match(/^SC_\d{3}/)[0],
+        content: s.replace(/^SC_\d{3}/, "").trim()
+        }));
+    }
+
+    try {
+        script_text = await loadLocalTextFile(rootDirHandle,'script.txt');
+        scenes = splitScenes(text);
+
+        for (scene in scenes) {
+            scene_name = scenes[scene].id;
+            scene_content = scenes[scene].content;
+            sceneFolderHandle = await rootDirHandle.getDirectoryHandle(scene_name, { create: true } );
+            //saveLocalTextFile(sceneFolderHandle,'script.txt',scene_content);
+            saveLocalJsonFile(sceneFolderHandle,"sceneinfo.json",{script:scene_content});
+        }
+    }
+    catch (err) {
+        console.error('Failed to read script.txt: ', err);
+    }
+
 }
 
 

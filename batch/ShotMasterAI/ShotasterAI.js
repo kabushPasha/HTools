@@ -25,6 +25,11 @@ document.getElementById('import_shots_from_clipboard_btn').addEventListener('cli
     await importShotsFromClipboard();  
 });
 
+// --- Import From Scenes from Clipboard ---
+document.getElementById('import_scenes_from_script_btn').addEventListener('click', async () => {
+    await importScenesFromScript();  
+});
+
 
 // --- Load last picked folder on page load ---
 window.addEventListener('DOMContentLoaded', async () => {

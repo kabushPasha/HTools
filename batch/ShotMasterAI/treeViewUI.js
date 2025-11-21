@@ -1,16 +1,21 @@
 // Event bus to notify shot status updates
 //const updateShotStatusBus = new EventTarget();
+default_sceneinfo = {
+  finished: false,
+  description: "",
+  location: "",
+  shotsjson: "",
+  script:"",
+}
+
+default_shotinfo = {
+  finished: false 
+}
 
 function getSceneFromShot(shot)
 {
     const parentScene = window.treeDict.find(scene => scene.shots.includes(shot));
     return parentScene;
-}
-
-async function getShotInfoFromDisk(handle) {
-  let shotinfo = await loadLocalJsonFile(handle, 'shotinfo.json');
-  if (shotinfo == null) return {};
-  return shotinfo;
 }
 
 async function updateTreeDict() {
@@ -22,12 +27,7 @@ async function updateTreeDict() {
       shots = []
       for await (const [shotName, shotHandle] of sceneHandle.entries()) {
         if (shotHandle.kind === 'directory') {
-          default_shotinfo = {
-            finished: false 
-          }
-
-          shotinfo = await getShotInfoFromDisk(shotHandle);          
-          shotinfo = { ...default_shotinfo, ...shotinfo };
+          shotinfo = await loadBoundJson(shotHandle, 'shotinfo.json',default_shotinfo);  
 
           shots.push({ 
                 name: shotName,
@@ -37,7 +37,8 @@ async function updateTreeDict() {
         }
       }
 
-      window.treeDict.push( {name: sceneName ,handle: sceneHandle, shots: shots} );
+      sceneinfo = await loadBoundJson(sceneHandle, 'sceneinfo.json',default_sceneinfo);
+      window.treeDict.push( {name: sceneName ,handle: sceneHandle, shots: shots,sceneinfo:sceneinfo} );
     }
   }
   console.log('Updated treeDict:', window.treeDict);
@@ -154,10 +155,6 @@ async function createSceneLI(scene) {
     return sceneLi;
 }
 
-
-
-
-
 // LIST FOLDERS
 async function listFolders() {  
   await updateTreeDict();
@@ -181,3 +178,8 @@ async function updateShotStatus(shot,status) {
         saveLocalJsonFile(shot.handle, 'shotinfo.json', shot.shotinfo);        
     }
 }
+
+
+
+
+
