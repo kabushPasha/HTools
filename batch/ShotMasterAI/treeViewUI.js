@@ -23,16 +23,18 @@ async function updateTreeDict() {
   for await (const [sceneName, sceneHandle] of rootDirHandle.entries()) {
     if (sceneHandle.kind === 'directory') {
         
-      // Gatehr Shots
+      // Gather Shots
       shots = []
       for await (const [shotName, shotHandle] of sceneHandle.entries()) {
         if (shotHandle.kind === 'directory') {
           shotinfo = await loadBoundJson(shotHandle, 'shotinfo.json',default_shotinfo);  
+          taskinfo = await loadBoundJson(shotHandle, 'tasks.json',{tasks:[]});  
 
           shots.push({ 
                 name: shotName,
                 handle: shotHandle, 
-                shotinfo: shotinfo
+                shotinfo: shotinfo,
+                taskinfo:taskinfo
           });
         }
       }
@@ -169,13 +171,14 @@ function updateStatus(message) {
   }
   console.log(message);
 }
+
 window.updateStatus = updateStatus;
 
 async function updateShotStatus(shot,status) {
     if (status != shot.shotinfo.finished){
         shot.shotinfo.finished  = status;
-        shot.updateUI();
-        saveLocalJsonFile(shot.handle, 'shotinfo.json', shot.shotinfo);        
+        shot.updateUI();        
+        saveBoundJson(shot.shotinfo);
     }
 }
 

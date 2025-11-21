@@ -1,7 +1,5 @@
 
 
-
-
 async function editableJsonField(json_data, key, parent = null) { 
   /*
   const container = document.createElement('div');

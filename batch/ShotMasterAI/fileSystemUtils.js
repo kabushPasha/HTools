@@ -144,7 +144,6 @@ async function importScenesFromScript() {
     catch (err) {
         console.error('Failed to read script.txt: ', err);
     }
-
 }
 
 

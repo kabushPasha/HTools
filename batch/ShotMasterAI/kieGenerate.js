@@ -1,56 +1,32 @@
-// Main function: validate prompt, generate image, save to folder, update UI
-async function generateAndSaveImage(promptText,genBtn) {
-  // fall back to globals
-  dirHandle = window.dirHandle;
-  statusEl = window.statusEl;
 
-  // Validate inputs
-  if (!validatePrompt(promptText, statusEl)) return;
-  if (!validateApiKey(statusEl)) return;
 
-  genBtn.disabled = true;
-  statusEl.textContent = 'Generating...';
-  statusEl.style.opacity = 1;
+
+
+
+
+// KIE Post Task
+async function postKieTask(url,payload){
+  console.log("postKieTask",url,payload);
+  const options = {
+    method: 'POST',
+    headers: {Authorization: `Bearer ${window.KIE_API_KEY}`, 'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  };
 
   try {
-    // Generate image and get URLs
-    await kieGenerate(promptText);
-  } catch (err) {
-    console.error('Generate failed', err);
-    statusEl.textContent = 'Generate failed';
-    statusEl.style.opacity = 1;
-    setTimeout(() => statusEl.style.opacity = 0, 2000);
-  } finally {
-    genBtn.disabled = false;
-    setTimeout(() => statusEl.style.opacity = 0, 1000);
-  }
+    const response = await fetch(url, options);
+
+    return response;
+  } catch (error) {
+    console.error(error);
+    return null;
+  } 
 }
 
-// Validate prompt text
-function validatePrompt(promptText, statusEl) {
-  if (!promptText) {
-    statusEl.textContent = 'Enter a prompt first';
-    statusEl.style.opacity = 1;
-    setTimeout(() => statusEl.style.opacity = 0, 1500);
-    return false;
-  }
-  return true;
-}
-
-// Validate API key
-function validateApiKey(statusEl) {
-  const KIE_API_KEY = window.KIE_API_KEY;
-  if (!KIE_API_KEY) {
-    statusEl.textContent = 'Set KIE_API_KEY in ShotasterAI.js';
-    statusEl.style.opacity = 1;
-    return false;
-  }
-  return true;
-}
-
-// KIE generation + polling moved here. Reads API key from window.KIE_API_KEY at call time.
-async function kieGenerate(prompt) {
-  const generateUrl = 'https://api.kie.ai/api/v1/gpt4o-image/generate';
+// KIE_txt2Img
+async function kieGenerate_txt2img(prompt){
+  console.log("kieGenerate_txt2img",prompt)
+  const url = 'https://api.kie.ai/api/v1/gpt4o-image/generate';
   const payload = {
     prompt,
     size: '1:1',
@@ -60,33 +36,12 @@ async function kieGenerate(prompt) {
     enableFallback: false,
     fallbackModel: 'FLUX_MAX'
   };
-  
-  console.log('KIE generate payload:', payload);  
 
-  const postRes = await fetch(generateUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${window.KIE_API_KEY}`
-    },
-    body: JSON.stringify(payload)
-  });
-
-  const postText = await postRes.text();
-  let postJson;
-  try { postJson = JSON.parse(postText); } catch { postJson = postText; }
-  console.debug('KIE generate response:', postJson);
-
-  if (!postRes.ok) {
-    throw new Error(`KIE generate error ${postRes.status}: ${postText}`);
-  }
-
-  taskId = postJson.data.taskId;  
-  try { window.addKieTask(taskId, prompt); } catch (e) { console.warn('addKieTask failed', e); }
+  response = await postKieTask(url,payload);
+  return response;
 }
 
-
-// Generate Video - split into post and recieve task ID
+// KIE Runway Img2Vide - REWRITE to use Post task?
 async function kieGenerate_RunwayImg2Video(prompt, initImageUrl){
   const url = 'https://api.kie.ai/api/v1/runway/generate';
   
@@ -121,6 +76,7 @@ async function kieGenerate_RunwayImg2Video(prompt, initImageUrl){
   } 
 }
 
+// Upload File - REWRITE to use Post task?
 async function kieUploadFile(img_fileHandle) {
   img_data = await fileToBase64(img_fileHandle);
   console.log('Uploading image to KIE.ai:', img_data);
@@ -147,14 +103,15 @@ async function kieUploadFile(img_fileHandle) {
   }
 }
 
-// New: check task results (separate function)
-async function checkTaskResults(taskId) {
-  const KIE_API_KEY = window.KIE_API_KEY || '';
-  if (!taskId) throw new Error('No taskId provided');
+
+// CHECK RESULTS
+// - add different api support
+async function checkTaskResults(task) {
+  const KIE_API_KEY = window.KIE_API_KEY || '';  
 
   // EACH API HAS DIFFERENT ENDPOINT FOR THIS, 
-  //const url = `https://api.kie.ai/api/v1/gpt4o-image/record-info?taskId=${taskId}`;
-  const url = `https://api.kie.ai/api/v1/runway/record-detail?taskId=${taskId}`;
+  const url = `https://api.kie.ai/api/v1/gpt4o-image/record-info?taskId=${task.taskId}`;
+  //const url = `https://api.kie.ai/api/v1/runway/record-detail?taskId=${taskId}`;
 
   const options = { 
     method: 'GET', 
@@ -162,34 +119,29 @@ async function checkTaskResults(taskId) {
   };
 
   try {
-    console.log('Checking task results with options:', options);
+    //console.log('Checking task results with options:', options);
     const response = await fetch(url, options);
-    console.log('checkTaskResults RESPONSE :', response);
+    //console.log('checkTaskResults RESPONSE :', response);
+    
     if (!response.ok) {
       const txt = await response.text();
       throw new Error(`Record-info error ${response.status}: ${txt}`);
     }
+
     const data = await response.json();
-    console.log('record-info  DATA:', data);
-    const ok = data?.msg === 'success';
-
-    console.log('Saving results for task:', taskId);
-
-    // Save Result Images
-    const resultUrls = ok ? (data?.data?.response?.resultUrls || [data?.data?.videoInfo?.videoUrl] || []) : [];   
-    if (ok && resultUrls.length > 0) {      
-      await saveResults(resultUrls);
+    //console.log('record-info  DATA:', data);
+    if (data?.msg === 'success')
+    {
+      const resultUrls = data?.data?.response?.resultUrls || [data?.data?.videoInfo?.videoUrl] || [];       
+      task.resultUrls = resultUrls;
     }
-
-    return { ok, resultUrls, raw: data };
   } catch (error) {
-    console.error('checkTaskResults failed', error);
-    return { ok: false, error };
+    console.error('checkTaskResults failed', error);    
   }
 }
 
 
-// Save result images to results folder (accept optional args)
+// SAVE Results - rewrite
 async function saveResults(resultUrls) {
   console.log('Saving result images:', resultUrls);
   dirHandle = window.currentFolderHandle; 
@@ -247,7 +199,7 @@ async function saveResults(resultUrls) {
 }
 
 
-
+// File2Base64
 async function fileToBase64(fileHandle) {
   const file = await fileHandle.getFile();
   const arrayBuffer = await file.arrayBuffer();
@@ -269,11 +221,4 @@ async function fileToBase64(fileHandle) {
 }
 
 
-// Attach to global
-window.generateAndSaveImage = generateAndSaveImage;
-window.kieGenerate = kieGenerate;
-window.saveResults = saveResults;
-window.checkTaskResults = checkTaskResults;
-window.kieUploadFile = kieUploadFile;
-window.kieGenerate_RunwayImg2Video = kieGenerate_RunwayImg2Video
 

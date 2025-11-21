@@ -139,3 +139,10 @@ function createCollapsibleContainer(name, parent = null) {
     if (parent) parent.appendChild(container);
     return container;
 }
+
+function CreateButtonsContainer(parent = null) {
+  const container = document.createElement('div');
+  container.classList.add('buttons-container'); // CSS handles all styling
+  if (parent) parent.appendChild(container);
+  return container;
+}

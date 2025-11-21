@@ -13,7 +13,7 @@ async function selectShot(shot) {
   contentsPanel.innerHTML = '';
 
   // Create the prompt UI and get references to the textarea and status
-  const PromptTextArea = await createPromptUI(handle);
+  //const PromptTextArea = await createPromptUI(handle);
   window.PromptTextArea = PromptTextArea;
 
   await setFirstImage();
@@ -25,9 +25,6 @@ async function selectShot(shot) {
   //await loadSrcImages(handle, contentsEl);
   await loadMediaFolder(handle, contentsPanel, 'SrcImages');
   await loadMediaFolder(handle, contentsPanel, 'results');
-
-
-  
 }
 // SELECT SCENE FOLDER
 async function selectSceneFolder(scene) {
@@ -94,7 +91,9 @@ async function selectSceneFolder(scene) {
   tabs1.addTab({ title: 'Scene', content: sceneSettingsContainer });
   tabs1.addTab({ title: 'Shots', content: shotPreviewStrip }); 
 }
-// Create Shot Info Element (Prompt etc)
+
+
+// Shot INFO CARD 
 async function CreateShotInfoElement(shot,parent = null) {
   const container = document.createElement('div');
   container.classList.add('shot-info'); 
@@ -111,14 +110,15 @@ async function CreateShotInfoElement(shot,parent = null) {
   await editableJsonField(shot.shotinfo, "camera", container);
   await editableJsonField(shot.shotinfo, "action_description", container);
   
-  CreateShotInfoCardButtons(shot,container);
+  CreateShotInfoCardButtons(shot,container); 
+
+  container.taskContainer = await createTaskContainer(shot,container);
 
   // Append to parent
   if (parent) parent.appendChild(container);
   return container;
 }
-
-// Create Shot Previews with horizontal scroll and stretched shot boxes
+// Shot Preview Strip
 async function createShotPreviews(scene) {
   const container = document.createElement('div');
 
@@ -140,7 +140,7 @@ async function createShotPreviews(scene) {
   }
   return container;
 }
-
+// Shot Preview Icon
 async function CreateShotPreview(shot) {
   // Container for the shot
   const container = document.createElement("div");
@@ -159,29 +159,7 @@ async function CreateShotPreview(shot) {
 
   return container;
 }
-
-// ADD Task
-window.addKieTask = async (taskId, promptText = '') => {
-  console.log('Adding KIE task:', taskId, promptText);
-  task = {
-    createdAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
-    prompt: promptText,
-    taskId: taskId,
-    status: 'pending'
-  }
-
-  if (!Array.isArray(window.tasks)) window.tasks = [];
-  window.tasks.push(task);
-  saveTasks(window.currentFolderHandle);
-  await updateTasksUI();
-};
-
-function CreateButtonsContainer(parent = null) {
-  const buttonContainer = document.createElement('div');
-  buttonContainer.classList.add('buttons-container'); // CSS handles all styling
-  if (parent) parent.appendChild(buttonContainer);
-  return buttonContainer;
-}
+// Simple Button
 function addSimpleButton(btn, text, parent = null)
 {
   simpleBtn = document.createElement('button');
@@ -190,28 +168,14 @@ function addSimpleButton(btn, text, parent = null)
   if (parent) {parent.appendChild(simpleBtn);}
   return simpleBtn;
 }
-
+// Shot Info Card Buttons
 async function CreateShotInfoCardButtons(shot,parent = null)
 {
   buttonContainer = CreateButtonsContainer(parent);
   
-  /*
-  // --- Generate button (KIE.ai) ---
-  const genBtn = document.createElement('button');
-  genBtn.id = 'generate-btn';
-  genBtn.textContent = 'Text2Img KIE.ai';
-  buttonContainer.appendChild(genBtn);
-  genBtn.addEventListener('click', async () => {
-    const promptText = window.PromptTextArea.value.trim();
-    await generateAndSaveImage(promptText,  genBtn);
-  });
-  */
-
   // --- TEST button ---
-  testBtn = addSimpleButton('testBtn', 'TEST Button', buttonContainer);
-  testBtn.addEventListener('click', async () => {    
-      console.log('TEST Button clicked',shot.name);
-  });
+  testBtn = addSimpleButton('testBtn', 'Log shot', buttonContainer);
+  testBtn.addEventListener('click', async () => { console.log(shot); });
 
   // --- Shot Status button ---
   changeShotStatusBtn = await createShotStatusButton(shot,buttonContainer);  
@@ -244,9 +208,28 @@ async function CreateShotInfoCardButtons(shot,parent = null)
   });
 
 
+  txt2ImageBtn = addSimpleButton('txt2imgBtn',"txt2img", buttonContainer);
+  txt2ImageBtn.addEventListener('click', async () => {   
+    console.log("Clicked txt2img:",shot); 
+    try {
+        const response = await kieGenerate_txt2img(shot.shotinfo.prompt);
+
+        const data = await response.json();  
+        console.log("Response",response,data);    
+    
+        taskId = data.data.taskId;  
+        task = await addKieTask(taskId, shot);  
+        console.log(parent)
+        console.log(parent.taskContainer)
+        parent?.taskContainer?.addTask(task);
+
+    } catch (error) {
+      console.error(error);
+    }
+  });
+
   return buttonContainer
 }
-
 // SHOT STATUS TOGGLE
 async function createShotStatusButton(shot,parent = null)
 {
@@ -264,26 +247,9 @@ async function createShotStatusButton(shot,parent = null)
   return shotToggleBtn;
 }
 
-async function setFirstImage()
-{
-  window.first_src_image_fileHandle = null;
-  try{
-    const srcImagesHandle = await window.currentFolderHandle.getDirectoryHandle('SrcImages', { create: false });
-    for await (const [name, fileHandle] of srcImagesHandle.entries()) {
-      if (
-        fileHandle.kind === 'file' &&
-        /\.(png|jpe?g|gif|webp)$/i.test(name)
-      ) {
-        if (!window.first_src_image) {
-          window.first_src_image_fileHandle = fileHandle;
-        }
-      }
-    }
-  } catch {
-    //console.log('No SrcImages folder found');
-  }
-}
 
+
+// Load Media Folder -- rewrite
 async function loadMediaFolder(handle, contentsEl, folderName) {
   try {
     const srcImagesHandle = await handle.getDirectoryHandle(folderName, { create: false });
@@ -338,79 +304,3 @@ async function loadMediaFolder(handle, contentsEl, folderName) {
     // no SrcImages folder
   }
 }
-
-async function createPromptUI(handle, name = "prompt", parent = contentsPanel) { 
-  // Create label
-  const PromptLabel = document.createElement('label');
-  PromptLabel.htmlFor = 'prompt-area';
-  PromptLabel.textContent = name;
-  PromptLabel.classList.add("prompt-label");
-
-  // Create textarea
-  const PromptTextArea = document.createElement('textarea');
-  PromptTextArea.id = `prompt-area`;
-  PromptTextArea.placeholder = 'Enter your prompt here...';
-  PromptTextArea.rows = 3;
-
-  // Load prompt.txt if exists
-  try {
-    const fileHandle = await handle.getFileHandle(`${name}.txt`, { create: false });
-    const file = await fileHandle.getFile();
-    const text = await file.text();
-    PromptTextArea.value = text;
-  } catch {
-    PromptTextArea.value = '';
-  }
-
-  // Auto-resize
-  const autoResize = () => {
-    PromptTextArea.style.height = 'auto';
-    PromptTextArea.style.height = Math.max(PromptTextArea.scrollHeight, 3 * 16) + 'px';
-  };
-  PromptTextArea.addEventListener('input', autoResize);
-  //autoResize();
-
-  // Auto-save (debounced)
-  let saveTimeout;
-  PromptTextArea.addEventListener('input', () => {
-    autoResize();
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(async () => {
-      saveLocalTextFile(handle, `${name}.txt`, PromptTextArea.value);
-      console.log(`${name}.txt saved.`);
-    }, 500);
-  });
-
-  // Create wrapper
-  const wrapper = document.createElement('div');
-  wrapper.classList.add('prompt-wrapper');
-  wrapper.appendChild(PromptLabel);
-  wrapper.appendChild(PromptTextArea);
-  parent.appendChild(wrapper);
-
-  requestAnimationFrame(() => autoResize());
-
-  return PromptTextArea;
-}
-
-function createTaskContainer(contentsEl) {
-  const tasksDetails = document.createElement('details');
-  tasksDetails.id = 'tasks-details';
-  const tasksSummary = document.createElement('summary');
-  tasksSummary.textContent = '🗂️ Tasks';
-  tasksDetails.appendChild(tasksSummary);
-  tasksDetails.open = true;
-
-  const tasksContainer = document.createElement('div');
-  tasksContainer.id = 'tasks-container';
-  tasksContainer.style.display = 'flex';
-  tasksContainer.style.flexDirection = 'column';
-  tasksContainer.style.gap = '6px';
-  tasksContainer.style.marginTop = '8px';
-
-  tasksDetails.appendChild(tasksContainer);
-  contentsEl.appendChild(tasksDetails);
-
-  return tasksContainer;
-}
-
