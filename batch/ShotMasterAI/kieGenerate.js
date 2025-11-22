@@ -103,9 +103,7 @@ async function kieUploadFile(img_fileHandle) {
   }
 }
 
-
 // CHECK RESULTS
-// - add different api support
 async function checkTaskResults(task) {
   const KIE_API_KEY = window.KIE_API_KEY || '';  
 
@@ -129,7 +127,7 @@ async function checkTaskResults(task) {
     }
 
     const data = await response.json();
-    //console.log('record-info  DATA:', data);
+    console.log('record-info  DATA:', data);
     if (data?.msg === 'success')
     {
       const resultUrls = data?.data?.response?.resultUrls || [data?.data?.videoInfo?.videoUrl] || [];       
@@ -139,65 +137,6 @@ async function checkTaskResults(task) {
     console.error('checkTaskResults failed', error);    
   }
 }
-
-
-// SAVE Results - rewrite
-async function saveResults(resultUrls) {
-  console.log('Saving result images:', resultUrls);
-  dirHandle = window.currentFolderHandle; 
-
-  if (!resultUrls || resultUrls.length === 0) return;
-
-  if (!dirHandle) throw new Error('No directory handle available to save results');
-
-  const resultsHandle = await dirHandle.getDirectoryHandle('results', { create: true });
-  
-  for (let i = 0; i < resultUrls.length; i++) {
-    const imageUrl = resultUrls[i];
-    
-    try {
-      // Extract filename from URL or generate one
-      let fileName = `image_${Date.now()}_${i}.png`;
-      try {
-        const urlObj = new URL(imageUrl);
-        const urlPath = urlObj.pathname;
-        const urlFileName = urlPath.split('/').pop();
-        if (urlFileName && urlFileName.length > 0) {
-          fileName = urlFileName;
-        }
-      } catch (e) {
-        console.warn('Could not extract filename from URL, using default', e);
-      }
-
-      // Check if file already exists
-      let fileExists = false;
-      try {
-        await resultsHandle.getFileHandle(fileName);
-        fileExists = true;
-      } catch (e) {
-        // File does not exist, which is expected
-      }
-
-      if (fileExists) {
-        console.log(`File already exists, skipping: ${fileName}`);
-        continue;
-      }
-
-      // File doesn't exist, download and save it
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-
-      const fileHandle = await resultsHandle.getFileHandle(fileName, { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-
-    } catch (imgErr) {
-      console.error(`Failed to save image ${i}`, imgErr);
-    }
-  }  
-}
-
 
 // File2Base64
 async function fileToBase64(fileHandle) {

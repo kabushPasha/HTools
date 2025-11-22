@@ -85,16 +85,15 @@ async function selectSceneFolder(scene) {
 
   await editableJsonField(scene.sceneinfo, "shotsjson", sceneSettingsContainer);
 
-  shotPreviewStrip = await createShotPreviews(scene);
+  shotPreviewStrip = await createShotPreviewStrip(scene);
 
   const tabs1 = createTabContainer(contentsPanel);
   tabs1.addTab({ title: 'Scene', content: sceneSettingsContainer });
   tabs1.addTab({ title: 'Shots', content: shotPreviewStrip }); 
 }
 
-
 // Shot INFO CARD 
-async function CreateShotInfoElement(shot,parent = null) {
+async function CreateShotInfoCard(shot,parent = null) {
   const container = document.createElement('div');
   container.classList.add('shot-info'); 
 
@@ -114,12 +113,16 @@ async function CreateShotInfoElement(shot,parent = null) {
 
   container.taskContainer = await createTaskContainer(shot,container);
 
+  // Create Images Preview Folder
+  await createMediaFolderPreview(shot,"results",container)
+
+
   // Append to parent
   if (parent) parent.appendChild(container);
   return container;
 }
 // Shot Preview Strip
-async function createShotPreviews(scene) {
+async function createShotPreviewStrip(scene) {
   const container = document.createElement('div');
 
   resizableArea = createResizableContainer(parent = container);
@@ -129,7 +132,7 @@ async function createShotPreviews(scene) {
   for (const shot of scene.shots) {
     const shotElement = await CreateShotPreview(shot);
     shotsStrip.appendChild(shotElement);
-    const shot_info = await CreateShotInfoElement(shot, parent = container);
+    const shot_info = await CreateShotInfoCard(shot, parent = container);
     shot_info.style.display = 'none';
 
     // --- Add click event to show corresponding info ---
@@ -148,7 +151,17 @@ async function CreateShotPreview(shot) {
 
   // Image element
   const img = document.createElement("img");
-  img.src = shot.image || "https://picsum.photos/id/237/200/300";
+  img.src = "https://picsum.photos/id/237/200/300";
+
+  if (shot.shotinfo.srcImage){
+    const resultsDir = await shot.handle.getDirectoryHandle("results", { create: false });
+    const fileHandle = await resultsDir.getFileHandle(shot.shotinfo.srcImage, { create: false });
+
+    const file = await fileHandle.getFile();
+    const url = URL.createObjectURL(file);
+    img.src = url;
+  }
+
   container.appendChild(img);
 
   // Label
@@ -218,7 +231,8 @@ async function CreateShotInfoCardButtons(shot,parent = null)
         console.log("Response",response,data);    
     
         taskId = data.data.taskId;  
-        task = await addKieTask(taskId, shot);  
+        //task = await addKieTask(taskId, shot);  
+        task = await shot.addKieTask(taskId);  
         console.log(parent)
         console.log(parent.taskContainer)
         parent?.taskContainer?.addTask(task);
@@ -247,24 +261,14 @@ async function createShotStatusButton(shot,parent = null)
   return shotToggleBtn;
 }
 
-
-
 // Load Media Folder -- rewrite
-async function loadMediaFolder(handle, contentsEl, folderName) {
+async function createMediaFolderPreview(shot, folderName, parent = null) {
   try {
-    const srcImagesHandle = await handle.getDirectoryHandle(folderName, { create: false });
-
-    const details = document.createElement('details');
-    const summary = document.createElement('summary');
-    summary.textContent = folderName;
-    details.appendChild(summary);
-    details.open = true;
+    container = await createCollapsibleContainer(folderName,parent);
+    const srcImagesHandle = await shot.handle.getDirectoryHandle(folderName, { create: false });
 
     const imagesContainer = document.createElement('div');
-    imagesContainer.style.display = 'flex';
-    imagesContainer.style.flexWrap = 'wrap';
-    imagesContainer.style.gap = '8px';
-    imagesContainer.style.marginTop = '8px';
+    imagesContainer.className = "media-container";
 
   for await (const [name, fileHandle] of srcImagesHandle.entries()) {
     if (fileHandle.kind === 'file') {
@@ -272,20 +276,40 @@ async function loadMediaFolder(handle, contentsEl, folderName) {
       const url = URL.createObjectURL(file);
 
       if (/\.(png|jpe?g|gif|webp)$/i.test(name)) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'img-wrapper';
+   
+        if (name === shot.shotinfo.srcImage) wrapper.classList.add('highlighted'); 
+
         const img = document.createElement('img');
         img.src = url;
-        img.style.maxWidth = '500px';
-        img.style.maxHeight = '500px';
-        img.style.objectFit = 'contain';
+        img.className = 'media-img';
         img.title = name;
-        imagesContainer.appendChild(img);
+
+        const btn = document.createElement('button');
+        btn.className = 'media-hover-btn';
+        btn.textContent = 'Pick';
+
+        // SET SRC IMAGE ON CLICK
+        btn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          console.log(url);
+          shot.shotinfo.srcImage = name;          
+          shot.saveShotInfo();
+
+          imagesContainer.querySelectorAll('.img-wrapper.highlighted').forEach(el => el.classList.remove('highlighted'));
+          wrapper.classList.add('highlighted');
+        });
+
+        wrapper.append(img, btn);
+        imagesContainer.appendChild(wrapper);
       }
 
       if (/\.(mp4|webm|ogg|mov|mkv)$/i.test(name)) {
         const video = document.createElement('video');
         video.src = url;
         video.style.width = 'auto';          // Ensures visibility
-        video.style.maxHeight = '500px';
+        video.style.maxHeight = '300px';
         video.style.objectFit = 'contain';
         video.controls = true;                // Shows play/pause UI
         video.title = name;
@@ -297,9 +321,8 @@ async function loadMediaFolder(handle, contentsEl, folderName) {
       }
     }
   }
-
-    details.appendChild(imagesContainer);
-    contentsEl.appendChild(details);
+    container.appendChild(imagesContainer);
+    return container
   } catch {
     // no SrcImages folder
   }

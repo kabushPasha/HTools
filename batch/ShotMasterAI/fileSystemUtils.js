@@ -1,4 +1,5 @@
 
+// BOUND JSON
 async function loadBoundJson(handle,filename,defaultValue={}) {
     fileHandle = await handle.getFileHandle(filename, { create: true });
     file = await fileHandle.getFile();
@@ -6,6 +7,8 @@ async function loadBoundJson(handle,filename,defaultValue={}) {
     data = JSON.parse(text);
     data = { ...defaultValue, ...data };
     data.____handle = fileHandle; // bind handle
+
+    data.save = async function() {saveBoundJson(this);}
     return data;
 }
 

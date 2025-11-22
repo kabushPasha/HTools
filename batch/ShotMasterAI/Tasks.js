@@ -32,23 +32,37 @@ async function createTaskContainer(shot,parent = null){
     chkBtn.textContent = 'Check Results';
     chkBtn.addEventListener('click', async () => {
       try {     
-        console.log("Checking results",shot,task);
+        //console.log("Checking results",shot,task);
+        // First check if we have generated urls
+        // also update the status based on status from response
         await checkTaskResults(task);       
-        saveBoundJson(shot.taskinfo);
-        // SAVE RESULTS MAYBE  ??
+        await task.saveResults();
+
+        // Update Status  change to a function??
+        statusIndicator.style.backgroundColor = task.status == 'downloaded' ? '#44ff44' : '#ff4444' ;
       } catch (err) {
         console.error('Task check failed', err);
       }
     });
     taskEl.appendChild(chkBtn);
+
+    // Test Button
+    const testBtn = document.createElement('button');
+    testBtn.textContent = 'LOG TASK';
+    testBtn.addEventListener('click', async () => {
+      console.log(task);
+      console.log(task.getShot());
+    });
+    taskEl.appendChild(testBtn);
+
     // prepend latest task
     container.appendChild(taskEl);
   }
 
   container.init = function() {
-    console.log("Initialize TASK container");
+    //console.log("Initialize TASK container");
     for (const task of shot.taskinfo.tasks) {
-      console.log("TASK:",task);
+      //console.log("TASK:",task);
       container.addTask(task);
     }
   }
@@ -57,17 +71,66 @@ async function createTaskContainer(shot,parent = null){
   return container;
 }
 
-// ADD Task to shot
-async function addKieTask(taskId, shot) {
-  console.log('Adding KIE task:', taskId, shot);
+
+function CreateTask(shot) {
   task = {
-    createdAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
-    prompt: shot.shotinfo.prompt,
-    taskId: taskId,
-    status: 'pending'
+    //example_field : "update",    
+    // Functions 
+    getShot() {return shot},
+    // Create A Task From TaskID
+    fromTaskId(taskId) {
+      const update = {
+        createdAt: new Date().toISOString().slice(0, 19).replace("T", " "),
+        prompt: this.getShot().shotinfo.prompt,
+        taskId: taskId,
+        status: "pending",
+      };          
+      Object.assign(this, update);
+      return this;
+    },
+    // Save Results To Disk
+    async saveResults() {
+      const task = this;
+      const shot = task.getShot()
+      console.log('Saving result images:', task.resultUrls);
+
+      const resultsHandle = await shot.handle.getDirectoryHandle('results', { create: true });
+
+      if (task.resultUrls == null) {
+        console.log("RESULT URLS IS EMPTY")
+        return
+      }
+
+      for (const url of task.resultUrls) {        
+          const urlObj = new URL(url);
+          const urlPath = urlObj.pathname;
+          const fileName = urlPath.split('/').pop();
+        
+          try {
+            await resultsHandle.getFileHandle(fileName);
+            console.log("File alreay exists", fileName)
+            continue
+          } catch (e) {
+            // File does not exist, which is expected
+          }
+
+          const response = await fetch(url);
+          const blob = await response.blob();
+
+          const fileHandle = await resultsHandle.getFileHandle(fileName, { create: true });
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+      }
+
+      task.status = "downloaded";
+      task.finished = true;
+      // Update Status
+      await saveBoundJson(shot.taskinfo);
+    }
+
   }
 
-  shot.taskinfo.tasks.push(task);
-  saveBoundJson(shot.taskinfo);
+
   return task;
-};
+}

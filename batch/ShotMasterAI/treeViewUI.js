@@ -1,49 +1,90 @@
 // Event bus to notify shot status updates
 //const updateShotStatusBus = new EventTarget();
-default_sceneinfo = {
-  finished: false,
-  description: "",
-  location: "",
-  shotsjson: "",
-  script:"",
+
+
+async function LoadShot(shotName, shotHandle,scene){
+  default_shotinfo = {
+    finished: false 
+  }
+  shotinfo = await loadBoundJson(shotHandle, 'shotinfo.json',default_shotinfo);  
+  taskinfo = await loadBoundJson(shotHandle, 'tasks.json',{tasks:[]});  
+
+  const shot = { 
+        name: shotName,
+        handle: shotHandle, 
+        shotinfo: shotinfo,
+        taskinfo:taskinfo,
+        scene:scene,
+        // Functions
+        async saveShotInfo() {
+            await saveBoundJson(this.shotinfo);
+        },
+        async saveTaskInfo() {
+            await saveBoundJson(this.taskinfo);
+        },
+        async addKieTask(taskId) {     
+          const task = CreateTask(this).fromTaskId(taskId);
+          this.taskinfo.tasks.push(task);
+          this.taskinfo.save();
+          return task;          
+        },
+        initializeTasks() {
+          const shot = this;  
+          const _tasks = []
+          for(const task of this.taskinfo.tasks) {
+            _tasks.push({...CreateTask(shot),...task});
+          }
+          this.taskinfo.tasks = _tasks;
+        }
+    }
+    
+
+
+  shot.initializeTasks();
+
+  return shot;
 }
 
-default_shotinfo = {
-  finished: false 
-}
+async function LoadScene(sceneName, sceneHandle){
+  default_sceneinfo = {
+    finished: false,
+    description: "",
+    location: "",
+    shotsjson: "",
+    script:"",
+  }          
 
-function getSceneFromShot(shot)
-{
-    const parentScene = window.treeDict.find(scene => scene.shots.includes(shot));
-    return parentScene;
+  sceneinfo = await loadBoundJson(sceneHandle, 'sceneinfo.json',default_sceneinfo);
+
+  const scene = {
+    name: sceneName ,
+    handle: sceneHandle, 
+    shots: [],
+    sceneinfo:sceneinfo,
+    // Functions
+    async LoadShots() {
+      this.shots = []
+      for await (const [shotName, shotHandle] of this.handle.entries()) {
+        if (shotHandle.kind === 'directory') {
+          this.shots.push(await LoadShot(shotName,shotHandle,this));
+        }
+      } 
+    }
+  }
+
+  await scene.LoadShots()
+  return scene
 }
 
 async function updateTreeDict() {
   window.treeDict = [];
   for await (const [sceneName, sceneHandle] of rootDirHandle.entries()) {
     if (sceneHandle.kind === 'directory') {
-        
-      // Gather Shots
-      shots = []
-      for await (const [shotName, shotHandle] of sceneHandle.entries()) {
-        if (shotHandle.kind === 'directory') {
-          shotinfo = await loadBoundJson(shotHandle, 'shotinfo.json',default_shotinfo);  
-          taskinfo = await loadBoundJson(shotHandle, 'tasks.json',{tasks:[]});  
-
-          shots.push({ 
-                name: shotName,
-                handle: shotHandle, 
-                shotinfo: shotinfo,
-                taskinfo:taskinfo
-          });
-        }
-      }
-
-      sceneinfo = await loadBoundJson(sceneHandle, 'sceneinfo.json',default_sceneinfo);
-      window.treeDict.push( {name: sceneName ,handle: sceneHandle, shots: shots,sceneinfo:sceneinfo} );
+      scene = await LoadScene(sceneName, sceneHandle);
+      window.treeDict.push( scene );
     }
   }
-  console.log('Updated treeDict:', window.treeDict);
+  //console.log('Updated treeDict:', window.treeDict);
 }
 
 async function updateTreeUI() {
@@ -81,7 +122,7 @@ async function createShotLI(shot) {
         statusIcon.textContent = isCompleted ? '●' : '○';
         statusIcon.style.color = isCompleted ? 'green' : 'grey';
 
-        getSceneFromShot(shot).updateUI?.();
+        shot.scene.updateUI?.();
     }
 
     shot.updateUI();
@@ -132,7 +173,7 @@ async function createSceneLI(scene) {
     // Subfolders container
     const subfolderUl = document.createElement('ul');
     subfolderUl.style.display = 'none'; // Initially collapsed
-    console.log("shotElements:", shotElements);
+    //console.log("shotElements:", shotElements);
     shotElements.forEach(el => subfolderUl.appendChild(el));
 
     // Toggle show/hide on scene click + call selection
@@ -161,7 +202,7 @@ async function createSceneLI(scene) {
 async function listFolders() {  
   await updateTreeDict();
   await updateTreeUI(); 
-  console.log(window.treeDict);
+  //console.log(window.treeDict);
 }
 
 // Status bar helper

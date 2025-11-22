@@ -96,7 +96,7 @@ function createHorizontalContainer(parent = null) {
 
 function createCollapsibleContainer(name, parent = null) {
     // Create main container
-    console.log("collapsible container:",parent);
+    //console.log("collapsible container:",parent);
     const container = document.createElement('div');
     container.classList.add('collapsible-container');
 

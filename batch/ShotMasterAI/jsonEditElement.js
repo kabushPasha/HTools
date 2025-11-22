@@ -1,25 +1,7 @@
 
 
 async function editableJsonField(json_data, key, parent = null) { 
-  /*
-  const container = document.createElement('div');
-  // Create label
-  const PromptLabel = document.createElement('label');
-  PromptLabel.htmlFor = 'prompt-area';
-  PromptLabel.textContent = key;
-  PromptLabel.classList.add("prompt-label");
-  container.appendChild(PromptLabel);
-
-
-  const tex_area = createResizableTextArea(json_data[key], 1, container, async (newvalue) => { 
-    json_data[key] = newvalue; 
-    saveBoundJson(json_data); 
-  });
-
-  if (parent) parent.appendChild(container);
-  return container;
-  */
-  console.log("json field",parent);
+  //console.log("json field",parent);
   
   const container = await createCollapsibleContainer(key, parent);
   const tex_area = createResizableTextArea(json_data[key], 1, container, async (newvalue) => { 
