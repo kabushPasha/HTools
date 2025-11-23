@@ -88,13 +88,17 @@ function CreateTask(shot) {
       Object.assign(this, update);
       return this;
     },
+    fromTask(_task) {
+      Object.assign(this, _task);
+      return this;
+    },
     // Save Results To Disk
     async saveResults() {
       const task = this;
       const shot = task.getShot()
       console.log('Saving result images:', task.resultUrls);
 
-      const resultsHandle = await shot.handle.getDirectoryHandle('results', { create: true });
+      const resultsHandle = await shot.handle.getDirectoryHandle(task.outputFolder, { create: true });
 
       if (task.resultUrls == null) {
         console.log("RESULT URLS IS EMPTY")
@@ -130,7 +134,5 @@ function CreateTask(shot) {
     }
 
   }
-
-
   return task;
 }

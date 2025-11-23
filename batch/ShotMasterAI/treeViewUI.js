@@ -22,8 +22,16 @@ async function LoadShot(shotName, shotHandle,scene){
         async saveTaskInfo() {
             await saveBoundJson(this.taskinfo);
         },
+        /*
         async addKieTask(taskId) {     
           const task = CreateTask(this).fromTaskId(taskId);
+          this.taskinfo.tasks.push(task);
+          this.taskinfo.save();
+          return task;          
+        },
+        */
+        async addKieTask(_task) {     
+          const task = CreateTask(this).fromTask(_task);
           this.taskinfo.tasks.push(task);
           this.taskinfo.save();
           return task;          
@@ -35,6 +43,18 @@ async function LoadShot(shotName, shotHandle,scene){
             _tasks.push({...CreateTask(shot),...task});
           }
           this.taskinfo.tasks = _tasks;
+        }, 
+        async getSrcImageHandle() {
+          try{
+              if (this.shotinfo.srcImage == null) return null;
+              const resultsDir = await this.handle.getDirectoryHandle("results", { create: false });
+              const fileHandle = await resultsDir.getFileHandle(this.shotinfo.srcImage, { create: false });
+              return fileHandle;
+          }
+          catch (err){
+            
+          }
+          return null
         }
     }
     

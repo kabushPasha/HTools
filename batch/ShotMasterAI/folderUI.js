@@ -115,7 +115,7 @@ async function CreateShotInfoCard(shot,parent = null) {
 
   // Create Images Preview Folder
   await createMediaFolderPreview(shot,"results",container)
-
+  await createMediaFolderPreview(shot,"resultVods",container)
 
   // Append to parent
   if (parent) parent.appendChild(container);
@@ -194,6 +194,7 @@ async function CreateShotInfoCardButtons(shot,parent = null)
   changeShotStatusBtn = await createShotStatusButton(shot,buttonContainer);  
 
   // --- Send Image button (KIE.ai) ---  
+  /*
   sendImageBtn = addSimpleButton('sendimage-btn', 'Send Image to KIE.ai', buttonContainer);
   sendImageBtn.addEventListener('click', async () => {
     console.log('Send Image button clicked');
@@ -212,6 +213,7 @@ async function CreateShotInfoCardButtons(shot,parent = null)
       console.warn('No first_src_image found');
     }
   });
+  */
 
   // --- Create Resolve FCPXML button ---
   createResolveXMLButton = addSimpleButton('create-resolve-xml-btn', 'Generate Resolve FCPXML',buttonContainer);
@@ -225,18 +227,32 @@ async function CreateShotInfoCardButtons(shot,parent = null)
   txt2ImageBtn.addEventListener('click', async () => {   
     console.log("Clicked txt2img:",shot); 
     try {
-        const response = await kieGenerate_txt2img(shot.shotinfo.prompt);
-
-        const data = await response.json();  
-        console.log("Response",response,data);    
-    
-        taskId = data.data.taskId;  
-        //task = await addKieTask(taskId, shot);  
-        task = await shot.addKieTask(taskId);  
-        console.log(parent)
-        console.log(parent.taskContainer)
+        const _task = await kieGenerate_txt2img(shot.shotinfo.prompt);
+        const task = await shot.addKieTask(_task);  
         parent?.taskContainer?.addTask(task);
 
+    } catch (error) {
+      console.error(error);
+    }
+  });
+
+  img2videoBtn = addSimpleButton('img2videoBtn',"img2video", buttonContainer);
+  img2videoBtn.addEventListener('click', async () => {   
+    console.log("Clicked img2video:",shot); 
+    try {
+      const srcImageHandle = await shot.getSrcImageHandle();
+      console.log("SRC_IMAGE",srcImageHandle)
+
+      if (srcImageHandle) {
+        img_upload_data = await kieUploadFile(srcImageHandle);
+        console.log('Image upload data:', img_upload_data.downloadUrl);
+        if (img_upload_data && img_upload_data.success)
+        {
+          const _task = await kieGenerate_RunwayImg2Video(shot.shotinfo.prompt, img_upload_data.downloadUrl);      
+          const task = await shot.addKieTask(_task);  
+          parent?.taskContainer?.addTask(task);
+        }
+      }
     } catch (error) {
       console.error(error);
     }
@@ -273,7 +289,7 @@ async function createMediaFolderPreview(shot, folderName, parent = null) {
   for await (const [name, fileHandle] of srcImagesHandle.entries()) {
     if (fileHandle.kind === 'file') {
       const file = await fileHandle.getFile();
-      const url = URL.createObjectURL(file);
+      const url = URL.createObjectURL(file);      
 
       if (/\.(png|jpe?g|gif|webp)$/i.test(name)) {
         const wrapper = document.createElement('div');

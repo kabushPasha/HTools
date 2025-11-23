@@ -15,8 +15,11 @@ async function postKieTask(url,payload){
 
   try {
     const response = await fetch(url, options);
-
-    return response;
+    console.log("response",response);
+    const data = await response.json(); 
+    console.log("data",data);
+    const taskId = data.data.taskId;  
+    return taskId;
   } catch (error) {
     console.error(error);
     return null;
@@ -26,7 +29,8 @@ async function postKieTask(url,payload){
 // KIE_txt2Img
 async function kieGenerate_txt2img(prompt){
   console.log("kieGenerate_txt2img",prompt)
-  const url = 'https://api.kie.ai/api/v1/gpt4o-image/generate';
+  const apiUrl = 'https://api.kie.ai/api/v1/gpt4o-image'
+  const url = apiUrl + '/generate';
   const payload = {
     prompt,
     size: '1:1',
@@ -34,17 +38,28 @@ async function kieGenerate_txt2img(prompt){
     isEnhance: false,
     uploadCn: false,
     enableFallback: false,
-    fallbackModel: 'FLUX_MAX'
+    fallbackModel: 'FLUX_MAX',
   };
 
-  response = await postKieTask(url,payload);
-  return response;
+  const taskId = await postKieTask(url,payload);
+
+  const task = {
+    createdAt: new Date().toISOString().slice(0, 19).replace("T", " "),
+    prompt: prompt,
+    taskId: taskId,
+    status: "pending",
+    outputFolder: "results",
+    apiUrl : apiUrl,    
+    resultsUrl : `${apiUrl}/record-info?taskId=${taskId}`, 
+  };   
+
+  return task;
 }
 
 // KIE Runway Img2Vide - REWRITE to use Post task?
 async function kieGenerate_RunwayImg2Video(prompt, initImageUrl){
-  const url = 'https://api.kie.ai/api/v1/runway/generate';
-  
+  const apiUrl = 'https://api.kie.ai/api/v1/runway';  
+  const url = apiUrl + '/generate';
   const payload = {
     prompt : prompt,
     duration : "5",
@@ -53,27 +68,22 @@ async function kieGenerate_RunwayImg2Video(prompt, initImageUrl){
     aspectRation: "9:16", 
     model: "runway-duration-5-generate",
     waterMark: "",
+    type : "txt2img",
   };
 
-  const options = {
-    method: 'POST',
-    headers: {Authorization: `Bearer ${window.KIE_API_KEY}`, 'Content-Type': 'application/json'},
-    body: JSON.stringify(payload)
-  };
+  const taskId = await postKieTask(url,payload);
 
-  console.log('KIE Runway Img2Video options:', options);
-
-  try {
-    const response = await fetch(url, options);
-    const data = await response.json();
-    console.log(data);
-    
-    taskId = data.data.taskId;  
-    try { window.addKieTask(taskId, prompt); } catch (e) { console.warn('addKieTask failed', e); }
-
-  } catch (error) {
-    console.error(error);
-  } 
+  const task = {
+    createdAt: new Date().toISOString().slice(0, 19).replace("T", " "),
+    prompt: prompt,
+    taskId: taskId,
+    status: "pending",
+    outputFolder: "resultVods",
+    apiUrl : apiUrl,
+    type: "img2vid",
+    resultsUrl : `${apiUrl}/record-detail?taskId=${taskId}`, 
+  };  
+  return task;
 }
 
 // Upload File - REWRITE to use Post task?
@@ -103,41 +113,6 @@ async function kieUploadFile(img_fileHandle) {
   }
 }
 
-// CHECK RESULTS
-async function checkTaskResults(task) {
-  const KIE_API_KEY = window.KIE_API_KEY || '';  
-
-  // EACH API HAS DIFFERENT ENDPOINT FOR THIS, 
-  const url = `https://api.kie.ai/api/v1/gpt4o-image/record-info?taskId=${task.taskId}`;
-  //const url = `https://api.kie.ai/api/v1/runway/record-detail?taskId=${taskId}`;
-
-  const options = { 
-    method: 'GET', 
-    headers: { Authorization: `Bearer ${KIE_API_KEY}` }
-  };
-
-  try {
-    //console.log('Checking task results with options:', options);
-    const response = await fetch(url, options);
-    //console.log('checkTaskResults RESPONSE :', response);
-    
-    if (!response.ok) {
-      const txt = await response.text();
-      throw new Error(`Record-info error ${response.status}: ${txt}`);
-    }
-
-    const data = await response.json();
-    console.log('record-info  DATA:', data);
-    if (data?.msg === 'success')
-    {
-      const resultUrls = data?.data?.response?.resultUrls || [data?.data?.videoInfo?.videoUrl] || [];       
-      task.resultUrls = resultUrls;
-    }
-  } catch (error) {
-    console.error('checkTaskResults failed', error);    
-  }
-}
-
 // File2Base64
 async function fileToBase64(fileHandle) {
   const file = await fileHandle.getFile();
@@ -159,5 +134,34 @@ async function fileToBase64(fileHandle) {
   };
 }
 
+// CHECK RESULTS
+async function checkTaskResults(task) {
+  const url = task.resultsUrl;
+
+  const options = { 
+    method: 'GET', 
+    headers: { Authorization: `Bearer ${ window.KIE_API_KEY}` }
+  };
+
+  try {
+    console.log("GET RESULTS",url,options);
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+      const txt = await response.text();
+      throw new Error(`Record-info error ${response.status}: ${txt}`);
+    }
+
+    const data = await response.json();
+    console.log('record-info  DATA:', data);
+    if (data?.msg === 'success')
+    {
+      const resultUrls = data?.data?.response?.resultUrls || [data?.data?.videoInfo?.videoUrl] || [];       
+      task.resultUrls = resultUrls;
+    }
+  } catch (error) {
+    console.error('checkTaskResults failed', error);    
+  }
+}
 
 
