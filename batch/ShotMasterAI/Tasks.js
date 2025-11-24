@@ -35,8 +35,7 @@ async function createTaskContainer(shot,parent = null){
         //console.log("Checking results",shot,task);
         // First check if we have generated urls
         // also update the status based on status from response
-        await checkTaskResults(task);       
-        await task.saveResults();
+        await task.checkResults();
 
         // Update Status  change to a function??
         statusIndicator.style.backgroundColor = task.status == 'downloaded' ? '#44ff44' : '#ff4444' ;
@@ -71,23 +70,13 @@ async function createTaskContainer(shot,parent = null){
   return container;
 }
 
-
 function CreateTask(shot) {
   task = {
     //example_field : "update",    
     // Functions 
+    resultUrls : [],
     getShot() {return shot},
-    // Create A Task From TaskID
-    fromTaskId(taskId) {
-      const update = {
-        createdAt: new Date().toISOString().slice(0, 19).replace("T", " "),
-        prompt: this.getShot().shotinfo.prompt,
-        taskId: taskId,
-        status: "pending",
-      };          
-      Object.assign(this, update);
-      return this;
-    },
+
     fromTask(_task) {
       Object.assign(this, _task);
       return this;
@@ -131,8 +120,25 @@ function CreateTask(shot) {
       task.finished = true;
       // Update Status
       await saveBoundJson(shot.taskinfo);
-    }
+    }, 
 
+  async checkResults(timeout = 1000, maxRetries = 2) {
+      let retries = 0;
+
+      while (retries < maxRetries) {
+        await checkTaskResults(this);
+        if (this.resultUrls.length > 0) {
+          await this.saveResults();
+          break;
+        }
+
+        // Retry
+        await new Promise(resolve => setTimeout(resolve, timeout));
+        retries++;
+        console.log(`Waiting for results... attempt ${retries}`);
+      }
+      
+    },
   }
   return task;
 }

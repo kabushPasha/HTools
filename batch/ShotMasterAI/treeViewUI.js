@@ -22,14 +22,6 @@ async function LoadShot(shotName, shotHandle,scene){
         async saveTaskInfo() {
             await saveBoundJson(this.taskinfo);
         },
-        /*
-        async addKieTask(taskId) {     
-          const task = CreateTask(this).fromTaskId(taskId);
-          this.taskinfo.tasks.push(task);
-          this.taskinfo.save();
-          return task;          
-        },
-        */
         async addKieTask(_task) {     
           const task = CreateTask(this).fromTask(_task);
           this.taskinfo.tasks.push(task);

@@ -104,3 +104,35 @@ async function createResizableTextArea( text = '', rows = 1, parent = null, onCh
   if (parent) parent.appendChild(textArea);
   return textArea;
 }
+
+
+async function createEditableKeyField(data, key, parent = null) {
+  console.log(data)
+  const container = document.createElement("div");
+  container.className = "editable-field"; // use CSS class
+  // Label
+  const label = document.createElement("label");
+  label.textContent = key;
+
+
+  // Input
+  const input = document.createElement("input");
+  input.type = "text";
+  input.placeholder = `Enter your {$key}} ...`;
+  input.value = data[key] || "";
+
+  let timeout;
+  input.addEventListener("input", () => {
+    clearTimeout(timeout);
+    timeout = setTimeout(async () => {
+      data[key] =  input.value;
+      data?.save()
+    }, 300);
+  });
+
+  container.appendChild(label);
+  container.appendChild(input);
+
+  if (parent) parent.appendChild(container);
+  return container;
+}

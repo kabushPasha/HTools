@@ -9,7 +9,7 @@ async function postKieTask(url,payload){
   console.log("postKieTask",url,payload);
   const options = {
     method: 'POST',
-    headers: {Authorization: `Bearer ${window.KIE_API_KEY}`, 'Content-Type': 'application/json'},
+    headers: {Authorization: `Bearer ${window.userdata.KIE_API_KEY}`, 'Content-Type': 'application/json'},
     body: JSON.stringify(payload)
   };
 
@@ -94,7 +94,7 @@ async function kieUploadFile(img_fileHandle) {
   const url = 'https://kieai.redpandaai.co/api/file-base64-upload';
   const options = {
     method: 'POST',
-    headers: {Authorization: `Bearer ${window.KIE_API_KEY}`,
+    headers: {Authorization: `Bearer ${window.userdata.KIE_API_KEY}`,
              'Content-Type': 'application/json'},
     body: `{"base64Data":"${img_data.rawBase64}",
            "fileName":"${img_fileHandle.name}",
@@ -140,7 +140,7 @@ async function checkTaskResults(task) {
 
   const options = { 
     method: 'GET', 
-    headers: { Authorization: `Bearer ${ window.KIE_API_KEY}` }
+    headers: { Authorization: `Bearer ${ window.userdata.KIE_API_KEY}` }
   };
 
   try {
@@ -154,10 +154,13 @@ async function checkTaskResults(task) {
 
     const data = await response.json();
     console.log('record-info  DATA:', data);
-    if (data?.msg === 'success')
+    if (data?.msg === 'success' && data?.data?.status === "SUCCESS" )
     {
-      const resultUrls = data?.data?.response?.resultUrls || [data?.data?.videoInfo?.videoUrl] || [];       
-      task.resultUrls = resultUrls;
+      console.log("images",data?.data?.response?.resultUrls)
+      console.log("videos",data?.data?.videoInfo?.videoUrl )
+      task.resultUrls = data?.data?.response?.resultUrls 
+        ?? (data?.data?.videoInfo?.videoUrl ? [data.data.videoInfo.videoUrl] : []) 
+        ?? [];
     }
   } catch (error) {
     console.error('checkTaskResults failed', error);    

@@ -204,6 +204,36 @@
 
 
 
+/* --------------------------------------------------------------- */
+/* Editable key-value field */
+.editable-field {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  gap: 8px;
+}
+
+.editable-field label {
+  user-select: none;
+  min-width: 100px; /* adjust label width as needed */
+}
+
+.editable-field input[type="text"] {
+  flex: 1; /* fill remaining space */
+  padding: 6px 8px;
+  border: 1px solid var(--border); /* dark theme border */
+  border-radius: 5px;
+  font-size: 14px;
+  background-color: var(--panel-light); /* dark theme input background */
+  color: var(--text); /* text color */
+  box-sizing: border-box;
+  outline: none;
+}
+
+.editable-field input[type="text"]:focus {
+  border-color: var(--accent); /* highlight on focus */
+  background-color: var(--panel); /* optional: darker background when focused */
+}
 
 
 

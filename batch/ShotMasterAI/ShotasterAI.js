@@ -4,9 +4,6 @@ const foldersEl = document.getElementById('folders');
 const contentsPanel = document.getElementById('contents');
 const statusBar = document.getElementById('status-bar');
 
-// Add your KIE.ai API key here
-window.KIE_API_KEY = '19d558c94447da4ea0f5bb14328fb9d4';
-
 // -- BUTTON CALLBACKS ---
 // --- Pick folder button ---
 document.getElementById('pick').addEventListener('click', async () => {
@@ -30,9 +27,11 @@ document.getElementById('import_scenes_from_script_btn').addEventListener('click
     await importScenesFromScript();  
 });
 
-
-// --- Load last picked folder on page load ---
+// --- Page Loaded ---
 window.addEventListener('DOMContentLoaded', async () => {
+  // Load User settings
+  window.userdata = await window.db.loadUserData()
+
   const handle = await window.db.loadPickedFolder();
   if (handle) {
     let permission = await handle.queryPermission({ mode: 'readwrite' });
@@ -73,3 +72,13 @@ async function populateRecentFolders() {
 }
 // Populate on hover
 document.getElementById('open-recent').addEventListener('mouseenter', populateRecentFolders);
+
+// --- open Settings ---
+document.getElementById('settings_btn').addEventListener('click', async () => {
+  contentsPanel.innerHTML = '';
+
+  const container = document.createElement('div');
+  await createEditableKeyField(window.userdata,"KIE_API_KEY",container)
+
+  contentsPanel.appendChild(container);
+});

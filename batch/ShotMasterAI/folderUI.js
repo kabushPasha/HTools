@@ -141,8 +141,15 @@ async function createShotPreviewStrip(scene) {
       shot_info.style.display = 'block';
     });
   }
+
+  // Add A Spacer
+  const spacer = document.createElement('div');
+  spacer.style.height = '500px'; // adjust the height as needed
+  container.appendChild(spacer);
+
   return container;
 }
+
 // Shot Preview Icon
 async function CreateShotPreview(shot) {
   // Container for the shot
@@ -151,16 +158,20 @@ async function CreateShotPreview(shot) {
 
   // Image element
   const img = document.createElement("img");
-  img.src = "https://picsum.photos/id/237/200/300";
 
-  if (shot.shotinfo.srcImage){
-    const resultsDir = await shot.handle.getDirectoryHandle("results", { create: false });
-    const fileHandle = await resultsDir.getFileHandle(shot.shotinfo.srcImage, { create: false });
+  container.update = async function(){
+    img.src = "https://picsum.photos/id/237/200/300";
 
-    const file = await fileHandle.getFile();
-    const url = URL.createObjectURL(file);
-    img.src = url;
+    if (shot.shotinfo.srcImage){
+      const resultsDir = await shot.handle.getDirectoryHandle("results", { create: false });
+      const fileHandle = await resultsDir.getFileHandle(shot.shotinfo.srcImage, { create: false });
+
+      const file = await fileHandle.getFile();
+      const url = URL.createObjectURL(file);
+      img.src = url;
+    }
   }
+  container.update()
 
   container.appendChild(img);
 
@@ -169,6 +180,13 @@ async function CreateShotPreview(shot) {
   label.textContent = shot.name;
   label.classList.add("shot-preview-label");
   container.appendChild(label);
+
+  // EVENT LISTENERS
+  document.addEventListener("shotupdate", (e) => {
+      if (e.detail.shot == shot){
+        container.update()
+      }
+  });
 
   return container;
 }
@@ -312,6 +330,10 @@ async function createMediaFolderPreview(shot, folderName, parent = null) {
           console.log(url);
           shot.shotinfo.srcImage = name;          
           shot.saveShotInfo();
+
+          // Dispatch Shot Update
+          const shotUpdateEvent = new CustomEvent("shotupdate", { detail: { shot: shot } });
+          document.dispatchEvent(shotUpdateEvent);
 
           imagesContainer.querySelectorAll('.img-wrapper.highlighted').forEach(el => el.classList.remove('highlighted'));
           wrapper.classList.add('highlighted');

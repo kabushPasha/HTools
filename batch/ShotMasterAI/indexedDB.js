@@ -63,6 +63,35 @@ async function loadRecentFolders() {
     req.onerror = () => resolve([]);
   });
 }
+// USER FATA
+async function loadUserData() {
+  const db = await getDB();
+  const tx = db.transaction('folders', 'readonly');
+  const store = tx.objectStore('folders');
+
+  const data = await new Promise(resolve => {
+    const req = store.get('user_settings');
+    req.onsuccess = () => resolve(req.result || {});
+    req.onerror = () => resolve({});
+  });
+
+  // Add save method directly to the data object
+  data.save = async function () {    
+    const { save, ...dataToSave } = this;
+    const tx = db.transaction('folders', 'readwrite');
+    const store = tx.objectStore('folders');
+    store.put(dataToSave, 'user_settings');
+    
+    // Wait for transaction to complete
+    await new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+  };
+
+  return data;
+}
 
 
 // CREATE Singleton
@@ -71,5 +100,8 @@ db.getDB = getDB;
 db.savePickedFolder = savePickedFolder;
 db.loadPickedFolder = loadPickedFolder;
 db.loadRecentFolders = loadRecentFolders;
+db.loadUserData = loadUserData;
 window.db = db;
+
+
 
