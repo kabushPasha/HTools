@@ -26,6 +26,7 @@ async function LoadShot(shotName, shotHandle,scene){
           const task = CreateTask(this).fromTask(_task);
           this.taskinfo.tasks.push(task);
           this.taskinfo.save();
+          task.checkResults();
           return task;          
         },
         initializeTasks() {
@@ -47,6 +48,19 @@ async function LoadShot(shotName, shotHandle,scene){
             
           }
           return null
+        },
+        async updateEvent() {          
+          // Dispatch Shot Update
+          const shotUpdateEvent = new CustomEvent("shotupdate", { detail: { shot: this } });
+          document.dispatchEvent(shotUpdateEvent);
+        },
+        async addUpdateCallback(onUpdate){
+          // EVENT LISTENERS
+          document.addEventListener("shotupdate", (e) => {
+              if (e.detail.shot == this){
+                onUpdate(e.detail);
+              }
+          });
         }
     }
     
@@ -185,18 +199,19 @@ async function createSceneLI(scene) {
     // Subfolders container
     const subfolderUl = document.createElement('ul');
     subfolderUl.style.display = 'none'; // Initially collapsed
-    //console.log("shotElements:", shotElements);
+    //console.log("shotElements:", shotElements);    
     shotElements.forEach(el => subfolderUl.appendChild(el));
 
     // Toggle show/hide on scene click + call selection
     headerDiv.addEventListener('click', () => {
         selectSceneFolder(scene);
-        const isCollapsed = subfolderUl.style.display === 'none';
-        subfolderUl.style.display = isCollapsed ? 'block' : 'none';
+        // Disabled showing shots - might return later
+        //const isCollapsed = subfolderUl.style.display === 'none';
+        //subfolderUl.style.display = isCollapsed ? 'block' : 'none';
     });
 
     // Append header and shot list
-    sceneLi.appendChild(headerDiv);
+    sceneLi.appendChild(headerDiv);    
     sceneLi.appendChild(subfolderUl);
     scene.liElement = sceneLi;
 

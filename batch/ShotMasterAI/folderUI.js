@@ -1,4 +1,7 @@
 
+
+
+
 // Select SHOT FOLDER
 async function selectShot(shot) {
   handle = shot.handle;
@@ -211,28 +214,6 @@ async function CreateShotInfoCardButtons(shot,parent = null)
   // --- Shot Status button ---
   changeShotStatusBtn = await createShotStatusButton(shot,buttonContainer);  
 
-  // --- Send Image button (KIE.ai) ---  
-  /*
-  sendImageBtn = addSimpleButton('sendimage-btn', 'Send Image to KIE.ai', buttonContainer);
-  sendImageBtn.addEventListener('click', async () => {
-    console.log('Send Image button clicked');
-    console.log('First Image Handle:', window.first_src_image_fileHandle);
-    if (window.first_src_image_fileHandle) {
-      const promptText = window.PromptTextArea.value.trim();
-      img_upload_data = await kieUploadFile(window.first_src_image_fileHandle);
-      console.log('Image upload data:', img_upload_data.downloadUrl);
-
-      if (img_upload_data && img_upload_data.success)
-      {
-        kieGenerate_RunwayImg2Video(promptText, img_upload_data.downloadUrl);
-      }
-
-    } else {
-      console.warn('No first_src_image found');
-    }
-  });
-  */
-
   // --- Create Resolve FCPXML button ---
   createResolveXMLButton = addSimpleButton('create-resolve-xml-btn', 'Generate Resolve FCPXML',buttonContainer);
   createResolveXMLButton.addEventListener('click', async () => {    
@@ -240,7 +221,7 @@ async function CreateShotInfoCardButtons(shot,parent = null)
       await generateFCPXMLFromFolder(resultsFolder);
   });
 
-
+  // TXT 2 Image
   txt2ImageBtn = addSimpleButton('txt2imgBtn',"txt2img", buttonContainer);
   txt2ImageBtn.addEventListener('click', async () => {   
     console.log("Clicked txt2img:",shot); 
@@ -295,73 +276,95 @@ async function createShotStatusButton(shot,parent = null)
   return shotToggleBtn;
 }
 
-// Load Media Folder -- rewrite
+// --- MAIN FUNCTION (NOW CLEAN) ---
 async function createMediaFolderPreview(shot, folderName, parent = null) {
   try {
-    container = await createCollapsibleContainer(folderName,parent);
-    const srcImagesHandle = await shot.handle.getDirectoryHandle(folderName, { create: false });
-
-    const imagesContainer = document.createElement('div');
+    // Main Container
+    const container = await createCollapsibleContainer(folderName, parent);
+    // Images container
+    const imagesContainer = document.createElement("div");
     imagesContainer.className = "media-container";
 
-  for await (const [name, fileHandle] of srcImagesHandle.entries()) {
-    if (fileHandle.kind === 'file') {
-      const file = await fileHandle.getFile();
-      const url = URL.createObjectURL(file);      
+    // --- Extracted FILL FUNCTION ---
+    async function fillMediaContainer() {
+      const srcImagesHandle = await shot.handle.getDirectoryHandle(folderName, { create: false });
 
-      if (/\.(png|jpe?g|gif|webp)$/i.test(name)) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'img-wrapper';
-   
-        if (name === shot.shotinfo.srcImage) wrapper.classList.add('highlighted'); 
+      imagesContainer.innerHTML = ""; // Clear before refill
 
-        const img = document.createElement('img');
-        img.src = url;
-        img.className = 'media-img';
-        img.title = name;
+      for await (const [name, fileHandle] of srcImagesHandle.entries()) {
+        if (fileHandle.kind !== "file") continue;
 
-        const btn = document.createElement('button');
-        btn.className = 'media-hover-btn';
-        btn.textContent = 'Pick';
+        const file = await fileHandle.getFile();
+        const url = URL.createObjectURL(file);
 
-        // SET SRC IMAGE ON CLICK
-        btn.addEventListener('click', (event) => {
-          event.stopPropagation();
-          console.log(url);
-          shot.shotinfo.srcImage = name;          
-          shot.saveShotInfo();
+        // --- IMAGE FILES ---
+        if (/\.(png|jpe?g|gif|webp)$/i.test(name)) {
+          const wrapper = document.createElement("div");
+          wrapper.className = "img-wrapper";
+          if (name === shot.shotinfo.srcImage) wrapper.classList.add("highlighted");
 
-          // Dispatch Shot Update
-          const shotUpdateEvent = new CustomEvent("shotupdate", { detail: { shot: shot } });
-          document.dispatchEvent(shotUpdateEvent);
+          const img = document.createElement("img");
+          img.src = url;
+          img.className = "media-img";
+          img.title = name;
 
-          imagesContainer.querySelectorAll('.img-wrapper.highlighted').forEach(el => el.classList.remove('highlighted'));
-          wrapper.classList.add('highlighted');
-        });
+          const btn = document.createElement("button");
+          btn.className = "media-hover-btn";
+          btn.textContent = "Pick";
 
-        wrapper.append(img, btn);
-        imagesContainer.appendChild(wrapper);
-      }
+          btn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            shot.shotinfo.srcImage = name;
+            shot.saveShotInfo();
+            shot.updateEvent();
 
-      if (/\.(mp4|webm|ogg|mov|mkv)$/i.test(name)) {
-        const video = document.createElement('video');
-        video.src = url;
-        video.style.width = 'auto';          // Ensures visibility
-        video.style.maxHeight = '300px';
-        video.style.objectFit = 'contain';
-        video.controls = true;                // Shows play/pause UI
-        video.title = name;
-        video.autoplay = true;            // Automatically play video
-        video.muted = true;               // Required by most browsers for autoplay
-        video.controls = true;            // Optional: allow play/pause controls
-        video.loop = true;                // Optional: loop video
-        imagesContainer.appendChild(video);   // Or use videosContainer      
+            imagesContainer.querySelectorAll(".img-wrapper.highlighted")
+              .forEach(el => el.classList.remove("highlighted"));
+
+            wrapper.classList.add("highlighted");
+          });
+
+          wrapper.append(img, btn);
+          imagesContainer.appendChild(wrapper);
+        }
+
+        // --- VIDEO FILES ---
+        if (/\.(mp4|webm|ogg|mov|mkv)$/i.test(name)) {
+          const video = document.createElement("video");
+          video.src = url;
+          video.style.width = "auto";
+          video.style.maxHeight = "300px";
+          video.style.objectFit = "contain";
+          video.title = name;
+          video.autoplay = true;
+          video.muted = true;
+          video.loop = true;
+          video.controls = true;
+
+          imagesContainer.appendChild(video);
+        }
       }
     }
-  }
+
+    // Initial fill
+    await fillMediaContainer(shot, folderName, imagesContainer);
+    // --- ADD RELOAD METHOD ---
+    container.update = async () => {
+      await fillMediaContainer(shot, folderName, imagesContainer);
+    };
+
+
+    shot.addUpdateCallback( (data) => {
+      console.log("UPDATE Media Container",container);
+      console.log(shot,data)
+      container.update()
+    } )
+
     container.appendChild(imagesContainer);
-    return container
-  } catch {
-    // no SrcImages folder
+    return container;
+
+  } catch (err) {
+    // folder missing
+    console.warn(`Media folder "${folderName}" missing`, err);
   }
 }
