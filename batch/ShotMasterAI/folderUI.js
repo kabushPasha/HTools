@@ -1,33 +1,7 @@
 
-
-
-
 // Select SHOT FOLDER
 async function selectShot(shot) {
-  handle = shot.handle;
-  liElement = shot.liElement;  
 
-  window.currentShot = shot;
-
-  // Clear previous contents
-  window.currentFolderHandle = handle;
-  document.querySelectorAll('#folders li').forEach(el => el.classList.remove('selected'));
-  liElement.classList.add('selected');
-  contentsPanel.innerHTML = '';
-
-  // Create the prompt UI and get references to the textarea and status
-  //const PromptTextArea = await createPromptUI(handle);
-  window.PromptTextArea = PromptTextArea;
-
-  await setFirstImage();
-  await CreateShotInfoCardButtons(shot,parent = contentsPanel);
-  // --- Tasks collapsible (holds per-task entries) ---
-  window.tasksContainer = createTaskContainer(contentsPanel);
-  await loadTasksFromDisk(handle, tasksContainer);
-  await updateTasksUI();
-  //await loadSrcImages(handle, contentsEl);
-  await loadMediaFolder(handle, contentsPanel, 'SrcImages');
-  await loadMediaFolder(handle, contentsPanel, 'results');
 }
 // SELECT SCENE FOLDER
 async function selectSceneFolder(scene) {
@@ -44,8 +18,11 @@ async function selectSceneFolder(scene) {
   await editableJsonField(scene.sceneinfo, "script", sceneSettingsContainer);
 
   buttonContainer = CreateButtonsContainer(parent = sceneSettingsContainer);
-  SplitIntoShotsBtn = addSimpleButton('split-into-shots-btn', 'Split Into Shots',buttonContainer);
+  //SplitIntoShotsBtn = addSimpleButton('split-into-shots-btn', 'Split Into Shots',buttonContainer);
 
+
+  // Scene SHOTS json Field
+  const shots_json_field = await editableJsonField(scene.sceneinfo, "shotsjson", sceneSettingsContainer);
   // Currently not used button
   //ImportShotsBtn = addSimpleButton(buttonContainer, 'import-shots-btn', 'Import Shots Clipboard');
   //ImportShotsBtn.addEventListener('click', async () => { await importShotsFromClipboard(); });
@@ -63,6 +40,27 @@ async function selectSceneFolder(scene) {
       ${scene.sceneinfo.script}
       `;
       navigator.clipboard.writeText(base_text)
+    });
+
+  generateSplitIntoShotsPromptRefsBtn = addSimpleButton('generate-split-into-shots-prompt-refs-btn', 'Generate Split Prompt(with REFS)',buttonContainer);
+  generateSplitIntoShotsPromptRefsBtn.addEventListener('click', async () => { 
+    console.log(scene);
+    console.log(window.userdata);
+
+    base_text = `разбей эту сцену из моего сценария на шоты, сгенерируй промпты для нейросети для генерации видео и предоставь в виде json, в ответе предоставь толкьо json в следующем формате:
+    {"SHOT_010" : 
+      {"prompt" : "подробный промпт для нейросети генератора видео", 
+      "camera" : "focal length, shot type", 
+      "action_description" : "описания действия которое происходит для аниматора", } 
+      } 
+    }
+
+    ${scene.sceneinfo.script}
+    `;
+    //navigator.clipboard.writeText(base_text)
+    const answer = await OpenRouter.txt2txt(base_text);
+    //navigator.clipboard.writeText(answer)
+    shots_json_field.setText(answer);
     });
 
   generateShotsFromJsonBtn = addSimpleButton('generate-shots-from-json-btn', 'Generate Shots from JSON',buttonContainer);
@@ -86,13 +84,47 @@ async function selectSceneFolder(scene) {
     }
   });  
 
-  await editableJsonField(scene.sceneinfo, "shotsjson", sceneSettingsContainer);
+  logSceneBtn = addSimpleButton('log-scene', 'LOG',buttonContainer);
+  logSceneBtn.addEventListener('click', async () => {    console.log("SCENE:",scene) }); 
+
+  // Add TAG Button
+  tagsContainer = await createTagsContainer(scene,sceneSettingsContainer);
+  await artbookUI.createAddTagButton(buttonContainer, (img) => {
+    console.log(img);
+    //img.createTagItem(tagsContainer);
+    tagsContainer.addTag(img);
+    scene.addTag(img);
+  });
+  
+
+  createSpacer(sceneSettingsContainer);
 
   shotPreviewStrip = await createShotPreviewStrip(scene);
 
   const tabs1 = createTabContainer(contentsPanel);
   tabs1.addTab({ title: 'Scene', content: sceneSettingsContainer });
   tabs1.addTab({ title: 'Shots', content: shotPreviewStrip }); 
+}
+
+async function createTagsContainer(scene,parent = null){
+  const container = createCollapsibleContainer("Tags",parent)
+  
+  container.addTag = async function(tag){
+    tag.createTagItem(container, (tagdiv,tag) => {
+      console.log(tagdiv,tag);
+      tagdiv.remove();
+      scene.removeTag(tag);
+
+    });
+  }
+
+
+  for(const tag of scene.sceneinfo.tags){    
+    img = await artbookUI.path2img(tag);
+    container.addTag(img)    
+  }
+
+  return container
 }
 
 // Shot INFO CARD 
@@ -144,11 +176,9 @@ async function createShotPreviewStrip(scene) {
       shot_info.style.display = 'block';
     });
   }
-
-  // Add A Spacer
-  const spacer = document.createElement('div');
-  spacer.style.height = '500px'; // adjust the height as needed
-  container.appendChild(spacer);
+ 
+  //add Spacer
+  createSpacer(container);
 
   return container;
 }

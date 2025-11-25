@@ -154,7 +154,7 @@ async function checkTaskResults(task) {
 
     const data = await response.json();
     console.log('record-info  DATA:', data);
-    if (data?.msg === 'success' && data?.data?.status === "SUCCESS" )
+    if (data?.msg === 'success' && (data?.data?.status === "SUCCESS" || data?.data?.state === "success"))
     {
       console.log("images",data?.data?.response?.resultUrls)
       console.log("videos",data?.data?.videoInfo?.videoUrl )

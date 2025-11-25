@@ -73,12 +73,26 @@ async function populateRecentFolders() {
 // Populate on hover
 document.getElementById('open-recent').addEventListener('mouseenter', populateRecentFolders);
 
+
+
+
+
 // --- open Settings ---
 document.getElementById('settings_btn').addEventListener('click', async () => {
   contentsPanel.innerHTML = '';
 
   const container = document.createElement('div');
   await createEditableKeyField(window.userdata,"KIE_API_KEY",container)
+  await createEditableKeyField(window.userdata,"GPT_API_KEY",container)
+  //https://openrouter.ai/
+  await createEditableKeyField(window.userdata,"openrouter_API_KEY",container)
 
   contentsPanel.appendChild(container);
+});
+
+
+// --- open Artbook ---
+document.getElementById('artbook_btn').addEventListener('click', async () => {
+  contentsPanel.innerHTML = '';
+  await artbookUI.createArtbookPanel(contentsPanel);  
 });

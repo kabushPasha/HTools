@@ -96,7 +96,7 @@ async function importShotsFromClipboard() {
 
 async function importSceneDict(scene_name, scene_dict){
   window.updateStatus(`Importing scene: ${scene_name}`);
-  sceneFolderHandle = await rootDirHandle.getDirectoryHandle(scene_name, { create: true } );
+  sceneFolderHandle = await window.scenesDirHandle.getDirectoryHandle(scene_name, { create: true } );
 
   for (const key in scene_dict) {
     if (scene_dict.hasOwnProperty(key)) {          
@@ -139,7 +139,7 @@ async function importScenesFromScript() {
         for (scene in scenes) {
             scene_name = scenes[scene].id;
             scene_content = scenes[scene].content;
-            sceneFolderHandle = await rootDirHandle.getDirectoryHandle(scene_name, { create: true } );
+            sceneFolderHandle = await window.scenesDirHandle.getDirectoryHandle(scene_name, { create: true } );
             //saveLocalTextFile(sceneFolderHandle,'script.txt',scene_content);
             saveLocalJsonFile(sceneFolderHandle,"sceneinfo.json",{script:scene_content});
         }
@@ -149,5 +149,13 @@ async function importScenesFromScript() {
     }
 }
 
-
-
+async function getRelativePath(fileHandle, dirHandle, path = '') {
+    for await (const [name, handle] of dirHandle.entries()) {
+        if (handle === fileHandle) return path + name;
+        if (handle.kind === 'directory') {
+            const result = await getRelativePath(fileHandle, handle, path + name + '/');
+            if (result) return result;
+        }
+    }
+    return null;
+}

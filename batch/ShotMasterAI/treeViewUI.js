@@ -78,6 +78,7 @@ async function LoadScene(sceneName, sceneHandle){
     location: "",
     shotsjson: "",
     script:"",
+    tags: [],
   }          
 
   sceneinfo = await loadBoundJson(sceneHandle, 'sceneinfo.json',default_sceneinfo);
@@ -85,7 +86,7 @@ async function LoadScene(sceneName, sceneHandle){
   const scene = {
     name: sceneName ,
     handle: sceneHandle, 
-    shots: [],
+    shots: [],    
     sceneinfo:sceneinfo,
     // Functions
     async LoadShots() {
@@ -95,7 +96,27 @@ async function LoadScene(sceneName, sceneHandle){
           this.shots.push(await LoadShot(shotName,shotHandle,this));
         }
       } 
-    }
+    },
+    // Add Tag
+    async addTag(img) {
+      if (!this?.sceneinfo?.tags?.includes(img.path)) { this.sceneinfo.tags.push(img.path); }
+      console.log("Scene",this);
+      this.sceneinfo.save();
+    },
+    // Remove Tag
+    async removeTag(img) {
+    if (!this?.sceneinfo?.tags) return;
+
+    const index = this.sceneinfo.tags.indexOf(img.path);
+    if (index !== -1) {
+        this.sceneinfo.tags.splice(index, 1); // remove the tag
+        console.log("Removed tag:", img.path, "Scene:", this);
+        this.sceneinfo.save();
+      }
+    },
+
+
+
   }
 
   await scene.LoadShots()
@@ -104,7 +125,9 @@ async function LoadScene(sceneName, sceneHandle){
 
 async function updateTreeDict() {
   window.treeDict = [];
-  for await (const [sceneName, sceneHandle] of rootDirHandle.entries()) {
+  window.scenesDirHandle = await rootDirHandle.getDirectoryHandle("Scenes", { create: true } );
+  
+  for await (const [sceneName, sceneHandle] of window.scenesDirHandle.entries()) {
     if (sceneHandle.kind === 'directory') {
       scene = await LoadScene(sceneName, sceneHandle);
       window.treeDict.push( scene );
@@ -229,6 +252,7 @@ async function createSceneLI(scene) {
 async function listFolders() {  
   await updateTreeDict();
   await updateTreeUI(); 
+  await readArtbookData();
   //console.log(window.treeDict);
 }
 

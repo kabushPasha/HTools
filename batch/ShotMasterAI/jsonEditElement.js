@@ -1,13 +1,18 @@
 
-
 async function editableJsonField(json_data, key, parent = null) { 
   //console.log("json field",parent);
   
   const container = await createCollapsibleContainer(key, parent);
-  const tex_area = createResizableTextArea(json_data[key], 1, container, async (newvalue) => { 
+  const tex_area = await createResizableTextArea(json_data[key], 1, container, async (newvalue) => { 
     json_data[key] = newvalue; 
     saveBoundJson(json_data); 
   });
+
+  container.setText = async function(text) {
+    tex_area.value = text;
+    json_data[key] = text; 
+    saveBoundJson(json_data); 
+  }
 
   if (parent) parent.appendChild(container);
   return container;
@@ -89,14 +94,14 @@ async function createResizableTextArea( text = '', rows = 1, parent = null, onCh
   textArea.addEventListener('input', autoResize);
 
   // Debounced auto-save
-    let saveTimeout;
-    textArea.addEventListener('input', () => {
-    console.log("text area input");
-    autoResize();
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(async () => {
-        onChangeCallback?.(textArea.value);
-    }, 500);
+  let saveTimeout;
+  textArea.addEventListener('input', () => {
+  console.log("text area input");
+  autoResize();
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(async () => {
+      onChangeCallback?.(textArea.value);
+  }, 500);
   });
 
   // Initial resize
@@ -104,7 +109,6 @@ async function createResizableTextArea( text = '', rows = 1, parent = null, onCh
   if (parent) parent.appendChild(textArea);
   return textArea;
 }
-
 
 async function createEditableKeyField(data, key, parent = null) {
   console.log(data)
@@ -135,4 +139,10 @@ async function createEditableKeyField(data, key, parent = null) {
 
   if (parent) parent.appendChild(container);
   return container;
+}
+
+async function createSpacer(parent = null,size = 500) {
+  const spacer = document.createElement('div');
+  spacer.style.height = `${size}px`;  
+  if (parent) parent.appendChild(spacer);
 }

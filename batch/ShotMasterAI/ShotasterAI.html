@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="ShotasterAI.css">
   <link rel="stylesheet" href="css/containers.css">  
   <link rel="stylesheet" href="css/media.css">  
+  <link rel="stylesheet" href="css/artbook.css">  
 </head>
 <body>
   <!-- HEADER -->
@@ -43,8 +44,22 @@
         <li><button id="settings_btn" class="menu-item">Settings</button></li>        
       </ul>
     </nav>
-  </header>
 
+    <!-- Settings Menus -->
+    <nav class="dropdown">
+      <button class="dropbtn" aria-haspopup="true" aria-expanded="false">
+        Art
+      </button>
+      <ul class="dropdown-menu">
+        <li><button id="artbook_btn" class="menu-item">Artbook</button></li>        
+      </ul>
+    </nav>
+
+
+
+
+
+  </header>
   <!-- MAIN -->
   <main>
     <ul id="folders"></ul>
@@ -59,10 +74,12 @@
   <script src="indexedDB.js"></script>
   <script src="jsonEditElement.js"></script>
   <script src="kieGenerate.js"></script>
+  <script src="GPT_tools.js"></script>
   <script src="folderUI.js"></script>
   <script src="Tasks.js"></script>
   <script src="ResolveUtils.js"></script>
   <script src="treeViewUI.js"></script>
-  <script src="ShotasterAI.js"></script>
+  <script src="artbook.js"></script>
+  <script src="ShotasterAI.js"></script>  
 </body>
 </html>
