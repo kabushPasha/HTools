@@ -10,8 +10,13 @@ async function editableJsonField(json_data, key, parent = null) {
 
   container.setText = async function(text) {
     tex_area.value = text;
+    tex_area.autoResize();
     json_data[key] = text; 
     saveBoundJson(json_data); 
+  }
+
+  container.onShown = function(){
+    tex_area.onShown();
   }
 
   if (parent) parent.appendChild(container);
@@ -90,8 +95,12 @@ async function createResizableTextArea( text = '', rows = 1, parent = null, onCh
   const autoResize = () => {
     textArea.style.height = 'auto';
     textArea.style.height = Math.max(textArea.scrollHeight, rows * 16) + 'px';
-  };
+    //console.log("RESIZE",textArea)
+  }
+
   textArea.addEventListener('input', autoResize);
+  textArea.autoResize = autoResize;
+  textArea.onShown = autoResize;
 
   // Debounced auto-save
   let saveTimeout;

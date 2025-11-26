@@ -14,6 +14,13 @@ async function selectSceneFolder(scene) {
 
   const sceneSettingsContainer = document.createElement('div');
 
+  // --- Shot name ---
+  const title = document.createElement('div');
+  title.textContent = scene.name;
+  title.classList.add('shot-info-title');  // optional CSS class
+  sceneSettingsContainer.appendChild(title);
+
+
   //await createPromptUI(scene.handle, "script",parent = sceneSettingsContainer);
   await editableJsonField(scene.sceneinfo, "script", sceneSettingsContainer);
 
@@ -44,8 +51,8 @@ async function selectSceneFolder(scene) {
 
   generateSplitIntoShotsPromptRefsBtn = addSimpleButton('generate-split-into-shots-prompt-refs-btn', 'Generate Split Prompt(with REFS)',buttonContainer);
   generateSplitIntoShotsPromptRefsBtn.addEventListener('click', async () => { 
-    console.log(scene);
-    console.log(window.userdata);
+    console.log("SCENE",scene);
+    console.log("USER_DATA",window.userdata);
 
     base_text = `разбей эту сцену из моего сценария на шоты, сгенерируй промпты для нейросети для генерации видео и предоставь в виде json, в ответе предоставь толкьо json в следующем формате:
     {"SHOT_010" : 
@@ -55,12 +62,17 @@ async function selectSceneFolder(scene) {
       } 
     }
 
+    Используй картинки которые я вышлю далее как референс.
+
     ${scene.sceneinfo.script}
     `;
-    //navigator.clipboard.writeText(base_text)
-    const answer = await OpenRouter.txt2txt(base_text);
-    //navigator.clipboard.writeText(answer)
+
+    //console.log(await scene.getTags())
+
+    //const answer = await OpenRouter.txt2txt(base_text); 
+    const answer = await GPT.txt2txt(base_text, await scene.getTags());
     shots_json_field.setText(answer);
+    
     });
 
   generateShotsFromJsonBtn = addSimpleButton('generate-shots-from-json-btn', 'Generate Shots from JSON',buttonContainer);
@@ -395,6 +407,6 @@ async function createMediaFolderPreview(shot, folderName, parent = null) {
 
   } catch (err) {
     // folder missing
-    console.warn(`Media folder "${folderName}" missing`, err);
+    //console.warn(`Media folder "${folderName}" missing`, err);
   }
 }

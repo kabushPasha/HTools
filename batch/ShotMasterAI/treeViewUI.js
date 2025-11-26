@@ -114,8 +114,14 @@ async function LoadScene(sceneName, sceneHandle){
         this.sceneinfo.save();
       }
     },
-
-
+    // Get All Tags
+    async getTags(){
+      const tags = []
+      for(const tag_path of this.sceneinfo.tags) {      
+        tags.push(await artbookUI.path2img(tag_path));
+      }
+      return tags
+    },
 
   }
 

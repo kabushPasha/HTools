@@ -17,6 +17,7 @@ function createTabContainer(parent = null) {
         tabs.forEach(tab => {
             tab.button.classList.toggle('active', tab.id === id);
             tab.content.style.display = tab.id === id ? 'block' : 'none';
+            if (tab.id === id)  tab.onShown();
         });
     }
 
@@ -35,12 +36,28 @@ function createTabContainer(parent = null) {
             contentDiv.innerHTML = content;
         } else if (content instanceof HTMLElement) {
             contentDiv.appendChild(content);
-        }
+        }        
 
         buttonsContainer.appendChild(button);
         contentContainer.appendChild(contentDiv);
+        
+        tabs.push({ id, button, content: contentDiv ,
+          onShown : async function(){
+            
+            const walkChildren = (element) => {
+                for (const child of element.children) {
+                    // If the child has an onShown function, call it
+                    if (typeof child.onShown === 'function') {
+                        child.onShown();
+                    }
+                    // Recursively check its children
+                    walkChildren(child);
+                }
+            };
 
-        tabs.push({ id, button, content: contentDiv });
+            walkChildren(contentDiv);
+          }
+        });
 
         if (tabs.length === 1) showTab(id);
     }
