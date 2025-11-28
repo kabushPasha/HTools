@@ -49,7 +49,8 @@ async function LoadShot(shotName, shotHandle,scene){
           }
           return null
         },
-        async updateEvent() {          
+        async updateEvent() {    
+          await this.onUpdateEvent();      
           // Dispatch Shot Update
           const shotUpdateEvent = new CustomEvent("shotupdate", { detail: { shot: this } });
           document.dispatchEvent(shotUpdateEvent);
@@ -61,13 +62,34 @@ async function LoadShot(shotName, shotHandle,scene){
                 onUpdate(e.detail);
               }
           });
-        }
+        }, 
+        // Shot self check update
+        async onUpdateEvent() {
+          // Check if we have first image
+          if (!this.shotinfo.srcImage){
+            try {
+              dirHandle = await this.handle.getDirectoryHandle("results", { create: false });
+              for await (const [name, fileHandle] of dirHandle.entries()) {
+                if (fileHandle.kind !== "file") continue;
+                if (/\.(png|jpe?g|gif|webp)$/i.test(name)) {
+                  this.shotinfo.srcImage = name;
+                  await shot.saveShotInfo();
+                  return;
+                }
+              }
+            } catch (err) {
+              // no folder/images
+            }
+          }
+          // Do other things
+        },
+
+
     }
     
 
 
   shot.initializeTasks();
-
   return shot;
 }
 

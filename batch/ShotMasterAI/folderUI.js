@@ -253,6 +253,9 @@ async function CreateShotInfoCardButtons(shot,parent = null)
   testBtn = addSimpleButton('testBtn', 'Log shot', buttonContainer);
   testBtn.addEventListener('click', async () => { console.log(shot); });
 
+  updateBtn = addSimpleButton('testBtn', 'Update', buttonContainer);
+  updateBtn.addEventListener('click', async () => { shot.updateEvent() });
+
   // --- Shot Status button ---
   changeShotStatusBtn = await createShotStatusButton(shot,buttonContainer);  
 
@@ -320,93 +323,96 @@ async function createShotStatusButton(shot,parent = null)
 
 // --- MAIN FUNCTION (NOW CLEAN) ---
 async function createMediaFolderPreview(shot, folderName, parent = null) {
-  try {
-    // Main Container
-    const container = await createCollapsibleContainer(folderName, parent);
-    // Images container
-    const imagesContainer = document.createElement("div");
-    imagesContainer.className = "media-container";
+  // Main Container
+  const container = await createCollapsibleContainer(folderName, parent);
+  // Images container
+  const imagesContainer = document.createElement("div");
+  imagesContainer.className = "media-container";
 
-    // --- Extracted FILL FUNCTION ---
-    async function fillMediaContainer() {
-      const srcImagesHandle = await shot.handle.getDirectoryHandle(folderName, { create: false });
-
-      imagesContainer.innerHTML = ""; // Clear before refill
-
-      for await (const [name, fileHandle] of srcImagesHandle.entries()) {
-        if (fileHandle.kind !== "file") continue;
-
-        const file = await fileHandle.getFile();
-        const url = URL.createObjectURL(file);
-
-        // --- IMAGE FILES ---
-        if (/\.(png|jpe?g|gif|webp)$/i.test(name)) {
-          const wrapper = document.createElement("div");
-          wrapper.className = "img-wrapper";
-          if (name === shot.shotinfo.srcImage) wrapper.classList.add("highlighted");
-
-          const img = document.createElement("img");
-          img.src = url;
-          img.className = "media-img";
-          img.title = name;
-
-          const btn = document.createElement("button");
-          btn.className = "media-hover-btn";
-          btn.textContent = "Pick";
-
-          btn.addEventListener("click", (event) => {
-            event.stopPropagation();
-            shot.shotinfo.srcImage = name;
-            shot.saveShotInfo();
-            shot.updateEvent();
-
-            imagesContainer.querySelectorAll(".img-wrapper.highlighted")
-              .forEach(el => el.classList.remove("highlighted"));
-
-            wrapper.classList.add("highlighted");
-          });
-
-          wrapper.append(img, btn);
-          imagesContainer.appendChild(wrapper);
-        }
-
-        // --- VIDEO FILES ---
-        if (/\.(mp4|webm|ogg|mov|mkv)$/i.test(name)) {
-          const video = document.createElement("video");
-          video.src = url;
-          video.style.width = "auto";
-          video.style.maxHeight = "300px";
-          video.style.objectFit = "contain";
-          video.title = name;
-          video.autoplay = true;
-          video.muted = true;
-          video.loop = true;
-          video.controls = true;
-
-          imagesContainer.appendChild(video);
-        }
-      }
+  // --- Extracted FILL FUNCTION ---
+  async function fillMediaContainer() {
+    let srcImagesHandle = null;
+    try {
+      srcImagesHandle = await shot.handle.getDirectoryHandle(folderName, { create: false });
+    } catch (err) {
+      //console.warn(`Media folder "${folderName}" missing`, err);
+      return; // stop here but container + callbacks still exist
     }
 
-    // Initial fill
-    await fillMediaContainer(shot, folderName, imagesContainer);
-    // --- ADD RELOAD METHOD ---
-    container.update = async () => {
-      await fillMediaContainer(shot, folderName, imagesContainer);
-    };
+    imagesContainer.innerHTML = ""; // Clear before refill
 
+    for await (const [name, fileHandle] of srcImagesHandle.entries()) {
+      if (fileHandle.kind !== "file") continue;
 
-    shot.addUpdateCallback( (data) => {
-      console.log("UPDATE Media Container",container);
-      console.log(shot,data)
-      container.update()
-    } )
+      const file = await fileHandle.getFile();
+      const url = URL.createObjectURL(file);
 
-    container.appendChild(imagesContainer);
-    return container;
+      // --- IMAGE FILES ---
+      if (/\.(png|jpe?g|gif|webp)$/i.test(name)) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "img-wrapper";
+        if (name === shot.shotinfo.srcImage) wrapper.classList.add("highlighted");
 
-  } catch (err) {
-    // folder missing
-    //console.warn(`Media folder "${folderName}" missing`, err);
+        const img = document.createElement("img");
+        img.src = url;
+        img.className = "media-img";
+        img.title = name;
+
+        const btn = document.createElement("button");
+        btn.className = "media-hover-btn";
+        btn.textContent = "Pick";
+
+        btn.addEventListener("click", (event) => {
+          event.stopPropagation();
+          shot.shotinfo.srcImage = name;
+          shot.saveShotInfo();
+          shot.updateEvent();
+
+          imagesContainer.querySelectorAll(".img-wrapper.highlighted")
+            .forEach(el => el.classList.remove("highlighted"));
+
+          wrapper.classList.add("highlighted");
+        });
+
+        wrapper.append(img, btn);
+        imagesContainer.appendChild(wrapper);
+      }
+
+      // --- VIDEO FILES ---
+      if (/\.(mp4|webm|ogg|mov|mkv)$/i.test(name)) {
+        const video = document.createElement("video");
+        video.src = url;
+        video.style.width = "auto";
+        video.style.maxHeight = "300px";
+        video.style.objectFit = "contain";
+        video.title = name;
+        video.autoplay = true;
+        video.muted = true;
+        video.loop = true;
+        video.controls = true;
+
+        imagesContainer.appendChild(video);
+      }
+    }
   }
+
+  // --- ADD RELOAD METHOD ---
+  container.update = async () => {
+    await fillMediaContainer(shot, folderName, imagesContainer);
+  };
+
+
+  shot.addUpdateCallback( (data) => {
+    console.log("UPDATE Media Container",container);
+    console.log(shot,data)
+    container.update()
+  } )
+
+  // Initial fill
+  await fillMediaContainer(shot, folderName, imagesContainer);
+
+  container.appendChild(imagesContainer);
+  return container;
+
+
 }
