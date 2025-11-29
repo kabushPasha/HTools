@@ -1,5 +1,29 @@
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+import * as dat from 'dat.gui'
+
+
+// Loading Managar
+const loadingManager = new THREE.LoadingManager()
+//loadingManager.onStart = 
+//loadingManager.onLoaded = 
+//loadingManager.onProgress = 
+
+
+// IMPORTING IMAGES
+const textureLoader = new THREE.TextureLoader(loadingManager)
+//const texture = textureLoader.load( '/textures/Door/color.jpg', () => {console.log('load')}, () => {console.log('progress')}, () => {console.log('error')});   
+const colorTexture = textureLoader.load( '/textures/Door/color.jpg');   
+const alphaTexture = textureLoader.load( '/textures/Door/alpha.jpg');   
+const normalTexture = textureLoader.load( '/textures/Door/normal.jpg'); 
+
+colorTexture.repeat.x = 2;
+colorTexture.wrapS = THREE.RepeatWrapping;
+//colorTexture.minFilter = THREE.NearestFilter;
+colorTexture.magFilter = THREE.NearestFilter; // FOR Pixel Art
+
+
+
 
 // Create LOOP
 const Loop = {
@@ -48,7 +72,8 @@ function createRender({ camera = null , scene = null}){
 // Create Cube
 function createCube(scene = null){
     const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-    const material = new THREE.MeshBasicMaterial( { color: 'red' } );
+    const material = new THREE.MeshBasicMaterial( { color: 'grey',map:colorTexture} );
+    material.map = colorTexture;
     const cube = new THREE.Mesh( geometry, material );
     if (scene) scene.add( cube );
 
@@ -105,6 +130,8 @@ function createCrosshair(){
 }
 
 
+
+// ------------------ MAIN ------------------- 
 // Create scene
 const scene = new THREE.Scene();
 
@@ -138,4 +165,11 @@ const group = new THREE.Group();
 scene.add(group)
 
 
-// Lesson 8
+// --------Debug Control Panel -------------------
+const gui = new dat.GUI()
+gui.add( cube.position , 'x' , -3,3).step(0.01).name("Cube_X");
+gui.add(cube,"visible")
+gui.add(cube.material,"wireframe").onChange( () => {console.log("callback")})
+const debug_functions = { test_log() { console.log("test"); }};
+
+gui.add(debug_functions,"test_log")
