@@ -154,6 +154,40 @@ createCrosshair();
 
 
 
+// ---------- RAYCASTER ----------
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+window.addEventListener('click', onClick, false);
+
+function onClick(event) {
+    // Convert mouse to normalized device coordinates (-1 to +1)
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // Raycast from camera through mouse position
+    raycaster.setFromCamera(mouse, camera);
+
+    // Intersect with your objects (array of meshes or scene.children)
+    const intersects = raycaster.intersectObjects(scene.children, true);
+
+    
+    if (intersects.length > 0) {      
+        console.log(intersects)
+        //const hit = intersects[0];      // closest object
+        //console.log("Hit object:", hit.object);
+        //console.log("Hit point:", hit.point);
+
+        //const hit = intersects[0].object;    
+        //hit.parent.remove(hit);
+    }
+}
+
+
+
+
+
+
+
 
 // ----------------- Other Functions ----------------
 // Create Axes Helper
