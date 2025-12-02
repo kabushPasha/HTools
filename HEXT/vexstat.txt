@@ -79,7 +79,7 @@
     "RS_EnvironmentFogNoise": 10,
     "Random Proxy Version": 1,
     "Random Rotate Packed": 71,
-    "Random_Curve_Track": 19,
+    "Random_Curve_Track": 20,
     "Range 1-100": 5,
     "Reference_Image": 6,
     "Remesh_edge_Resample": 1,

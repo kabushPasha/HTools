@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import * as dat from 'dat.gui'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 
 // Loading Managar
@@ -13,9 +14,9 @@ const loadingManager = new THREE.LoadingManager()
 // IMPORTING IMAGES
 const textureLoader = new THREE.TextureLoader(loadingManager)
 //const texture = textureLoader.load( '/textures/Door/color.jpg', () => {console.log('load')}, () => {console.log('progress')}, () => {console.log('error')});   
-const colorTexture = textureLoader.load( 'textures/Door/color.jpg');   
-const alphaTexture = textureLoader.load( 'textures/Door/alpha.jpg');   
-const normalTexture = textureLoader.load( 'textures/Door/normal.jpg'); 
+const colorTexture = textureLoader.load( '/textures/Door/color.jpg');   
+const alphaTexture = textureLoader.load( '/textures/Door/alpha.jpg');   
+const normalTexture = textureLoader.load( '/textures/Door/normal.jpg'); 
 
 colorTexture.repeat.x = 2;
 colorTexture.wrapS = THREE.RepeatWrapping;
@@ -71,7 +72,7 @@ function createRender({ camera = null , scene = null}){
 }
 // Create Cube
 function createCube(scene = null){
-    const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    const geometry = new THREE.SphereGeometry( 1,36 , 18 );
     const material = new THREE.MeshBasicMaterial( { color: 'grey',map:colorTexture} );
     material.map = colorTexture;
     const cube = new THREE.Mesh( geometry, material );
@@ -82,9 +83,20 @@ function createCube(scene = null){
       this.position.y = Math.sin(time); 
     }
 
+    cube.onHit = function(){
+
+      this.position.add(new THREE.Vector3().randomDirection().multiplyScalar(3));
+      this.position.normalize().multiplyScalar(3);
+      //this.position.set(this.position.normalize().multiplyScalar(5));
+
+    }
+
+    cube.scale.setScalar(0.2);
+
     Loop.add(cube);
     return cube;
 }
+
 // Create Controls
 function createFPSControls(){
   const controls = new PointerLockControls(camera, document.body);
@@ -129,8 +141,6 @@ function createCrosshair(){
   document.body.appendChild(crosshair);
 }
 
-
-
 // ------------------ MAIN ------------------- 
 // Create scene
 const scene = new THREE.Scene();
@@ -153,6 +163,11 @@ createCrosshair();
 
 
 
+function playShootSound() {
+    const snd = new Audio('/SphereShooter/sfx/awp-shoot-sound-effect-cs_go.mp3');
+    snd.volume = 0.02;
+    snd.play();
+}
 
 // ---------- RAYCASTER ----------
 const raycaster = new THREE.Raycaster();
@@ -160,25 +175,28 @@ const mouse = new THREE.Vector2();
 window.addEventListener('click', onClick, false);
 
 function onClick(event) {
-    // Convert mouse to normalized device coordinates (-1 to +1)
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    // Raycast straight from the camera forward
+    raycaster.set(camera.getWorldPosition(new THREE.Vector3()), camera.getWorldDirection(new THREE.Vector3()));
 
-    // Raycast from camera through mouse position
-    raycaster.setFromCamera(mouse, camera);
-
-    // Intersect with your objects (array of meshes or scene.children)
+    // Intersect with objects
     const intersects = raycaster.intersectObjects(scene.children, true);
 
-    
-    if (intersects.length > 0) {      
-        console.log(intersects)
-        //const hit = intersects[0];      // closest object
-        //console.log("Hit object:", hit.object);
-        //console.log("Hit point:", hit.point);
+    // Draw debug line
+    /*
+    const start = raycaster.ray.origin.clone();
+    const end = new THREE.Vector3().addVectors(start, raycaster.ray.direction.clone().multiplyScalar(100));
+    const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
+    const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+    const debugLine = new THREE.Line(geometry, material);
+    scene.add(debugLine);
+    */
 
-        //const hit = intersects[0].object;    
-        //hit.parent.remove(hit);
+    playShootSound();
+    if (intersects.length > 0) {
+        console.log(intersects[0].object);
+        const hit = intersects[0].object;
+        hit.onHit?.()
+        
     }
 }
 
@@ -187,17 +205,16 @@ function onClick(event) {
 
 
 
-
-
 // ----------------- Other Functions ----------------
 // Create Axes Helper
+/*
 const axesHelper = new THREE.AxesHelper()
 scene.add(axesHelper)
 //Create Group
 const group = new THREE.Group();
 //group.add()
 scene.add(group)
-
+*/
 
 // --------Debug Control Panel -------------------
 const gui = new dat.GUI()
@@ -205,5 +222,33 @@ gui.add( cube.position , 'x' , -3,3).step(0.01).name("Cube_X");
 gui.add(cube,"visible")
 gui.add(cube.material,"wireframe").onChange( () => {console.log("callback")})
 const debug_functions = { test_log() { console.log("test"); }};
-
 gui.add(debug_functions,"test_log")
+
+
+
+// Load Pighead
+const loader = new GLTFLoader();
+const gltf = await loader.loadAsync( '/SphereShooter/models/pig/pig.gltf');
+console.log("IMPORTED",gltf.scene);
+gltf.scene.scale.setScalar(1);
+scene.add( gltf.scene );
+
+
+//  -------------------  Lights -----------------
+// Ambient light (soft global light)
+//const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); 
+//scene.add(ambientLight);
+
+// Directional light (like sunlight)
+//const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+//dirLight.position.set(5, 10, 5);  // position the light
+//scene.add(dirLight);
+
+
+
+// HDRI
+textureLoader.load("SphereShooter/textures/hdri/clouds.jpg", function(texture) {
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    scene.background = texture;
+    scene.environment = texture;
+});

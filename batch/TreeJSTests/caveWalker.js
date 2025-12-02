@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+//import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+import { PointerLockControls } from './LZPointerLockControls.js';
 import * as dat from 'dat.gui'
-
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // Loading Managar
 const loadingManager = new THREE.LoadingManager()
@@ -13,9 +14,9 @@ const loadingManager = new THREE.LoadingManager()
 // IMPORTING IMAGES
 const textureLoader = new THREE.TextureLoader(loadingManager)
 //const texture = textureLoader.load( '/textures/Door/color.jpg', () => {console.log('load')}, () => {console.log('progress')}, () => {console.log('error')});   
-const colorTexture = textureLoader.load( 'textures/Door/color.jpg');   
-const alphaTexture = textureLoader.load( 'textures/Door/alpha.jpg');   
-const normalTexture = textureLoader.load( 'textures/Door/normal.jpg'); 
+const colorTexture = textureLoader.load( '/textures/Door/color.jpg');   
+const alphaTexture = textureLoader.load( '/textures/Door/alpha.jpg');   
+const normalTexture = textureLoader.load( '/textures/Door/normal.jpg'); 
 
 colorTexture.repeat.x = 2;
 colorTexture.wrapS = THREE.RepeatWrapping;
@@ -87,31 +88,77 @@ function createCube(scene = null){
 }
 // Create Controls
 function createFPSControls(){
-  const controls = new PointerLockControls(camera, document.body);
-  // --- 2. Click to lock the pointer ---
-  document.addEventListener('click', () => { controls.lock();});
+    const controls = new PointerLockControls(camera, document.body);
+    console.log("CONTROLS",controls);
 
-  // --- 3. Movement flags ---
-  const keys = {};
-  document.addEventListener('keydown', e => (keys[e.code] = true));
-  document.addEventListener('keyup', e => (keys[e.code] = false));
-  const velocity = new THREE.Vector3();
-  const speed = 5;
+    // --- 2. Click to lock the pointer ---
+    document.addEventListener('click', () => { controls.lock();});
 
-  controls.tick = (dt) => {
-      if (controls.isLocked) {
-      velocity.set(0, 0, 0);
-      if (keys['KeyW']) velocity.z -= speed * dt;
-      if (keys['KeyS']) velocity.z += speed * dt;
-      if (keys['KeyA']) velocity.x -= speed * dt;
-      if (keys['KeyD']) velocity.x += speed * dt;
+    // --- 3. Movement flags ---
+    const keys = {};
+    document.addEventListener('keydown', e => (keys[e.code] = true));
+    document.addEventListener('keyup', e => (keys[e.code] = false));
+    const velocity = new THREE.Vector3();
+    const speed = 5;
 
-      controls.moveRight(velocity.x);
-      controls.moveForward(-velocity.z);
+    const raycaster = new THREE.Raycaster();
+    const gravityNormal = new THREE.Vector3(0, 1, 0);
+    const CAMERA_HEIGHT = 1.7;
+
+    controls.tick = function(dt){
+        if (controls.isLocked) {
+        velocity.set(0, 0, 0);
+        if (keys['KeyW']) velocity.z -= speed * dt;
+        if (keys['KeyS']) velocity.z += speed * dt;
+        if (keys['KeyA']) velocity.x -= speed * dt;
+        if (keys['KeyD']) velocity.x += speed * dt;
+
+        controls.moveRight(velocity.x);
+        controls.moveForward(-velocity.z);
+
+        
+        // -------------------------------
+        // RAYCAST USING STORED GRAVITY NORMAL
+        // -------------------------------
+        const origin = camera.position.clone();
+        const rayDir = gravityNormal.clone().negate().normalize();
+        raycaster.set(origin, rayDir);
+        const hits = raycaster.intersectObjects(importedMeshes, true);
+
+        if (hits.length > 0) {
+            const hit = hits[0];
+
+            // ---- Smoothly update gravityNormal ----
+            const surfaceNormal = hit.face.normal.clone()
+                .transformDirection(hit.object.matrixWorld)
+                .normalize();
+            gravityNormal.lerp(surfaceNormal, 1.0).normalize();
+
+            // ---- Position camera along the normal ----
+            camera.position.copy(hit.point).add(gravityNormal.clone().multiplyScalar(CAMERA_HEIGHT));
+
+            // ---- Compute rotation delta to align camera up with gravity ----
+            const oldUp = camera.up.clone();       // previous up
+            const newUp = gravityNormal.clone();   // desired up
+
+            const axis = new THREE.Vector3().crossVectors(oldUp, newUp).normalize();
+            const angle = Math.acos(Math.min(Math.max(oldUp.dot(newUp), -1), 1)); // clamp to [-1,1]
+
+            if (angle > 1e-5) {
+                const quat = new THREE.Quaternion();
+                quat.setFromAxisAngle(axis, angle);
+                camera.quaternion.premultiply(quat);  // apply delta rotation
+            }
+            // ---- Keep camera.up in sync ----
+            camera.up.copy(newUp);
+            controls.upAxis.copy(newUp);            
+        }
+        // END        
     }
-  }
-  return controls
+    }    
+    return controls
 }
+
 // Create a crosshair div
 function createCrosshair(){
   const crosshair = document.createElement('div');
@@ -130,14 +177,13 @@ function createCrosshair(){
 }
 
 
-
 // ------------------ MAIN ------------------- 
 // Create scene
 const scene = new THREE.Scene();
 
 // Create Camera
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-camera.position.z = 5;
+//camera.position.z = 5;
 camera.position.y = 1;
 
 Loop.renderer = createRender({camera, scene});
@@ -145,11 +191,46 @@ Loop.renderer = createRender({camera, scene});
 const controls = createFPSControls();
 Loop.add(controls);
 
-const cube = createCube(scene);
+//const cube = createCube(scene);
 
 Loop.tick()
 
 createCrosshair();
+
+
+//-- LOAD MODEL
+let importedMeshes = [];
+
+const loader = new GLTFLoader();
+const gltf = await loader.loadAsync( 'Models/TestGeo/testCave.gltf' );
+console.log(gltf.scene);
+
+const simpleMaterial = new THREE.MeshStandardMaterial({
+  color: 0xcccccc,
+  metalness: 0,
+  roughness: 1,
+  side: THREE.DoubleSide
+});
+
+// Traverse all objects in the loaded scene
+gltf.scene.traverse((obj) => {
+  if (obj.isMesh) {
+    obj.material = simpleMaterial;
+    importedMeshes.push(obj);
+  }
+});
+
+scene.add( gltf.scene );
+
+// Ambient light (soft global light)
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); 
+scene.add(ambientLight);
+
+// Directional light (like sunlight)
+const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+dirLight.position.set(5, 10, 5);  // position the light
+scene.add(dirLight);
+
 
 
 
@@ -168,7 +249,7 @@ function onClick(event) {
     raycaster.setFromCamera(mouse, camera);
 
     // Intersect with your objects (array of meshes or scene.children)
-    const intersects = raycaster.intersectObjects(scene.children, true);
+    const intersects = raycaster.intersectObjects(importedMeshes, true);
 
     
     if (intersects.length > 0) {      
@@ -187,23 +268,11 @@ function onClick(event) {
 
 
 
-
-
-// ----------------- Other Functions ----------------
-// Create Axes Helper
-const axesHelper = new THREE.AxesHelper()
-scene.add(axesHelper)
-//Create Group
-const group = new THREE.Group();
-//group.add()
-scene.add(group)
-
-
 // --------Debug Control Panel -------------------
 const gui = new dat.GUI()
-gui.add( cube.position , 'x' , -3,3).step(0.01).name("Cube_X");
-gui.add(cube,"visible")
-gui.add(cube.material,"wireframe").onChange( () => {console.log("callback")})
+//gui.add( cube.position , 'x' , -3,3).step(0.01).name("Cube_X");
+//gui.add(cube,"visible")
+//gui.add(cube.material,"wireframe").onChange( () => {console.log("callback")})
 const debug_functions = { test_log() { console.log("test"); }};
 
 gui.add(debug_functions,"test_log")
