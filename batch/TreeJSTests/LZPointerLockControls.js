@@ -221,9 +221,11 @@ class PointerLockControls extends Controls {
 
 }
 
+
+
+
 // event listeners
 
-/*
 function onMouseMove( event ) {
 
 	if ( this.enabled === false || this.isLocked === false ) return;
@@ -240,8 +242,11 @@ function onMouseMove( event ) {
 
 	this.dispatchEvent( _changeEvent );
 }
-*/
 
+
+
+/*
+// 3d Walking
 function onMouseMove(event) {
 
     if (this.enabled === false || this.isLocked === false) return;
@@ -265,7 +270,7 @@ function onMouseMove(event) {
 
     this.dispatchEvent(_changeEvent);
 }
-
+*/
 
 function onPointerlockChange() {
 

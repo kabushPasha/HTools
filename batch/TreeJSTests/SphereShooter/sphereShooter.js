@@ -2,28 +2,18 @@ import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import * as dat from 'dat.gui'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as targets from "./targets.js";
+import { playSound } from "./sounds.js";
+import Stats from "three/addons/libs/stats.module.js";
 
+const stats = new Stats();
+document.body.appendChild(stats.dom);
 
 // Loading Managar
 const loadingManager = new THREE.LoadingManager()
-//loadingManager.onStart = 
-//loadingManager.onLoaded = 
-//loadingManager.onProgress = 
-
 
 // IMPORTING IMAGES
 const textureLoader = new THREE.TextureLoader(loadingManager)
-//const texture = textureLoader.load( '/textures/Door/color.jpg', () => {console.log('load')}, () => {console.log('progress')}, () => {console.log('error')});   
-const colorTexture = textureLoader.load( '/textures/Door/color.jpg');   
-const alphaTexture = textureLoader.load( '/textures/Door/alpha.jpg');   
-const normalTexture = textureLoader.load( '/textures/Door/normal.jpg'); 
-
-colorTexture.repeat.x = 2;
-colorTexture.wrapS = THREE.RepeatWrapping;
-//colorTexture.minFilter = THREE.NearestFilter;
-colorTexture.magFilter = THREE.NearestFilter; // FOR Pixel Art
-
-
 
 
 // Create LOOP
@@ -35,12 +25,14 @@ const Loop = {
     this.objects.push(obj);
   },  
   tick() {
-    requestAnimationFrame(() => this.tick());     
+    requestAnimationFrame(() => this.tick());   
+    stats.update();
     const dt = this.clock.getDelta();
     this.objects.forEach(obj => obj?.tick?.(dt));
     this.renderer?.draw?.();
   }
 }
+
 //Create Render
 function createRender({ camera = null , scene = null}){
   // Create Renderer
@@ -101,7 +93,11 @@ function createCube(scene = null){
 function createFPSControls(){
   const controls = new PointerLockControls(camera, document.body);
   // --- 2. Click to lock the pointer ---
-  document.addEventListener('click', () => { controls.lock();});
+  document.addEventListener('click', () => { 
+    if (!controls.isLocked) controls.lock();
+  });
+
+  controls.pointerSpeed = 0.2;
 
   // --- 3. Movement flags ---
   const keys = {};
@@ -110,6 +106,7 @@ function createFPSControls(){
   const velocity = new THREE.Vector3();
   const speed = 5;
 
+  /*
   controls.tick = (dt) => {
       if (controls.isLocked) {
       velocity.set(0, 0, 0);
@@ -122,6 +119,7 @@ function createFPSControls(){
       controls.moveForward(-velocity.z);
     }
   }
+  */
   return controls
 }
 // Create a crosshair div
@@ -142,12 +140,10 @@ function createCrosshair(){
 }
 
 // ------------------ MAIN ------------------- 
-// Create scene
 const scene = new THREE.Scene();
 
 // Create Camera
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-camera.position.z = 5;
 camera.position.y = 1;
 
 Loop.renderer = createRender({camera, scene});
@@ -155,7 +151,7 @@ Loop.renderer = createRender({camera, scene});
 const controls = createFPSControls();
 Loop.add(controls);
 
-const cube = createCube(scene);
+//const cube = createCube(scene);
 
 Loop.tick()
 
@@ -163,47 +159,36 @@ createCrosshair();
 
 
 
-function playShootSound() {
-    const snd = new Audio('/SphereShooter/sfx/awp-shoot-sound-effect-cs_go.mp3');
-    snd.volume = 0.02;
-    snd.play();
-}
-
 // ---------- RAYCASTER ----------
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
-window.addEventListener('click', onClick, false);
+window.addEventListener('click', raycastAgainstTarget, false);
 
-function onClick(event) {
+function raycastAgainstTarget() {
     // Raycast straight from the camera forward
     raycaster.set(camera.getWorldPosition(new THREE.Vector3()), camera.getWorldDirection(new THREE.Vector3()));
 
     // Intersect with objects
     const intersects = raycaster.intersectObjects(scene.children, true);
 
-    // Draw debug line
-    /*
-    const start = raycaster.ray.origin.clone();
-    const end = new THREE.Vector3().addVectors(start, raycaster.ray.direction.clone().multiplyScalar(100));
-    const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
-    const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-    const debugLine = new THREE.Line(geometry, material);
-    scene.add(debugLine);
-    */
-
-    playShootSound();
+    playSound("SphereShooter/sfx/awp-shoot-sound-effect-cs_go.mp3");
     if (intersects.length > 0) {
-        console.log(intersects[0].object);
         const hit = intersects[0].object;
-        hit.onHit?.()
-        
+        hit.onHit?.();
+    }
+    else{
+      playSound("SphereShooter/sfx/bullet_miss.mp3",0.2)
     }
 }
 
-
-
-
-
+/*
+const lazer = {
+  tick() {
+    raycastAgainstTarget();
+  }
+}
+Loop.add(lazer);
+*/
 
 // ----------------- Other Functions ----------------
 // Create Axes Helper
@@ -216,23 +201,16 @@ const group = new THREE.Group();
 scene.add(group)
 */
 
-// --------Debug Control Panel -------------------
-const gui = new dat.GUI()
-gui.add( cube.position , 'x' , -3,3).step(0.01).name("Cube_X");
-gui.add(cube,"visible")
-gui.add(cube.material,"wireframe").onChange( () => {console.log("callback")})
-const debug_functions = { test_log() { console.log("test"); }};
-gui.add(debug_functions,"test_log")
-
 
 
 // Load Pighead
+/*
 const loader = new GLTFLoader();
 const gltf = await loader.loadAsync( '/SphereShooter/models/pig/pig.gltf');
 console.log("IMPORTED",gltf.scene);
 gltf.scene.scale.setScalar(1);
 scene.add( gltf.scene );
-
+*/
 
 //  -------------------  Lights -----------------
 // Ambient light (soft global light)
@@ -252,3 +230,44 @@ textureLoader.load("SphereShooter/textures/hdri/clouds.jpg", function(texture) {
     scene.background = texture;
     scene.environment = texture;
 });
+
+
+// Scene Building
+targets.createGridBoard({
+  scene,
+  position:new THREE.Vector3(0,1,-5),
+  size :new THREE.Vector3(4,4,0.05),
+}).createGeo().createTargets(3);
+
+
+
+
+
+// --------Debug Control Panel -------------------
+const gui = new dat.GUI()
+gui.add(controls,"pointerSpeed",0.0001,1).step(0.01).name("Sensetivity")
+
+
+
+//gui.add( cube.position , 'x' , -3,3).step(0.01).name("Cube_X");
+//gui.add(cube,"visible")
+//gui.add(cube.material,"wireframe").onChange( () => {console.log("callback")})
+//const debug_functions = { test_log() { console.log("test"); }};
+//gui.add(debug_functions,"test_log")
+
+/*
+const moves = {};
+document.addEventListener('mousemove', (event) => {
+    const moveSquared = event.movementX ** 2 + event.movementY ** 2;
+
+    if (moveSquared in moves) {
+        moves[moveSquared] += 1;
+    } else {
+        moves[moveSquared] = 1;
+    }
+
+    console.log(moves);
+});
+
+
+*/
