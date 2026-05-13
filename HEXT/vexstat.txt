@@ -101,6 +101,7 @@
     "StartEndCurvePoints": 1,
     "Surface_dissolve": 8,
     "Sweater_Knit": 1,
+    "THREE_Vats": 1,
     "TURB": 154,
     "TURB V": 284,
     "Test": 1,
