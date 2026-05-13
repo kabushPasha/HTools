@@ -194,6 +194,9 @@
         },
         "Metahuman_MergeHeadAndBody": {
             "load_node": "Metahuman_MergeHeadAndBody"
+        },
+        "THREE_Vats": {
+            "load_node": "THREE_Vats"
         }
     },
     "VDB Modelling": {
