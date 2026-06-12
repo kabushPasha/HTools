@@ -1042,11 +1042,15 @@ settings.useResolution(True)
 
 # Define output path
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-output_dir = hou.expandString("S:/MEGA/Projects/2020/001_Personal/019_SubstanceDesigner/Houdini/Thumbnails")
+output_dir = hou.expandString("$HIP/Thumbnails")
+# Create folder if missing
+os.makedirs(output_dir, exist_ok=True)
 filename = f"viewport_flipbook_{timestamp}.jpg"
 output_path = os.path.join(output_dir, filename)
 settings.outputToMPlay(False)
 settings.output(output_path)
+
+
 
 # Execute the flipbook render
 scene_viewer.flipbook(viewport, settings)
