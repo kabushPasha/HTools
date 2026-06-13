@@ -1047,6 +1047,7 @@ output_dir = hou.expandString("$HIP/Thumbnails")
 os.makedirs(output_dir, exist_ok=True)
 filename = f"viewport_flipbook_{timestamp}.jpg"
 output_path = os.path.join(output_dir, filename)
+output_path = os.path.normpath(output_path)
 settings.outputToMPlay(False)
 settings.output(output_path)
 
@@ -1066,6 +1067,7 @@ image = hou.NetworkImage()
 image.setPath(output_path)
 image.setRect(bb)
 images.append(image)
+print(image,output_path)
 editor.setBackgroundImages(images)]]></script>
   </tool>
 </shelfDocument>
