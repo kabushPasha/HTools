@@ -315,7 +315,8 @@
       const end = seg.end;
       //const outputFile = `"CUTS/CUT_${baseName}_segment${i + 1}.mp4"`;
       const outputFile = `"${outputDir}/CUT_${baseName}_segment${i + 1}.mp4"`;
-      const line = `ffmpeg -ss ${start.toFixed(3)} -to ${end.toFixed(3)} -i ${inputFileName} -c copy -avoid_negative_ts make_zero ${outputFile}`;
+      //const line = `ffmpeg -n -ss ${start.toFixed(3)} -to ${end.toFixed(3)} -i ${inputFileName} -c copy -avoid_negative_ts make_zero ${outputFile}`;
+      const line = `ffmpeg -v error -n -ss ${start.toFixed(3)} -to ${end.toFixed(3)} -i ${inputFileName} -c copy -avoid_negative_ts make_zero ${outputFile}`;
       cmdLines.push(line);
     });
 
