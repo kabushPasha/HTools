@@ -1,0 +1,333 @@
+body {
+
+  background-color: #111;
+
+  color: white;
+
+  font-family: Arial, sans-serif;
+
+  margin: 15px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  user-select: none;
+
+}
+
+
+
+#controls {
+
+  margin-bottom: 15px;
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+  align-items: center;
+
+}
+
+
+
+#videoGrid {
+
+  display: flex;
+
+  gap: 12px;
+
+  flex-wrap: wrap;
+
+  justify-content: flex-start;
+
+  width: 100%;
+
+  padding: 0 15px;
+
+  box-sizing: border-box;
+
+}
+
+
+
+.video-container {
+
+  background: #222;
+
+  padding: 6px;
+
+  border-radius: 8px;
+
+  flex-shrink: 0;
+
+  box-sizing: border-box;
+
+  position: relative;
+
+  user-select: none;
+
+}
+
+
+
+video {
+
+  display: block;
+
+  width: 100%;
+
+  height: auto;
+
+  border-radius: 5px;
+
+  outline: none;
+
+  pointer-events: none;
+
+}
+
+
+
+button {
+
+  background-color: #333;
+
+  border: none;
+
+  color: white;
+
+  padding: 8px 14px;
+
+  border-radius: 6px;
+
+  cursor: pointer;
+
+  font-size: 14px;
+
+  user-select: none;
+
+  transition: background-color 0.25s ease;
+
+}
+
+
+
+button:hover:not(:disabled) {
+
+  background-color: #555;
+
+}
+
+
+
+button:disabled {
+
+  opacity: 0.3;
+
+  cursor: default;
+
+}
+
+
+
+#pagination {
+
+  display: flex;
+
+  gap: 6px;
+
+  flex-wrap: wrap;
+
+  justify-content: center;
+
+  margin-top: 10px;
+
+}
+
+
+
+#pagination button.page-btn {
+
+  width: 32px;
+
+  height: 32px;
+
+  padding: 0;
+
+  font-weight: bold;
+
+}
+
+
+
+#pagination button.page-btn.active {
+
+  background-color: #1e90ff;
+
+}
+
+
+
+input[type="file"] {
+
+  cursor: pointer;
+
+}
+
+
+
+label {
+
+  user-select: none;
+
+}
+
+
+
+.fav-btn {
+
+  position: absolute;
+
+  top: 6px;
+
+  right: 6px;
+
+  background-color: #444;
+
+  padding: 4px 8px;
+
+  font-size: 12px;
+
+  border-radius: 4px;
+
+  user-select: none;
+
+  cursor: pointer;
+
+}
+
+
+
+.fav-btn.favorited {
+
+  background-color: #1abc9c;
+
+}
+
+
+
+#showFavoritesToggle,
+
+#saveFavoritesBtn,
+
+#generateFFmpegBtn {
+
+  background-color: #333;
+
+  padding: 8px 14px;
+
+  border-radius: 6px;
+
+  cursor: pointer;
+
+  font-weight: bold;
+
+  user-select: none;
+
+  transition: background-color 0.25s ease;
+
+}
+
+
+
+#showFavoritesToggle.active {
+
+  background-color: #1abc9c;
+
+}
+
+
+
+.video-container .overlay-button,
+
+.video-container .duration-overlay {
+
+  opacity: 0;
+
+  transition: opacity 0.25s ease;
+
+  pointer-events: none;
+
+}
+
+
+
+.video-container:hover .overlay-button,
+
+.video-container:hover .duration-overlay {
+
+  opacity: 1;
+
+  pointer-events: auto;
+
+}
+
+
+
+.star-icon-button {
+
+  position: absolute;
+
+  top: 6px;
+
+  right: 6px;
+
+  background: rgba(0, 0, 0, 0.5);
+
+  color: white;
+
+  font-size: 16px;
+
+  border: none;
+
+  border-radius: 4px;
+
+  padding: 2px 6px;
+
+  cursor: pointer;
+
+  transition: opacity 0.2s;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+}
+
+
+
+.video-container:hover .star-icon-button {
+
+  opacity: 1;
+
+  pointer-events: auto;
+
+}
+
+
+
+.star-icon-button.favorited {
+
+  color: #1abc9c;
+
+  opacity: 1;
+
+  pointer-events: auto;
+
+}

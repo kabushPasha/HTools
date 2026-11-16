@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Video Segment Gallery with Favorites and ffmpeg CMD Export</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+
+
+<body>
+  <div id="controls">
+    <label>
+      Load Video:
+      <input id="videoFileInput" type="file" accept="\*" />
+    </label>
+
+    <label>
+      Videos per page:
+      <input type="number" id="perPageInput" min="1" max="100" value="6" style="width: 60px;" />
+    </label>
+
+    <label>
+      Load Keyframes (.txt):
+      <input id="keyframeFileInput" type="file" accept="\*" />
+    </label>
+
+    <button id="zoomOutBtn" title="Zoom Out">➖ Zoom Out</button>
+    <button id="zoomInBtn" title="Zoom In">➕ Zoom In</button>
+
+    <button id="showFavoritesToggle" title="Toggle show favorites only" disabled>Show Favorites Only: OFF</button>
+    <button id="generateFFmpegBtn" title="Generate ffmpeg CMD script" disabled>⚙️ Generate ffmpeg CMD</button>
+    <button id="clearLocalStorageBtn" title="Clear saved favorites">🗑️ Clear All Saved</button>
+  </div>
+
+  <div id="videoGrid" aria-label="Video segment gallery"></div>
+  <div id="pagination" role="navigation" aria-label="Page navigation"></div>
+
+  <div id="dropOverlay" style="
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(30, 144, 255, 0.2);
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: none;
+  user-select: none;
+">
+    Drop video or keyframe file here
+  </div>
+
+  <script src="script.js" defer></script>
+
+</body>
+
+</html>
